@@ -83,11 +83,30 @@ export class PostgresAdapter implements IDbAdapter {
     }
   }
 
+  /**
+   * Uses Bun.SQL's sql.reserve() to pin a single connection from the pool.
+   * Raw BEGIN/COMMIT via unsafe() is rejected by Bun when pool max > 1
+   * because queries could land on different connections.
+   *
+   * The reserved connection is released when commit() or rollback() is called.
+   */
   async beginTransaction(): Promise<IDbTransaction> {
-    const conn = this.sql;
+    let reserved: Awaited<ReturnType<InstanceType<typeof SQL>["reserve"]>>;
     try {
-      await conn.unsafe("BEGIN");
+      reserved = await this.sql.reserve();
     } catch (err) {
+      throw wrapError(
+        err,
+        ErrorCode.ADAPTER_DRIVER_ERROR,
+        { operation: "beginTransaction", adapter: "postgres" },
+        "PostgreSQL reserve connection failed",
+      );
+    }
+
+    try {
+      await reserved.unsafe("BEGIN");
+    } catch (err) {
+      reserved.release();
       throw wrapError(
         err,
         ErrorCode.ADAPTER_DRIVER_ERROR,
@@ -99,7 +118,7 @@ export class PostgresAdapter implements IDbAdapter {
     const tx: IDbTransaction = {
       async execute(sql: string, params: unknown[]): Promise<{ rowsAffected: number }> {
         try {
-          const result = await conn.unsafe(sql, params as (string | number | boolean | null)[]);
+          const result = await reserved.unsafe(sql, params as (string | number | boolean | null)[]);
           return { rowsAffected: result.count ?? 0 };
         } catch (err) {
           throw wrapError(
@@ -112,7 +131,7 @@ export class PostgresAdapter implements IDbAdapter {
       },
       async query(sql: string, params: unknown[]): Promise<Row[]> {
         try {
-          const result = await conn.unsafe(sql, params as (string | number | boolean | null)[]);
+          const result = await reserved.unsafe(sql, params as (string | number | boolean | null)[]);
           return [...result] as Row[];
         } catch (err) {
           throw wrapError(
@@ -125,7 +144,7 @@ export class PostgresAdapter implements IDbAdapter {
       },
       async commit(): Promise<void> {
         try {
-          await conn.unsafe("COMMIT");
+          await reserved.unsafe("COMMIT");
         } catch (err) {
           throw wrapError(
             err,
@@ -133,11 +152,13 @@ export class PostgresAdapter implements IDbAdapter {
             { operation: "commit", adapter: "postgres" },
             "PostgreSQL COMMIT failed",
           );
+        } finally {
+          reserved.release();
         }
       },
       async rollback(): Promise<void> {
         try {
-          await conn.unsafe("ROLLBACK");
+          await reserved.unsafe("ROLLBACK");
         } catch (err) {
           throw wrapError(
             err,
@@ -145,11 +166,13 @@ export class PostgresAdapter implements IDbAdapter {
             { operation: "rollback", adapter: "postgres" },
             "PostgreSQL ROLLBACK failed",
           );
+        } finally {
+          reserved.release();
         }
       },
       async savepoint(name: string): Promise<void> {
         try {
-          await conn.unsafe(`SAVEPOINT ${name}`);
+          await reserved.unsafe(`SAVEPOINT ${name}`);
         } catch (err) {
           throw wrapError(
             err,
@@ -161,7 +184,7 @@ export class PostgresAdapter implements IDbAdapter {
       },
       async releaseSavepoint(name: string): Promise<void> {
         try {
-          await conn.unsafe(`RELEASE SAVEPOINT ${name}`);
+          await reserved.unsafe(`RELEASE SAVEPOINT ${name}`);
         } catch (err) {
           throw wrapError(
             err,
@@ -173,7 +196,7 @@ export class PostgresAdapter implements IDbAdapter {
       },
       async rollbackToSavepoint(name: string): Promise<void> {
         try {
-          await conn.unsafe(`ROLLBACK TO SAVEPOINT ${name}`);
+          await reserved.unsafe(`ROLLBACK TO SAVEPOINT ${name}`);
         } catch (err) {
           throw wrapError(
             err,
