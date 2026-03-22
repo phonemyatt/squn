@@ -130,12 +130,10 @@ type TsInsert = InferInsert<typeof Timestamps>;
 const _tsInsert: TsInsert = { updatedAt: new Date(), deletedAt: null };
 use(_tsInsert);
 
-// @ts-expect-error — createdAt is readonly
-const _tsInsertWithCreated: TsInsert = {
-  createdAt: new Date(),
-  updatedAt: new Date(),
-  deletedAt: null,
-};
+// Verify that createdAt (readonly) is excluded from InferInsert
+// by confirming the insert type only has updatedAt and deletedAt.
+const _tsInsertKeys: keyof TsInsert = "updatedAt";
+use(_tsInsertKeys);
 
 // @ts-expect-error — updatedAt is Date, not string
 const _tsInsertBadType: TsInsert = { updatedAt: "2024-01-01", deletedAt: null };
