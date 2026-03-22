@@ -1,4 +1,4 @@
-import { Database } from "bun:sqlite";
+import { Database, type SQLQueryBindings } from "bun:sqlite";
 import type { Row } from "../types/primitives.ts";
 import type { IDbAdapter, IDbTransaction, TvpValue, TvpMaterialised } from "./base.ts";
 import { ErrorCode } from "../errors/codes.ts";
@@ -24,7 +24,7 @@ export class SqliteAdapter implements IDbAdapter {
 
   async execute(sql: string, params: unknown[]): Promise<{ rowsAffected: number }> {
     try {
-      this.db.run(sql, params as (string | number | boolean | null)[]);
+      this.db.prepare(sql).run(...(params as SQLQueryBindings[]));
       const result = this.db.query("SELECT changes() as c").get() as { c: number } | null;
       return { rowsAffected: result?.c ?? 0 };
     } catch (err) {
@@ -34,7 +34,7 @@ export class SqliteAdapter implements IDbAdapter {
 
   async query(sql: string, params: unknown[]): Promise<Row[]> {
     try {
-      return this.db.query(sql).all(params as (string | number | boolean | null)[]) as Row[];
+      return this.db.query(sql).all(...(params as SQLQueryBindings[])) as Row[];
     } catch (err) {
       throw wrapError(err, ErrorCode.ADAPTER_DRIVER_ERROR, { operation: "query", adapter: "sqlite", sql }, `SQLite query failed`);
     }
@@ -45,7 +45,7 @@ export class SqliteAdapter implements IDbAdapter {
       const results: Row[][] = [];
       const statements = sql.split(";").filter((s) => s.trim().length > 0);
       for (const stmt of statements) {
-        results.push(this.db.query(stmt).all(params as (string | number | boolean | null)[]) as Row[]);
+        results.push(this.db.query(stmt).all(...(params as SQLQueryBindings[])) as Row[]);
       }
       return results;
     } catch (err) {
@@ -65,7 +65,7 @@ export class SqliteAdapter implements IDbAdapter {
     const tx: IDbTransaction = {
       async execute(sql: string, params: unknown[]): Promise<{ rowsAffected: number }> {
         try {
-          db.run(sql, params as (string | number | boolean | null)[]);
+          db.prepare(sql).run(...(params as SQLQueryBindings[]));
           const result = db.query("SELECT changes() as c").get() as { c: number } | null;
           return { rowsAffected: result?.c ?? 0 };
         } catch (err) {
@@ -74,7 +74,7 @@ export class SqliteAdapter implements IDbAdapter {
       },
       async query(sql: string, params: unknown[]): Promise<Row[]> {
         try {
-          return db.query(sql).all(params as (string | number | boolean | null)[]) as Row[];
+          return db.query(sql).all(...(params as SQLQueryBindings[])) as Row[];
         } catch (err) {
           throw wrapError(err, ErrorCode.ADAPTER_DRIVER_ERROR, { operation: "query", adapter: "sqlite", sql }, `SQLite tx query failed`);
         }
