@@ -1,6 +1,5 @@
 import { describe, it, expect } from "bun:test";
 import { ErrorCode } from "../../../src/errors/codes.ts";
-import { SqunError } from "../../../src/errors/base.ts";
 import { QueryError, ConnectionError } from "../../../src/errors/types.ts";
 import { wrapError } from "../../../src/errors/wrap.ts";
 import type { ErrorContext } from "../../../src/errors/context.ts";
