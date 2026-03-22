@@ -1,4 +1,4 @@
-import { describe, it, expect } from "bun:test";
+import { describe, expect, it } from "bun:test";
 import { TransactionClock } from "../../../src/async/clock.ts";
 
 describe("async/clock — TransactionClock", () => {

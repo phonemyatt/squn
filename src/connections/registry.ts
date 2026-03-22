@@ -17,7 +17,11 @@ export class ConnectionRegistry<Names extends string = string> {
       throw new ConnectionError(
         ErrorCode.CONN_UNKNOWN,
         `Default connection '${defaultName}' is not in the registry`,
-        { operation: "createConnections", requestedName: defaultName, registeredNames: this.names() },
+        {
+          operation: "createConnections",
+          requestedName: defaultName,
+          registeredNames: this.names(),
+        },
       );
     }
   }

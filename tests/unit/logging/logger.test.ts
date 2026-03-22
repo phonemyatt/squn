@@ -1,9 +1,9 @@
-import { describe, it, expect, mock } from "bun:test";
-import { EventCode } from "../../../src/logging/logger.ts";
+import { describe, expect, it, mock } from "bun:test";
 import { consoleLogger } from "../../../src/logging/console-logger.ts";
 import { jsonLogger } from "../../../src/logging/json-logger.ts";
-import { noopLogger } from "../../../src/logging/noop-logger.ts";
 import type { LogEntry } from "../../../src/logging/logger.ts";
+import { EventCode } from "../../../src/logging/logger.ts";
+import { noopLogger } from "../../../src/logging/noop-logger.ts";
 
 function makeEntry(overrides?: Partial<LogEntry>): LogEntry {
   return {

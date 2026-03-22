@@ -1,18 +1,18 @@
-export { col } from "./col.ts";
 export type { ColumnDef } from "./col.ts";
-export { defineTable } from "./table.ts";
-export type { ColumnMap, TableDefinition } from "./table.ts";
+export { col } from "./col.ts";
 export type {
-  InferModel,
   InferInsert,
-  InferUpdate,
+  InferModel,
   InferReadonlyModel,
   InferSelect,
   InferTableType,
-  NullableKeys,
-  NotNullKeys,
-  ReadonlyKeys,
-  MutableKeys,
+  InferUpdate,
   IsNullable,
+  MutableKeys,
+  NotNullKeys,
+  NullableKeys,
+  ReadonlyKeys,
 } from "./infer.ts";
-export type { Row, Params, ColumnValue } from "./primitives.ts";
+export type { ColumnValue, Params, Row } from "./primitives.ts";
+export type { ColumnMap, TableDefinition } from "./table.ts";
+export { defineTable } from "./table.ts";

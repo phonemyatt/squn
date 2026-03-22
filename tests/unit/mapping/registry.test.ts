@@ -1,9 +1,13 @@
-import { describe, it, expect, beforeEach } from "bun:test";
+import { beforeEach, describe, expect, it } from "bun:test";
 import { globalMapperRegistry } from "../../../src/mapping/mapper-registry.ts";
 import type { Row } from "../../../src/types/primitives.ts";
 
-class Foo { id = 0; }
-class Bar { id = 0; }
+class Foo {
+  id = 0;
+}
+class Bar {
+  id = 0;
+}
 
 describe("mapping/mapper-registry — globalMapperRegistry", () => {
   beforeEach(() => {
@@ -11,7 +15,11 @@ describe("mapping/mapper-registry — globalMapperRegistry", () => {
   });
 
   it("register and get returns the registered mapper", () => {
-    const mapper = (row: Row) => { const f = new Foo(); f.id = row.id as number; return f; };
+    const mapper = (row: Row) => {
+      const f = new Foo();
+      f.id = row.id as number;
+      return f;
+    };
     globalMapperRegistry.register(Foo, mapper);
     expect(globalMapperRegistry.get(Foo)).toBe(mapper);
   });

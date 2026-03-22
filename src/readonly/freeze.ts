@@ -7,10 +7,10 @@
  */
 export function Readonly() {
   // biome-ignore lint/suspicious/noExplicitAny: must accept any constructor signature
-  return function <T extends new (...args: any[]) => object>(
+  return <T extends new (...args: any[]) => object>(
     target: T,
     _context: ClassDecoratorContext,
-  ): T {
+  ): T => {
     // biome-ignore lint/suspicious/noExplicitAny: must match target constructor
     const Frozen = class extends (target as new (...args: any[]) => object) {
       // biome-ignore lint/suspicious/noExplicitAny: must match target constructor

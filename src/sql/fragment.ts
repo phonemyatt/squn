@@ -24,6 +24,10 @@ export function isTvpValue(x: unknown): x is TvpValue {
 }
 
 /** Creates a SqlFragment from parts. */
-export function createFragment(text: string, params: readonly unknown[], tvpValues: readonly TvpValue[] = []): SqlFragment {
+export function createFragment(
+  text: string,
+  params: readonly unknown[],
+  tvpValues: readonly TvpValue[] = [],
+): SqlFragment {
   return { text, params, tvpValues, __isSql: true };
 }

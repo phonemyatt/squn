@@ -1,10 +1,15 @@
-import { describe, it, expect } from "bun:test";
-import { isDeadlock, retryWithDeadlockBackoff } from "../../../src/transaction/deadlock.ts";
-import { QueryError } from "../../../src/errors/types.ts";
+import { describe, expect, it } from "bun:test";
 import { ErrorCode } from "../../../src/errors/codes.ts";
+import { QueryError } from "../../../src/errors/types.ts";
+import { isDeadlock, retryWithDeadlockBackoff } from "../../../src/transaction/deadlock.ts";
 
 function makeErr(cause: unknown): QueryError {
-  return new QueryError(ErrorCode.QUERY_EXECUTION_FAILED, "db error", { operation: "query" }, cause);
+  return new QueryError(
+    ErrorCode.QUERY_EXECUTION_FAILED,
+    "db error",
+    { operation: "query" },
+    cause,
+  );
 }
 
 describe("transaction/deadlock — isDeadlock()", () => {
@@ -44,7 +49,9 @@ describe("transaction/deadlock — isDeadlock()", () => {
 
 describe("transaction/deadlock — retryWithDeadlockBackoff()", () => {
   it("returns result on first success without retry", async () => {
-    const result = await retryWithDeadlockBackoff(() => Promise.resolve(42), "postgres", { maxRetries: 3 });
+    const result = await retryWithDeadlockBackoff(() => Promise.resolve(42), "postgres", {
+      maxRetries: 3,
+    });
     expect(result).toBe(42);
   });
 
@@ -65,11 +72,10 @@ describe("transaction/deadlock — retryWithDeadlockBackoff()", () => {
 
   it("throws after exhausting retries", async () => {
     await expect(
-      retryWithDeadlockBackoff(
-        () => Promise.reject(makeErr({ code: "40P01" })),
-        "postgres",
-        { maxRetries: 1, baseDelayMs: 1 },
-      ),
+      retryWithDeadlockBackoff(() => Promise.reject(makeErr({ code: "40P01" })), "postgres", {
+        maxRetries: 1,
+        baseDelayMs: 1,
+      }),
     ).rejects.toThrow();
   });
 
@@ -84,7 +90,9 @@ describe("transaction/deadlock — retryWithDeadlockBackoff()", () => {
         "postgres",
         { maxRetries: 3, baseDelayMs: 1 },
       );
-    } catch { /* expected */ }
+    } catch {
+      /* expected */
+    }
     expect(attempt).toBe(1);
   });
 });

@@ -1,15 +1,28 @@
-import { describe, it, expect } from "bun:test";
-import { propertyInjectionMapper, constructorMapper, factoryMapper, staticFromDbMapper } from "../../../src/mapping/class-mapper.ts";
+import { describe, expect, it } from "bun:test";
+import {
+  constructorMapper,
+  factoryMapper,
+  propertyInjectionMapper,
+  staticFromDbMapper,
+} from "../../../src/mapping/class-mapper.ts";
 import type { Row } from "../../../src/types/primitives.ts";
 
 class UserModel {
   id = 0;
   name = "";
-  getInitials(): string { return this.name.split(" ").map((w) => w[0]).join(""); }
+  getInitials(): string {
+    return this.name
+      .split(" ")
+      .map((w) => w[0])
+      .join("");
+  }
 }
 
 class ConstructorUser {
-  constructor(public id: number, public name: string) {}
+  constructor(
+    public id: number,
+    public name: string,
+  ) {}
 }
 
 class StaticUser {

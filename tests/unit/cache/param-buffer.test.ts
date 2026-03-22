@@ -1,4 +1,4 @@
-import { describe, it, expect } from "bun:test";
+import { describe, expect, it } from "bun:test";
 import { ParamBuffer } from "../../../src/cache/param-buffer.ts";
 
 describe("cache/param-buffer — ParamBuffer", () => {

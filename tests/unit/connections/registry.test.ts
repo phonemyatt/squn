@@ -1,32 +1,53 @@
-import { describe, it, expect } from "bun:test";
+import { describe, expect, it } from "bun:test";
+import type {
+  IDbAdapter,
+  IDbTransaction,
+  TvpMaterialised,
+  TvpValue,
+} from "../../../src/adapters/base.ts";
 import { ConnectionRegistry } from "../../../src/connections/registry.ts";
-import { ConnectionError } from "../../../src/errors/types.ts";
 import { ErrorCode } from "../../../src/errors/codes.ts";
-import type { IDbAdapter, IDbTransaction, TvpValue, TvpMaterialised } from "../../../src/adapters/base.ts";
+import { ConnectionError } from "../../../src/errors/types.ts";
 
 function stub(): IDbAdapter {
   return {
     type: "sqlite",
-    async execute() { return { rowsAffected: 0 }; },
-    async query() { return []; },
-    async queryMultiple() { return []; },
-    async beginTransaction(): Promise<IDbTransaction> { throw new Error("not impl"); },
+    async execute() {
+      return { rowsAffected: 0 };
+    },
+    async query() {
+      return [];
+    },
+    async queryMultiple() {
+      return [];
+    },
+    async beginTransaction(): Promise<IDbTransaction> {
+      throw new Error("not impl");
+    },
     async ping() {},
     async close() {},
-    async materializeTvp(_t: TvpValue, _i: number): Promise<TvpMaterialised> { throw new Error("not impl"); },
+    async materializeTvp(_t: TvpValue, _i: number): Promise<TvpMaterialised> {
+      throw new Error("not impl");
+    },
   };
 }
 
 describe("connections/registry — ConnectionRegistry", () => {
   it("get() returns the adapter for a registered name", () => {
-    const registry = new ConnectionRegistry<"primary" | "replica">({ primary: stub(), replica: stub() }, "primary");
+    const registry = new ConnectionRegistry<"primary" | "replica">(
+      { primary: stub(), replica: stub() },
+      "primary",
+    );
     expect(registry.get("primary")).toBeDefined();
     expect(registry.get("replica")).toBeDefined();
   });
 
   it("get() without a name returns the default connection", () => {
     const primary = stub();
-    const registry = new ConnectionRegistry<"primary" | "replica">({ primary, replica: stub() }, "primary");
+    const registry = new ConnectionRegistry<"primary" | "replica">(
+      { primary, replica: stub() },
+      "primary",
+    );
     expect(registry.get()).toBe(primary);
   });
 
@@ -44,7 +65,10 @@ describe("connections/registry — ConnectionRegistry", () => {
   });
 
   it("names() returns all registered connection names", () => {
-    const registry = new ConnectionRegistry<"a" | "b" | "c">({ a: stub(), b: stub(), c: stub() }, "a");
+    const registry = new ConnectionRegistry<"a" | "b" | "c">(
+      { a: stub(), b: stub(), c: stub() },
+      "a",
+    );
     expect(registry.names().sort()).toEqual(["a", "b", "c"]);
   });
 
@@ -55,6 +79,8 @@ describe("connections/registry — ConnectionRegistry", () => {
   });
 
   it("constructor throws if default name is not in the map", () => {
-    expect(() => new ConnectionRegistry<"a">({ a: stub() }, "missing" as "a")).toThrow(ConnectionError);
+    expect(() => new ConnectionRegistry<"a">({ a: stub() }, "missing" as "a")).toThrow(
+      ConnectionError,
+    );
   });
 });

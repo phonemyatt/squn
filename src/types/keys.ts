@@ -1,7 +1,7 @@
 export type {
-  NullableKeys,
-  NotNullKeys,
-  ReadonlyKeys,
-  MutableKeys,
   IsNullable,
+  MutableKeys,
+  NotNullKeys,
+  NullableKeys,
+  ReadonlyKeys,
 } from "./infer.ts";

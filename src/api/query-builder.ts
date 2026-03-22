@@ -42,11 +42,29 @@ export class QueryBuilder<Names extends string = never> {
   }
 
   select(...cols: string[]): QueryBuilder<Names> {
-    return new QueryBuilder(this._tableName, cols, this._whereClauses, this._orderClauses, this._limit, this._offset, this._connectionName, this._readonly);
+    return new QueryBuilder(
+      this._tableName,
+      cols,
+      this._whereClauses,
+      this._orderClauses,
+      this._limit,
+      this._offset,
+      this._connectionName,
+      this._readonly,
+    );
   }
 
   where(clause: SqlFragment): QueryBuilder<Names> {
-    return new QueryBuilder(this._tableName, this._selectCols, [...this._whereClauses, clause], this._orderClauses, this._limit, this._offset, this._connectionName, this._readonly);
+    return new QueryBuilder(
+      this._tableName,
+      this._selectCols,
+      [...this._whereClauses, clause],
+      this._orderClauses,
+      this._limit,
+      this._offset,
+      this._connectionName,
+      this._readonly,
+    );
   }
 
   whereIf(condition: boolean, clause: SqlFragment): QueryBuilder<Names> {
@@ -55,25 +73,62 @@ export class QueryBuilder<Names extends string = never> {
   }
 
   orderBy(column: string, direction: "ASC" | "DESC" = "ASC"): QueryBuilder<Names> {
-    return new QueryBuilder(this._tableName, this._selectCols, this._whereClauses, [...this._orderClauses, `"${column}" ${direction}`], this._limit, this._offset, this._connectionName, this._readonly);
+    return new QueryBuilder(
+      this._tableName,
+      this._selectCols,
+      this._whereClauses,
+      [...this._orderClauses, `"${column}" ${direction}`],
+      this._limit,
+      this._offset,
+      this._connectionName,
+      this._readonly,
+    );
   }
 
   paginate(options: PaginateOptions): QueryBuilder<Names> {
     const offset = (options.page - 1) * options.pageSize;
-    return new QueryBuilder(this._tableName, this._selectCols, this._whereClauses, this._orderClauses, options.pageSize, offset, this._connectionName, this._readonly);
+    return new QueryBuilder(
+      this._tableName,
+      this._selectCols,
+      this._whereClauses,
+      this._orderClauses,
+      options.pageSize,
+      offset,
+      this._connectionName,
+      this._readonly,
+    );
   }
 
   connection<N extends string>(name: N): QueryBuilder<N> {
-    return new QueryBuilder<N>(this._tableName, this._selectCols, this._whereClauses, this._orderClauses, this._limit, this._offset, name, this._readonly);
+    return new QueryBuilder<N>(
+      this._tableName,
+      this._selectCols,
+      this._whereClauses,
+      this._orderClauses,
+      this._limit,
+      this._offset,
+      name,
+      this._readonly,
+    );
   }
 
   readonly(): QueryBuilder<Names> {
-    return new QueryBuilder(this._tableName, this._selectCols, this._whereClauses, this._orderClauses, this._limit, this._offset, this._connectionName, true);
+    return new QueryBuilder(
+      this._tableName,
+      this._selectCols,
+      this._whereClauses,
+      this._orderClauses,
+      this._limit,
+      this._offset,
+      this._connectionName,
+      true,
+    );
   }
 
   /** Builds the SqlFragment for execution. */
   build(): SqlFragment {
-    const cols = this._selectCols.length > 0 ? this._selectCols.map((c) => `"${c}"`).join(", ") : "*";
+    const cols =
+      this._selectCols.length > 0 ? this._selectCols.map((c) => `"${c}"`).join(", ") : "*";
     const parts: string[] = [`SELECT ${cols} FROM "${this._tableName}"`];
     const allParams: unknown[] = [];
 
@@ -81,7 +136,10 @@ export class QueryBuilder<Names extends string = never> {
       const conditions: string[] = [];
       let paramOffset = 0;
       for (const clause of this._whereClauses) {
-        const renumbered = clause.text.replace(/\$(\d+)/g, (_, n: string) => `$${Number.parseInt(n, 10) + paramOffset}`);
+        const renumbered = clause.text.replace(
+          /\$(\d+)/g,
+          (_, n: string) => `$${Number.parseInt(n, 10) + paramOffset}`,
+        );
         conditions.push(renumbered);
         for (const p of clause.params) {
           allParams.push(p);

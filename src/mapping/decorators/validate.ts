@@ -37,7 +37,7 @@ export function Email(_target: undefined, context: ClassFieldDecoratorContext): 
 
 /** Validates that a numeric property is >= the specified minimum. */
 export function Min(value: number) {
-  return function (_target: undefined, context: ClassFieldDecoratorContext): void {
+  return (_target: undefined, context: ClassFieldDecoratorContext): void => {
     const name = String(context.name);
     context.addInitializer(function () {
       addRule(Object.getPrototypeOf(this as object) as object, name, { type: "min", value });
@@ -47,7 +47,7 @@ export function Min(value: number) {
 
 /** Validates that a numeric property is <= the specified maximum. */
 export function Max(value: number) {
-  return function (_target: undefined, context: ClassFieldDecoratorContext): void {
+  return (_target: undefined, context: ClassFieldDecoratorContext): void => {
     const name = String(context.name);
     context.addInitializer(function () {
       addRule(Object.getPrototypeOf(this as object) as object, name, { type: "max", value });

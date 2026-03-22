@@ -1,11 +1,11 @@
 import type { IDbAdapter } from "./adapters/base.ts";
-import type { SqunConfig } from "./config/types.ts";
-import type { MultiDbConfig } from "./connections/types.ts";
 import { resolveConfig } from "./config/resolve.ts";
+import type { SqunConfig } from "./config/types.ts";
 import { validateConfig } from "./config/validate.ts";
 import { validateProductionConfig } from "./config/validate-production.ts";
-import { noopLogger } from "./logging/noop-logger.ts";
 import { ConnectionRegistry } from "./connections/registry.ts";
+import type { MultiDbConfig } from "./connections/types.ts";
+import { noopLogger } from "./logging/noop-logger.ts";
 
 export interface Db {
   readonly adapter: IDbAdapter;
@@ -21,12 +21,7 @@ export function createDb(adapter: IDbAdapter, userConfig: Partial<SqunConfig> = 
   validateConfig(config);
 
   const logger = config.log?.logger ?? noopLogger;
-  validateProductionConfig(
-    config,
-    adapter.type,
-    config.connection ?? {},
-    logger,
-  );
+  validateProductionConfig(config, adapter.type, config.connection ?? {}, logger);
 
   return { adapter, config };
 }

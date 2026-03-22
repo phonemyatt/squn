@@ -24,11 +24,7 @@ export interface ColumnDef<
   readonly _type: Nullable extends true ? T | null : T;
 }
 
-interface ColumnBuilder<
-  T,
-  Nullable extends boolean,
-  Readonly extends boolean,
-> {
+interface ColumnBuilder<T, Nullable extends boolean, Readonly extends boolean> {
   nullable(): ColumnBuilder<T, true, Readonly> & ColumnDef<T, true, Readonly>;
   notNull(): ColumnBuilder<T, false, Readonly> & ColumnDef<T, false, Readonly>;
   readonly(): ColumnBuilder<T, Nullable, true> & ColumnDef<T, Nullable, true>;
@@ -72,21 +68,21 @@ function createColumnDef<T>(
 
 /** Column builder entry points — one per database type. */
 export const col = {
-  int:      ()                       => createColumnDef<number>("int", null),
-  bigint:   ()                       => createColumnDef<number>("bigint", null),
-  smallint: ()                       => createColumnDef<number>("smallint", null),
-  float:    ()                       => createColumnDef<number>("float", null),
-  decimal:  (p?: number, _s?: number) => createColumnDef<number>("decimal", p ?? null),
-  boolean:  ()                       => createColumnDef<boolean>("boolean", null),
-  text:     ()                       => createColumnDef<string>("text", null),
-  nvarchar: (len: number | "MAX")    => createColumnDef<string>("nvarchar", len),
-  varchar:  (len: number | "MAX")    => createColumnDef<string>("varchar", len),
-  char:     (len: number)            => createColumnDef<string>("char", len),
-  datetime: ()                       => createColumnDef<Date>("datetime", null),
-  date:     ()                       => createColumnDef<Date>("date", null),
-  time:     ()                       => createColumnDef<string>("time", null),
-  uuid:     ()                       => createColumnDef<string>("uuid", null),
-  blob:     ()                       => createColumnDef<Buffer>("blob", null),
-  json:     <T = unknown>()          => createColumnDef<T>("json", null),
-  array:    <T = unknown>()          => createColumnDef<T[]>("array", null),
+  int: () => createColumnDef<number>("int", null),
+  bigint: () => createColumnDef<number>("bigint", null),
+  smallint: () => createColumnDef<number>("smallint", null),
+  float: () => createColumnDef<number>("float", null),
+  decimal: (p?: number, _s?: number) => createColumnDef<number>("decimal", p ?? null),
+  boolean: () => createColumnDef<boolean>("boolean", null),
+  text: () => createColumnDef<string>("text", null),
+  nvarchar: (len: number | "MAX") => createColumnDef<string>("nvarchar", len),
+  varchar: (len: number | "MAX") => createColumnDef<string>("varchar", len),
+  char: (len: number) => createColumnDef<string>("char", len),
+  datetime: () => createColumnDef<Date>("datetime", null),
+  date: () => createColumnDef<Date>("date", null),
+  time: () => createColumnDef<string>("time", null),
+  uuid: () => createColumnDef<string>("uuid", null),
+  blob: () => createColumnDef<Buffer>("blob", null),
+  json: <T = unknown>() => createColumnDef<T>("json", null),
+  array: <T = unknown>() => createColumnDef<T[]>("array", null),
 } as const;

@@ -1,8 +1,8 @@
 import { SQL } from "bun";
-import type { Row } from "../types/primitives.ts";
-import type { IDbAdapter, IDbTransaction, TvpValue, TvpMaterialised } from "./base.ts";
 import { ErrorCode } from "../errors/codes.ts";
 import { wrapError } from "../errors/wrap.ts";
+import type { Row } from "../types/primitives.ts";
+import type { IDbAdapter, IDbTransaction, TvpMaterialised, TvpValue } from "./base.ts";
 
 export interface PostgresAdapterOptions {
   readonly url?: string;
@@ -32,7 +32,12 @@ export class PostgresAdapter implements IDbAdapter {
         password: options.password,
       });
     } catch (err) {
-      throw wrapError(err, ErrorCode.ADAPTER_DRIVER_ERROR, { operation: "connect", adapter: "postgres" }, "Failed to create PostgreSQL connection");
+      throw wrapError(
+        err,
+        ErrorCode.ADAPTER_DRIVER_ERROR,
+        { operation: "connect", adapter: "postgres" },
+        "Failed to create PostgreSQL connection",
+      );
     }
   }
 
@@ -41,7 +46,12 @@ export class PostgresAdapter implements IDbAdapter {
       const result = await this.sql.unsafe(sql, params as (string | number | boolean | null)[]);
       return { rowsAffected: result.count ?? 0 };
     } catch (err) {
-      throw wrapError(err, ErrorCode.ADAPTER_DRIVER_ERROR, { operation: "execute", adapter: "postgres", sql }, "PostgreSQL execute failed");
+      throw wrapError(
+        err,
+        ErrorCode.ADAPTER_DRIVER_ERROR,
+        { operation: "execute", adapter: "postgres", sql },
+        "PostgreSQL execute failed",
+      );
     }
   }
 
@@ -50,7 +60,12 @@ export class PostgresAdapter implements IDbAdapter {
       const result = await this.sql.unsafe(sql, params as (string | number | boolean | null)[]);
       return [...result] as Row[];
     } catch (err) {
-      throw wrapError(err, ErrorCode.ADAPTER_DRIVER_ERROR, { operation: "query", adapter: "postgres", sql }, "PostgreSQL query failed");
+      throw wrapError(
+        err,
+        ErrorCode.ADAPTER_DRIVER_ERROR,
+        { operation: "query", adapter: "postgres", sql },
+        "PostgreSQL query failed",
+      );
     }
   }
 
@@ -59,7 +74,12 @@ export class PostgresAdapter implements IDbAdapter {
       const result = await this.sql.unsafe(sql, params as (string | number | boolean | null)[]);
       return [[...result] as Row[]];
     } catch (err) {
-      throw wrapError(err, ErrorCode.ADAPTER_DRIVER_ERROR, { operation: "queryMultiple", adapter: "postgres", sql }, "PostgreSQL queryMultiple failed");
+      throw wrapError(
+        err,
+        ErrorCode.ADAPTER_DRIVER_ERROR,
+        { operation: "queryMultiple", adapter: "postgres", sql },
+        "PostgreSQL queryMultiple failed",
+      );
     }
   }
 
@@ -68,7 +88,12 @@ export class PostgresAdapter implements IDbAdapter {
     try {
       await conn.unsafe("BEGIN");
     } catch (err) {
-      throw wrapError(err, ErrorCode.ADAPTER_DRIVER_ERROR, { operation: "beginTransaction", adapter: "postgres" }, "PostgreSQL BEGIN failed");
+      throw wrapError(
+        err,
+        ErrorCode.ADAPTER_DRIVER_ERROR,
+        { operation: "beginTransaction", adapter: "postgres" },
+        "PostgreSQL BEGIN failed",
+      );
     }
 
     const tx: IDbTransaction = {
@@ -77,7 +102,12 @@ export class PostgresAdapter implements IDbAdapter {
           const result = await conn.unsafe(sql, params as (string | number | boolean | null)[]);
           return { rowsAffected: result.count ?? 0 };
         } catch (err) {
-          throw wrapError(err, ErrorCode.ADAPTER_DRIVER_ERROR, { operation: "execute", adapter: "postgres", sql }, "PostgreSQL tx execute failed");
+          throw wrapError(
+            err,
+            ErrorCode.ADAPTER_DRIVER_ERROR,
+            { operation: "execute", adapter: "postgres", sql },
+            "PostgreSQL tx execute failed",
+          );
         }
       },
       async query(sql: string, params: unknown[]): Promise<Row[]> {
@@ -85,32 +115,72 @@ export class PostgresAdapter implements IDbAdapter {
           const result = await conn.unsafe(sql, params as (string | number | boolean | null)[]);
           return [...result] as Row[];
         } catch (err) {
-          throw wrapError(err, ErrorCode.ADAPTER_DRIVER_ERROR, { operation: "query", adapter: "postgres", sql }, "PostgreSQL tx query failed");
+          throw wrapError(
+            err,
+            ErrorCode.ADAPTER_DRIVER_ERROR,
+            { operation: "query", adapter: "postgres", sql },
+            "PostgreSQL tx query failed",
+          );
         }
       },
       async commit(): Promise<void> {
-        try { await conn.unsafe("COMMIT"); } catch (err) {
-          throw wrapError(err, ErrorCode.ADAPTER_DRIVER_ERROR, { operation: "commit", adapter: "postgres" }, "PostgreSQL COMMIT failed");
+        try {
+          await conn.unsafe("COMMIT");
+        } catch (err) {
+          throw wrapError(
+            err,
+            ErrorCode.ADAPTER_DRIVER_ERROR,
+            { operation: "commit", adapter: "postgres" },
+            "PostgreSQL COMMIT failed",
+          );
         }
       },
       async rollback(): Promise<void> {
-        try { await conn.unsafe("ROLLBACK"); } catch (err) {
-          throw wrapError(err, ErrorCode.ADAPTER_DRIVER_ERROR, { operation: "rollback", adapter: "postgres" }, "PostgreSQL ROLLBACK failed");
+        try {
+          await conn.unsafe("ROLLBACK");
+        } catch (err) {
+          throw wrapError(
+            err,
+            ErrorCode.ADAPTER_DRIVER_ERROR,
+            { operation: "rollback", adapter: "postgres" },
+            "PostgreSQL ROLLBACK failed",
+          );
         }
       },
       async savepoint(name: string): Promise<void> {
-        try { await conn.unsafe(`SAVEPOINT ${name}`); } catch (err) {
-          throw wrapError(err, ErrorCode.ADAPTER_DRIVER_ERROR, { operation: "savepoint", adapter: "postgres" }, "PostgreSQL SAVEPOINT failed");
+        try {
+          await conn.unsafe(`SAVEPOINT ${name}`);
+        } catch (err) {
+          throw wrapError(
+            err,
+            ErrorCode.ADAPTER_DRIVER_ERROR,
+            { operation: "savepoint", adapter: "postgres" },
+            "PostgreSQL SAVEPOINT failed",
+          );
         }
       },
       async releaseSavepoint(name: string): Promise<void> {
-        try { await conn.unsafe(`RELEASE SAVEPOINT ${name}`); } catch (err) {
-          throw wrapError(err, ErrorCode.ADAPTER_DRIVER_ERROR, { operation: "releaseSavepoint", adapter: "postgres" }, "PostgreSQL RELEASE failed");
+        try {
+          await conn.unsafe(`RELEASE SAVEPOINT ${name}`);
+        } catch (err) {
+          throw wrapError(
+            err,
+            ErrorCode.ADAPTER_DRIVER_ERROR,
+            { operation: "releaseSavepoint", adapter: "postgres" },
+            "PostgreSQL RELEASE failed",
+          );
         }
       },
       async rollbackToSavepoint(name: string): Promise<void> {
-        try { await conn.unsafe(`ROLLBACK TO SAVEPOINT ${name}`); } catch (err) {
-          throw wrapError(err, ErrorCode.ADAPTER_DRIVER_ERROR, { operation: "rollbackToSavepoint", adapter: "postgres" }, "PostgreSQL ROLLBACK TO failed");
+        try {
+          await conn.unsafe(`ROLLBACK TO SAVEPOINT ${name}`);
+        } catch (err) {
+          throw wrapError(
+            err,
+            ErrorCode.ADAPTER_DRIVER_ERROR,
+            { operation: "rollbackToSavepoint", adapter: "postgres" },
+            "PostgreSQL ROLLBACK TO failed",
+          );
         }
       },
     };
@@ -121,7 +191,12 @@ export class PostgresAdapter implements IDbAdapter {
     try {
       await this.sql.unsafe("SELECT 1");
     } catch (err) {
-      throw wrapError(err, ErrorCode.ADAPTER_DRIVER_ERROR, { operation: "ping", adapter: "postgres" }, "PostgreSQL ping failed");
+      throw wrapError(
+        err,
+        ErrorCode.ADAPTER_DRIVER_ERROR,
+        { operation: "ping", adapter: "postgres" },
+        "PostgreSQL ping failed",
+      );
     }
   }
 
@@ -129,7 +204,12 @@ export class PostgresAdapter implements IDbAdapter {
     try {
       await this.sql.close();
     } catch (err) {
-      throw wrapError(err, ErrorCode.ADAPTER_DRIVER_ERROR, { operation: "close", adapter: "postgres" }, "PostgreSQL close failed");
+      throw wrapError(
+        err,
+        ErrorCode.ADAPTER_DRIVER_ERROR,
+        { operation: "close", adapter: "postgres" },
+        "PostgreSQL close failed",
+      );
     }
   }
 

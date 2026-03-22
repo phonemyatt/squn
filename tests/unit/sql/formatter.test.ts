@@ -1,4 +1,4 @@
-import { describe, it, expect } from "bun:test";
+import { describe, expect, it } from "bun:test";
 import { formatSql } from "../../../src/sql/formatter.ts";
 
 describe("sql/formatter — formatSql()", () => {
@@ -15,7 +15,9 @@ describe("sql/formatter — formatSql()", () => {
   });
 
   it("uppercases SQL keywords", () => {
-    expect(formatSql("select * from users where id = $1")).toBe("SELECT * FROM users WHERE id = $1");
+    expect(formatSql("select * from users where id = $1")).toBe(
+      "SELECT * FROM users WHERE id = $1",
+    );
   });
 
   it("does not uppercase non-keyword words", () => {

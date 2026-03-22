@@ -1,8 +1,8 @@
-import { describe, it, expect } from "bun:test";
-import { validateSql } from "../../../src/sql/validator.ts";
-import { createFragment } from "../../../src/sql/fragment.ts";
-import { SecurityError } from "../../../src/errors/types.ts";
+import { describe, expect, it } from "bun:test";
 import { ErrorCode } from "../../../src/errors/codes.ts";
+import { SecurityError } from "../../../src/errors/types.ts";
+import { createFragment } from "../../../src/sql/fragment.ts";
+import { validateSql } from "../../../src/sql/validator.ts";
 
 describe("sql/validator — validateSql()", () => {
   it("does not throw for a valid fragment", () => {
@@ -62,7 +62,12 @@ describe("sql/validator — validateSql()", () => {
     });
 
     it("does not throw when tvpValues are present (pre-materialisation)", () => {
-      const f = { text: "SELECT * FROM __TVP_0__", params: [], tvpValues: [{ __isTvp: true as const, tableType: {}, rows: [] }], __isSql: true as const };
+      const f = {
+        text: "SELECT * FROM __TVP_0__",
+        params: [],
+        tvpValues: [{ __isTvp: true as const, tableType: {}, rows: [] }],
+        __isSql: true as const,
+      };
       expect(() => validateSql(f)).not.toThrow();
     });
   });

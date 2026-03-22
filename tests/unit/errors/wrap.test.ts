@@ -1,8 +1,8 @@
-import { describe, it, expect } from "bun:test";
+import { describe, expect, it } from "bun:test";
 import { ErrorCode } from "../../../src/errors/codes.ts";
-import { QueryError, ConnectionError } from "../../../src/errors/types.ts";
-import { wrapError } from "../../../src/errors/wrap.ts";
 import type { ErrorContext } from "../../../src/errors/context.ts";
+import { ConnectionError, QueryError } from "../../../src/errors/types.ts";
+import { wrapError } from "../../../src/errors/wrap.ts";
 
 const ctx: ErrorContext = { operation: "execute", adapter: "postgres" };
 
@@ -16,11 +16,9 @@ describe("errors/wrap — wrapError()", () => {
   });
 
   it("wrapping a SqunError returns the same instance unchanged", () => {
-    const existing = new ConnectionError(
-      ErrorCode.CONN_UNKNOWN,
-      "not found",
-      { operation: "connect" },
-    );
+    const existing = new ConnectionError(ErrorCode.CONN_UNKNOWN, "not found", {
+      operation: "connect",
+    });
     const result = wrapError(existing, ErrorCode.QUERY_EXECUTION_FAILED, ctx, "query failed");
 
     expect(result).toBe(existing);

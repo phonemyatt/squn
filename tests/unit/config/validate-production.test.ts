@@ -1,9 +1,9 @@
-import { describe, it, expect } from "bun:test";
+import { describe, expect, it } from "bun:test";
+import type { ConnectionConfig, SqunConfig } from "../../../src/config/types.ts";
 import { validateProductionConfig } from "../../../src/config/validate-production.ts";
-import { SqunConfigError } from "../../../src/errors/types.ts";
 import { ErrorCode } from "../../../src/errors/codes.ts";
-import type { SqunConfig, ConnectionConfig } from "../../../src/config/types.ts";
-import type { SqunLogger, LogEntry } from "../../../src/logging/logger.ts";
+import { SqunConfigError } from "../../../src/errors/types.ts";
+import type { LogEntry, SqunLogger } from "../../../src/logging/logger.ts";
 
 function makeMockLogger(): SqunLogger & { entries: LogEntry[] } {
   const entries: LogEntry[] = [];
@@ -19,7 +19,9 @@ describe("config/validate-production — validateProductionConfig()", () => {
   describe("in development environment", () => {
     it("does not run any production validation", () => {
       const logger = makeMockLogger();
-      expect(() => validateProductionConfig({ env: "development" }, "postgres", {}, logger)).not.toThrow();
+      expect(() =>
+        validateProductionConfig({ env: "development" }, "postgres", {}, logger),
+      ).not.toThrow();
     });
   });
 
@@ -33,7 +35,9 @@ describe("config/validate-production — validateProductionConfig()", () => {
   describe("PostgreSQL adapter in production", () => {
     it("throws SqunConfigError when no config is provided at all", () => {
       const logger = makeMockLogger();
-      expect(() => validateProductionConfig(prodConfig, "postgres", {}, logger)).toThrow(SqunConfigError);
+      expect(() => validateProductionConfig(prodConfig, "postgres", {}, logger)).toThrow(
+        SqunConfigError,
+      );
     });
 
     it("throws SqunConfigError listing the missing host field when only password is set", () => {
@@ -99,21 +103,32 @@ describe("config/validate-production — validateProductionConfig()", () => {
       const logger = makeMockLogger();
       const conn: ConnectionConfig = { host: "localhost", password: "secret", ssl: true };
       expect(() => validateProductionConfig(prodConfig, "postgres", conn, logger)).not.toThrow();
-      expect(logger.entries.some((e) => e.level === "warn" && e.message.includes("localhost"))).toBe(true);
+      expect(
+        logger.entries.some((e) => e.level === "warn" && e.message.includes("localhost")),
+      ).toBe(true);
     });
 
     it("logs a warning when SSL is disabled but does not throw", () => {
       const logger = makeMockLogger();
       const conn: ConnectionConfig = { host: "db.example.com", password: "secret", ssl: false };
       expect(() => validateProductionConfig(prodConfig, "postgres", conn, logger)).not.toThrow();
-      expect(logger.entries.some((e) => e.level === "warn" && e.message.includes("SSL"))).toBe(true);
+      expect(logger.entries.some((e) => e.level === "warn" && e.message.includes("SSL"))).toBe(
+        true,
+      );
     });
 
     it("logs a warning when user is 'postgres' but does not throw", () => {
       const logger = makeMockLogger();
-      const conn: ConnectionConfig = { host: "db.example.com", password: "secret", user: "postgres", ssl: true };
+      const conn: ConnectionConfig = {
+        host: "db.example.com",
+        password: "secret",
+        user: "postgres",
+        ssl: true,
+      };
       expect(() => validateProductionConfig(prodConfig, "postgres", conn, logger)).not.toThrow();
-      expect(logger.entries.some((e) => e.level === "warn" && e.message.includes("superuser"))).toBe(true);
+      expect(
+        logger.entries.some((e) => e.level === "warn" && e.message.includes("superuser")),
+      ).toBe(true);
     });
   });
 

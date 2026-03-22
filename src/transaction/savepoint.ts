@@ -21,7 +21,12 @@ export class Savepoint {
     try {
       await this.tx.savepoint(this.name);
     } catch (err) {
-      throw new TransactionError(ErrorCode.TX_COMMIT_FAILED, `Failed to create savepoint ${this.name}`, { operation: "savepoint", txId: this.name }, err);
+      throw new TransactionError(
+        ErrorCode.TX_COMMIT_FAILED,
+        `Failed to create savepoint ${this.name}`,
+        { operation: "savepoint", txId: this.name },
+        err,
+      );
     }
   }
 
@@ -30,7 +35,12 @@ export class Savepoint {
     try {
       await this.tx.rollbackToSavepoint(this.name);
     } catch (err) {
-      throw new TransactionError(ErrorCode.TX_ROLLBACK_FAILED, `Failed to rollback to savepoint ${this.name}`, { operation: "rollbackToSavepoint", txId: this.name }, err);
+      throw new TransactionError(
+        ErrorCode.TX_ROLLBACK_FAILED,
+        `Failed to rollback to savepoint ${this.name}`,
+        { operation: "rollbackToSavepoint", txId: this.name },
+        err,
+      );
     }
   }
 
@@ -39,7 +49,12 @@ export class Savepoint {
     try {
       await this.tx.releaseSavepoint(this.name);
     } catch (err) {
-      throw new TransactionError(ErrorCode.TX_COMMIT_FAILED, `Failed to release savepoint ${this.name}`, { operation: "releaseSavepoint", txId: this.name }, err);
+      throw new TransactionError(
+        ErrorCode.TX_COMMIT_FAILED,
+        `Failed to release savepoint ${this.name}`,
+        { operation: "releaseSavepoint", txId: this.name },
+        err,
+      );
     }
   }
 }

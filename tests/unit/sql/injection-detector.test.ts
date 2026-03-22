@@ -1,4 +1,4 @@
-import { describe, it, expect } from "bun:test";
+import { describe, expect, it } from "bun:test";
 import { detectInjection } from "../../../src/sql/injection-detector.ts";
 
 describe("sql/injection-detector — detectInjection()", () => {

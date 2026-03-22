@@ -1,4 +1,4 @@
-import { describe, it, expect } from "bun:test";
+import { describe, expect, it } from "bun:test";
 import { PooledConnection } from "../../../src/pool/connection.ts";
 
 describe("pool/connection — PooledConnection", () => {
@@ -50,7 +50,9 @@ describe("pool/connection — PooledConnection", () => {
       const conn = new PooledConnection("c1");
       // Simulate old connection by checking against a tiny age
       const start = Date.now();
-      while (Date.now() - start < 5) { /* busy-wait */ }
+      while (Date.now() - start < 5) {
+        /* busy-wait */
+      }
       expect(conn.shouldRecycle(1, undefined)).toBe(true);
     });
 

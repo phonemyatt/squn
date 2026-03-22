@@ -1,8 +1,8 @@
-import { describe, it, expect } from "bun:test";
-import { validateConfig } from "../../../src/config/validate.ts";
-import { SqunConfigError } from "../../../src/errors/types.ts";
-import { ErrorCode } from "../../../src/errors/codes.ts";
+import { describe, expect, it } from "bun:test";
 import type { SqunConfig } from "../../../src/config/types.ts";
+import { validateConfig } from "../../../src/config/validate.ts";
+import { ErrorCode } from "../../../src/errors/codes.ts";
+import { SqunConfigError } from "../../../src/errors/types.ts";
 
 describe("config/validate — validateConfig()", () => {
   it("does not throw for a valid config", () => {

@@ -1,19 +1,34 @@
-import { describe, it, expect } from "bun:test";
-import { resolveConnection } from "../../../src/connections/resolve-connection.ts";
+import { describe, expect, it } from "bun:test";
+import type {
+  IDbAdapter,
+  IDbTransaction,
+  TvpMaterialised,
+  TvpValue,
+} from "../../../src/adapters/base.ts";
 import { ConnectionRegistry } from "../../../src/connections/registry.ts";
+import { resolveConnection } from "../../../src/connections/resolve-connection.ts";
 import { ConnectionError } from "../../../src/errors/types.ts";
-import type { IDbAdapter, IDbTransaction, TvpValue, TvpMaterialised } from "../../../src/adapters/base.ts";
 
 function stub(): IDbAdapter {
   return {
     type: "sqlite",
-    async execute() { return { rowsAffected: 0 }; },
-    async query() { return []; },
-    async queryMultiple() { return []; },
-    async beginTransaction(): Promise<IDbTransaction> { throw new Error("not impl"); },
+    async execute() {
+      return { rowsAffected: 0 };
+    },
+    async query() {
+      return [];
+    },
+    async queryMultiple() {
+      return [];
+    },
+    async beginTransaction(): Promise<IDbTransaction> {
+      throw new Error("not impl");
+    },
     async ping() {},
     async close() {},
-    async materializeTvp(_t: TvpValue, _i: number): Promise<TvpMaterialised> { throw new Error("not impl"); },
+    async materializeTvp(_t: TvpValue, _i: number): Promise<TvpMaterialised> {
+      throw new Error("not impl");
+    },
   };
 }
 

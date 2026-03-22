@@ -1,7 +1,7 @@
-import { describe, it, expect } from "bun:test";
-import { ConnectionPool } from "../../../src/pool/pool.ts";
-import { ConnectionError } from "../../../src/errors/types.ts";
+import { describe, expect, it } from "bun:test";
 import { ErrorCode } from "../../../src/errors/codes.ts";
+import { ConnectionError } from "../../../src/errors/types.ts";
+import { ConnectionPool } from "../../../src/pool/pool.ts";
 
 describe("pool/pool — ConnectionPool", () => {
   describe("acquire()", () => {
@@ -35,7 +35,12 @@ describe("pool/pool — ConnectionPool", () => {
     });
 
     it("throws POOL_QUEUE_FULL when the queue reaches maxQueueSize", async () => {
-      const pool = new ConnectionPool({ max: 1, maxQueueSize: 1, acquireTimeoutMs: 50, reapIntervalMs: 0 });
+      const pool = new ConnectionPool({
+        max: 1,
+        maxQueueSize: 1,
+        acquireTimeoutMs: 50,
+        reapIntervalMs: 0,
+      });
       const c1 = await pool.acquire();
 
       // Fill the queue

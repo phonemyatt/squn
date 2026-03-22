@@ -2,8 +2,8 @@ import { ErrorCode } from "../errors/codes.ts";
 import { SqunConfigError } from "../errors/types.ts";
 import type { SqunLogger } from "../logging/logger.ts";
 import { EventCode } from "../logging/logger.ts";
-import type { AdapterType, ConnectionConfig, SqunConfig } from "./types.ts";
 import { SQUN_ENV_VARS } from "./env-vars.ts";
+import type { AdapterType, ConnectionConfig, SqunConfig } from "./types.ts";
 
 const SUPERUSERS = new Set(["root", "sa", "postgres"]);
 const LOCALHOST = new Set(["localhost", "127.0.0.1"]);
@@ -19,25 +19,25 @@ interface AdapterEnvHints {
 
 const ENV_HINTS: Record<AdapterType, AdapterEnvHints> = {
   postgres: {
-    url:      SQUN_ENV_VARS.PG_URL,
-    host:     SQUN_ENV_VARS.PG_HOST,
+    url: SQUN_ENV_VARS.PG_URL,
+    host: SQUN_ENV_VARS.PG_HOST,
     password: SQUN_ENV_VARS.PG_PASSWORD,
   },
   mysql: {
-    url:      SQUN_ENV_VARS.MYSQL_URL,
-    host:     SQUN_ENV_VARS.MYSQL_HOST,
+    url: SQUN_ENV_VARS.MYSQL_URL,
+    host: SQUN_ENV_VARS.MYSQL_HOST,
     password: SQUN_ENV_VARS.MYSQL_PASSWORD,
   },
   mssql: {
-    url:      SQUN_ENV_VARS.MSSQL_URL,
-    host:     SQUN_ENV_VARS.MSSQL_HOST,
+    url: SQUN_ENV_VARS.MSSQL_URL,
+    host: SQUN_ENV_VARS.MSSQL_HOST,
     password: SQUN_ENV_VARS.MSSQL_PASSWORD,
   },
   sqlite: {
-    url:      SQUN_ENV_VARS.SQLITE_FILE,
-    host:     "",
+    url: SQUN_ENV_VARS.SQLITE_FILE,
+    host: "",
     password: "",
-    file:     SQUN_ENV_VARS.SQLITE_FILE,
+    file: SQUN_ENV_VARS.SQLITE_FILE,
   },
 };
 
@@ -81,11 +81,10 @@ export function validateProductionConfig(
     }
 
     if (missing.length > 0) {
-      throw new SqunConfigError(
-        ErrorCode.CONFIG_MISSING,
-        formatMissingMessage(adapter, missing),
-        { operation: "validateProductionConfig", adapter },
-      );
+      throw new SqunConfigError(ErrorCode.CONFIG_MISSING, formatMissingMessage(adapter, missing), {
+        operation: "validateProductionConfig",
+        adapter,
+      });
     }
     return;
   }
@@ -116,17 +115,20 @@ export function validateProductionConfig(
   }
 
   if (missing.length > 0) {
-    throw new SqunConfigError(
-      ErrorCode.CONFIG_MISSING,
-      formatMissingMessage(adapter, missing),
-      { operation: "validateProductionConfig", adapter },
-    );
+    throw new SqunConfigError(ErrorCode.CONFIG_MISSING, formatMissingMessage(adapter, missing), {
+      operation: "validateProductionConfig",
+      adapter,
+    });
   }
 
   // Warnings — do not throw
   const host = connection.host;
   if (host !== undefined && LOCALHOST.has(host)) {
-    warnEntry(logger, `Production ${adapter} is connecting to ${host}. This is likely a misconfiguration.`, adapter);
+    warnEntry(
+      logger,
+      `Production ${adapter} is connecting to ${host}. This is likely a misconfiguration.`,
+      adapter,
+    );
   }
 
   if (connection.ssl === false || connection.ssl === undefined) {
@@ -135,7 +137,11 @@ export function validateProductionConfig(
 
   const user = connection.user;
   if (user !== undefined && SUPERUSERS.has(user)) {
-    warnEntry(logger, `Production ${adapter} is connecting as superuser '${user}'. Use a dedicated application user.`, adapter);
+    warnEntry(
+      logger,
+      `Production ${adapter} is connecting as superuser '${user}'. Use a dedicated application user.`,
+      adapter,
+    );
   }
 }
 

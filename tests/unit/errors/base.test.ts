@@ -1,8 +1,8 @@
-import { describe, it, expect } from "bun:test";
-import { ErrorCode } from "../../../src/errors/codes.ts";
-import { QueryError } from "../../../src/errors/types.ts";
+import { describe, expect, it } from "bun:test";
 import { SqunError } from "../../../src/errors/base.ts";
+import { ErrorCode } from "../../../src/errors/codes.ts";
 import type { ErrorContext } from "../../../src/errors/context.ts";
+import { QueryError } from "../../../src/errors/types.ts";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 

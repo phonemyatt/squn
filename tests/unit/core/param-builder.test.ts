@@ -1,16 +1,12 @@
-import { describe, it, expect } from "bun:test";
+import { describe, expect, it } from "bun:test";
 import { buildParams } from "../../../src/core/param-builder.ts";
-import { ValidationError } from "../../../src/errors/types.ts";
 import { ErrorCode } from "../../../src/errors/codes.ts";
+import { ValidationError } from "../../../src/errors/types.ts";
 
 describe("core/param-builder — buildParams()", () => {
   describe("named parameter translation for SQLite and MySQL (? style)", () => {
     it("replaces @name with ? and extracts the value in order", () => {
-      const result = buildParams(
-        "SELECT * FROM users WHERE id = @id",
-        { id: 42 },
-        "sqlite",
-      );
+      const result = buildParams("SELECT * FROM users WHERE id = @id", { id: 42 }, "sqlite");
       expect(result.text).toBe("SELECT * FROM users WHERE id = ?");
       expect(result.params).toEqual([42]);
     });
@@ -48,11 +44,7 @@ describe("core/param-builder — buildParams()", () => {
 
     it("throws ValidationError when extra keys are in the object but not in the SQL", () => {
       try {
-        buildParams(
-          "SELECT * FROM users WHERE id = @id",
-          { id: 1, unused: "value" },
-          "sqlite",
-        );
+        buildParams("SELECT * FROM users WHERE id = @id", { id: 1, unused: "value" }, "sqlite");
         expect.unreachable("should have thrown");
       } catch (e) {
         expect(e).toBeInstanceOf(ValidationError);
@@ -96,11 +88,7 @@ describe("core/param-builder — buildParams()", () => {
     });
 
     it("expands an empty array to (NULL) to avoid invalid SQL", () => {
-      const result = buildParams(
-        "SELECT * FROM users WHERE id IN @ids",
-        { ids: [] },
-        "sqlite",
-      );
+      const result = buildParams("SELECT * FROM users WHERE id IN @ids", { ids: [] }, "sqlite");
       expect(result.text).toBe("SELECT * FROM users WHERE id IN (NULL)");
       expect(result.params).toEqual([]);
     });

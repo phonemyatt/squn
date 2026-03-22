@@ -9,7 +9,10 @@ export type ConstructionStrategy = "property" | "constructor" | "factory" | "sta
 /**
  * Property injection: Object.create() then assign fields from the row.
  */
-export function propertyInjectionMapper<T>(cls: Constructor<T>, columnNames: readonly string[]): MapperFn<T> {
+export function propertyInjectionMapper<T>(
+  cls: Constructor<T>,
+  columnNames: readonly string[],
+): MapperFn<T> {
   return (row: Row): T => {
     const instance = Object.create(cls.prototype) as Record<string, unknown>;
     for (const col of columnNames) {
@@ -22,7 +25,10 @@ export function propertyInjectionMapper<T>(cls: Constructor<T>, columnNames: rea
 /**
  * Constructor: new Model(...args) in declared column order.
  */
-export function constructorMapper<T>(cls: Constructor<T>, columnNames: readonly string[]): MapperFn<T> {
+export function constructorMapper<T>(
+  cls: Constructor<T>,
+  columnNames: readonly string[],
+): MapperFn<T> {
   return (row: Row): T => {
     const args = columnNames.map((col) => row[col]);
     return new cls(...args);

@@ -1,6 +1,6 @@
+import { SqunError } from "./base.ts";
 import type { ErrorCode } from "./codes.ts";
 import type { ErrorContext } from "./context.ts";
-import { SqunError } from "./base.ts";
 import { QueryError } from "./types.ts";
 
 /**

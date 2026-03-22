@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from "bun:test";
+import { afterEach, beforeEach, describe, expect, it } from "bun:test";
 import { SqliteAdapter } from "../../../src/adapters/sqlite.ts";
 import { SqunError } from "../../../src/errors/base.ts";
 
@@ -7,7 +7,10 @@ describe("integration/sqlite — SqliteAdapter", () => {
 
   beforeEach(async () => {
     adapter = new SqliteAdapter({ file: ":memory:" });
-    await adapter.execute("CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT, age INTEGER)", []);
+    await adapter.execute(
+      "CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT, age INTEGER)",
+      [],
+    );
   });
 
   afterEach(async () => {
@@ -33,7 +36,10 @@ describe("integration/sqlite — SqliteAdapter", () => {
 
   describe("parameterized INSERT", () => {
     it("returns rowsAffected for a single INSERT", async () => {
-      const result = await adapter.execute("INSERT INTO users (name, age) VALUES (?, ?)", ["Charlie", 40]);
+      const result = await adapter.execute("INSERT INTO users (name, age) VALUES (?, ?)", [
+        "Charlie",
+        40,
+      ]);
       expect(result.rowsAffected).toBe(1);
     });
 

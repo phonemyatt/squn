@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "bun:test";
+import { beforeEach, describe, expect, it } from "bun:test";
 import { defineMapper } from "../../../src/mapping/define-mapper.ts";
 import { globalMapperRegistry } from "../../../src/mapping/mapper-registry.ts";
 import type { Row } from "../../../src/types/primitives.ts";
@@ -42,7 +42,10 @@ describe("mapping/define-mapper — defineMapper()", () => {
 
   it("strategy 'constructor' uses constructor args", () => {
     class CtorModel {
-      constructor(public id: number, public name: string) {}
+      constructor(
+        public id: number,
+        public name: string,
+      ) {}
     }
     defineMapper(CtorModel, schema, { strategy: "constructor" });
     const mapper = globalMapperRegistry.get(CtorModel);

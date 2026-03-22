@@ -1,16 +1,24 @@
-import { describe, it, expect } from "bun:test";
-import { Transaction } from "../../../src/transaction/transaction.ts";
-import { TransactionError } from "../../../src/errors/types.ts";
-import { ErrorCode } from "../../../src/errors/codes.ts";
+import { describe, expect, it } from "bun:test";
 import type { IDbTransaction } from "../../../src/adapters/base.ts";
+import { ErrorCode } from "../../../src/errors/codes.ts";
+import { TransactionError } from "../../../src/errors/types.ts";
+import { Transaction } from "../../../src/transaction/transaction.ts";
 import type { Row } from "../../../src/types/primitives.ts";
 
 function mockTx(opts?: { commitFail?: boolean; rollbackFail?: boolean }): IDbTransaction {
   return {
-    async execute(_s: string, _p: unknown[]) { return { rowsAffected: 1 }; },
-    async query(_s: string, _p: unknown[]) { return [{ id: 1 }] as Row[]; },
-    async commit() { if (opts?.commitFail) throw new Error("commit fail"); },
-    async rollback() { if (opts?.rollbackFail) throw new Error("rollback fail"); },
+    async execute(_s: string, _p: unknown[]) {
+      return { rowsAffected: 1 };
+    },
+    async query(_s: string, _p: unknown[]) {
+      return [{ id: 1 }] as Row[];
+    },
+    async commit() {
+      if (opts?.commitFail) throw new Error("commit fail");
+    },
+    async rollback() {
+      if (opts?.rollbackFail) throw new Error("rollback fail");
+    },
     async savepoint(_n: string) {},
     async releaseSavepoint(_n: string) {},
     async rollbackToSavepoint(_n: string) {},
@@ -44,7 +52,11 @@ describe("transaction/transaction — Transaction state machine", () => {
 
     it("transitions to FAILED when commit throws", async () => {
       const tx = new Transaction(mockTx({ commitFail: true }));
-      try { await tx.commit(); } catch { /* expected */ }
+      try {
+        await tx.commit();
+      } catch {
+        /* expected */
+      }
       expect(tx.state).toBe("FAILED");
     });
   });

@@ -1,7 +1,7 @@
-import { describe, it, expect } from "bun:test";
+import { describe, expect, it } from "bun:test";
 import { resolveTimeout, withTimeout } from "../../../src/async/timeout.ts";
-import { TimeoutError } from "../../../src/errors/types.ts";
 import type { TimeoutConfig } from "../../../src/config/types.ts";
+import { TimeoutError } from "../../../src/errors/types.ts";
 
 function makeClock(remainingMs: number | null): { remaining: () => number | null } {
   return { remaining: () => remainingMs };

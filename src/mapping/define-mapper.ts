@@ -1,8 +1,8 @@
 import type { Row } from "../types/primitives.ts";
+import type { ConstructionStrategy } from "./class-mapper.ts";
+import { constructorMapper, propertyInjectionMapper, staticFromDbMapper } from "./class-mapper.ts";
 import type { MapperFn } from "./mapper-registry.ts";
 import { globalMapperRegistry } from "./mapper-registry.ts";
-import { propertyInjectionMapper, constructorMapper, staticFromDbMapper } from "./class-mapper.ts";
-import type { ConstructionStrategy } from "./class-mapper.ts";
 
 // biome-ignore lint/suspicious/noExplicitAny: constructor args are heterogeneous
 type Constructor<T> = new (...args: any[]) => T;

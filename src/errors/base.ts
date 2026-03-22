@@ -15,12 +15,7 @@ export abstract class SqunError extends Error {
   readonly timestamp: Date;
   override readonly cause?: unknown;
 
-  constructor(
-    code: ErrorCode,
-    message: string,
-    context: ErrorContext,
-    cause?: unknown,
-  ) {
+  constructor(code: ErrorCode, message: string, context: ErrorContext, cause?: unknown) {
     super(message);
 
     Object.setPrototypeOf(this, new.target.prototype);

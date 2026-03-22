@@ -1,13 +1,13 @@
 import type { LogEntry, SqunLogger } from "./logger.ts";
 
 const COLORS = {
-  debug: "\x1b[36m",  // cyan
-  info:  "\x1b[32m",  // green
-  warn:  "\x1b[33m",  // yellow
-  error: "\x1b[31m",  // red
-  fatal: "\x1b[35m",  // magenta
+  debug: "\x1b[36m", // cyan
+  info: "\x1b[32m", // green
+  warn: "\x1b[33m", // yellow
+  error: "\x1b[31m", // red
+  fatal: "\x1b[35m", // magenta
   reset: "\x1b[0m",
-  dim:   "\x1b[2m",
+  dim: "\x1b[2m",
 } as const;
 
 const PASSWORD_RE = /(:\/\/[^:]+:)[^@]+(@)/g;

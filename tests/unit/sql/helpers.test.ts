@@ -1,8 +1,14 @@
-import { describe, it, expect } from "bun:test";
-import { sql } from "../../../src/sql/tag.ts";
-import { sqlIf, sqlJoin, sqlRaw, sqlIdentifier, sqlQualifiedIdentifier } from "../../../src/sql/helpers.ts";
-import { SecurityError } from "../../../src/errors/types.ts";
+import { describe, expect, it } from "bun:test";
 import { ErrorCode } from "../../../src/errors/codes.ts";
+import { SecurityError } from "../../../src/errors/types.ts";
+import {
+  sqlIdentifier,
+  sqlIf,
+  sqlJoin,
+  sqlQualifiedIdentifier,
+  sqlRaw,
+} from "../../../src/sql/helpers.ts";
+import { sql } from "../../../src/sql/tag.ts";
 
 describe("sql/helpers — sqlIf()", () => {
   it("returns the fragment when condition is true", () => {

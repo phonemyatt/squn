@@ -1,13 +1,13 @@
-import { describe, it, expect } from "bun:test";
+import { describe, expect, it } from "bun:test";
 import { col } from "../../../src/types/col.ts";
 import { defineTable } from "../../../src/types/table.ts";
 
 describe("types/table — defineTable()", () => {
   const Users = defineTable("users", {
-    id:        col.int().primaryKey(),
-    name:      col.nvarchar(100).notNull(),
-    email:     col.nvarchar(255).notNull().unique(),
-    age:       col.int().nullable(),
+    id: col.int().primaryKey(),
+    name: col.nvarchar(100).notNull(),
+    email: col.nvarchar(255).notNull().unique(),
+    age: col.int().nullable(),
     createdAt: col.datetime().notNull().readonly(),
   });
 
@@ -45,8 +45,8 @@ describe("types/table — defineTable()", () => {
 
   it("defining a second table does not affect the first", () => {
     const Orders = defineTable("orders", {
-      id:     col.int().primaryKey(),
-      total:  col.decimal().notNull(),
+      id: col.int().primaryKey(),
+      total: col.decimal().notNull(),
     });
 
     expect(Orders.tableName).toBe("orders");

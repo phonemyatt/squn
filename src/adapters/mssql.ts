@@ -1,9 +1,9 @@
 import mssql from "mssql";
-import type { Row } from "../types/primitives.ts";
-import type { IDbAdapter, IDbTransaction, TvpValue, TvpMaterialised } from "./base.ts";
 import type { AuthConfig } from "../auth/types.ts";
 import { ErrorCode } from "../errors/codes.ts";
 import { wrapError } from "../errors/wrap.ts";
+import type { Row } from "../types/primitives.ts";
+import type { IDbAdapter, IDbTransaction, TvpMaterialised, TvpValue } from "./base.ts";
 
 export interface MssqlAdapterOptions {
   readonly url?: string;
@@ -52,7 +52,11 @@ function buildConfig(options: MssqlAdapterOptions): mssql.config {
         break;
       case "azure-ad":
         config.authentication = {
-          type: "azure-active-directory-service-principal-secret" as mssql.config["authentication"] extends { type: infer T } ? T : string,
+          type: "azure-active-directory-service-principal-secret" as mssql.config["authentication"] extends {
+            type: infer T;
+          }
+            ? T
+            : string,
           options: {
             clientId: options.auth.clientId,
             clientSecret: options.auth.clientSecret ?? "",
@@ -76,7 +80,7 @@ export class MssqlAdapter implements IDbAdapter {
   }
 
   private async getPool(): Promise<mssql.ConnectionPool> {
-    if (this.pool !== null && this.pool.connected) return this.pool;
+    if (this.pool?.connected) return this.pool;
     try {
       if (this.options.auth?.type === "connection-string" && this.options.auth.url) {
         this.pool = await mssql.connect(this.options.auth.url);
@@ -86,7 +90,12 @@ export class MssqlAdapter implements IDbAdapter {
       }
       return this.pool;
     } catch (err) {
-      throw wrapError(err, ErrorCode.ADAPTER_DRIVER_ERROR, { operation: "connect", adapter: "mssql" }, "MSSQL connection failed");
+      throw wrapError(
+        err,
+        ErrorCode.ADAPTER_DRIVER_ERROR,
+        { operation: "connect", adapter: "mssql" },
+        "MSSQL connection failed",
+      );
     }
   }
 
@@ -99,7 +108,12 @@ export class MssqlAdapter implements IDbAdapter {
       const affected = result.rowsAffected.reduce((a: number, b: number) => a + b, 0);
       return { rowsAffected: affected };
     } catch (err) {
-      throw wrapError(err, ErrorCode.ADAPTER_DRIVER_ERROR, { operation: "execute", adapter: "mssql", sql }, "MSSQL execute failed");
+      throw wrapError(
+        err,
+        ErrorCode.ADAPTER_DRIVER_ERROR,
+        { operation: "execute", adapter: "mssql", sql },
+        "MSSQL execute failed",
+      );
     }
   }
 
@@ -111,7 +125,12 @@ export class MssqlAdapter implements IDbAdapter {
       const result = await request.query(sql);
       return result.recordset as Row[];
     } catch (err) {
-      throw wrapError(err, ErrorCode.ADAPTER_DRIVER_ERROR, { operation: "query", adapter: "mssql", sql }, "MSSQL query failed");
+      throw wrapError(
+        err,
+        ErrorCode.ADAPTER_DRIVER_ERROR,
+        { operation: "query", adapter: "mssql", sql },
+        "MSSQL query failed",
+      );
     }
   }
 
@@ -123,7 +142,12 @@ export class MssqlAdapter implements IDbAdapter {
       const result = await request.query(sql);
       return result.recordsets as Row[][];
     } catch (err) {
-      throw wrapError(err, ErrorCode.ADAPTER_DRIVER_ERROR, { operation: "queryMultiple", adapter: "mssql", sql }, "MSSQL queryMultiple failed");
+      throw wrapError(
+        err,
+        ErrorCode.ADAPTER_DRIVER_ERROR,
+        { operation: "queryMultiple", adapter: "mssql", sql },
+        "MSSQL queryMultiple failed",
+      );
     }
   }
 
@@ -133,7 +157,12 @@ export class MssqlAdapter implements IDbAdapter {
     try {
       await transaction.begin();
     } catch (err) {
-      throw wrapError(err, ErrorCode.ADAPTER_DRIVER_ERROR, { operation: "beginTransaction", adapter: "mssql" }, "MSSQL BEGIN failed");
+      throw wrapError(
+        err,
+        ErrorCode.ADAPTER_DRIVER_ERROR,
+        { operation: "beginTransaction", adapter: "mssql" },
+        "MSSQL BEGIN failed",
+      );
     }
 
     const tx: IDbTransaction = {
@@ -145,7 +174,12 @@ export class MssqlAdapter implements IDbAdapter {
           const affected = result.rowsAffected.reduce((a: number, b: number) => a + b, 0);
           return { rowsAffected: affected };
         } catch (err) {
-          throw wrapError(err, ErrorCode.ADAPTER_DRIVER_ERROR, { operation: "execute", adapter: "mssql", sql }, "MSSQL tx execute failed");
+          throw wrapError(
+            err,
+            ErrorCode.ADAPTER_DRIVER_ERROR,
+            { operation: "execute", adapter: "mssql", sql },
+            "MSSQL tx execute failed",
+          );
         }
       },
       async query(sql: string, params: unknown[]): Promise<Row[]> {
@@ -155,17 +189,36 @@ export class MssqlAdapter implements IDbAdapter {
           const result = await request.query(sql);
           return result.recordset as Row[];
         } catch (err) {
-          throw wrapError(err, ErrorCode.ADAPTER_DRIVER_ERROR, { operation: "query", adapter: "mssql", sql }, "MSSQL tx query failed");
+          throw wrapError(
+            err,
+            ErrorCode.ADAPTER_DRIVER_ERROR,
+            { operation: "query", adapter: "mssql", sql },
+            "MSSQL tx query failed",
+          );
         }
       },
       async commit(): Promise<void> {
-        try { await transaction.commit(); } catch (err) {
-          throw wrapError(err, ErrorCode.ADAPTER_DRIVER_ERROR, { operation: "commit", adapter: "mssql" }, "MSSQL COMMIT failed");
+        try {
+          await transaction.commit();
+        } catch (err) {
+          throw wrapError(
+            err,
+            ErrorCode.ADAPTER_DRIVER_ERROR,
+            { operation: "commit", adapter: "mssql" },
+            "MSSQL COMMIT failed",
+          );
         }
       },
       async rollback(): Promise<void> {
-        try { await transaction.rollback(); } catch (err) {
-          throw wrapError(err, ErrorCode.ADAPTER_DRIVER_ERROR, { operation: "rollback", adapter: "mssql" }, "MSSQL ROLLBACK failed");
+        try {
+          await transaction.rollback();
+        } catch (err) {
+          throw wrapError(
+            err,
+            ErrorCode.ADAPTER_DRIVER_ERROR,
+            { operation: "rollback", adapter: "mssql" },
+            "MSSQL ROLLBACK failed",
+          );
         }
       },
       async savepoint(name: string): Promise<void> {
@@ -173,7 +226,12 @@ export class MssqlAdapter implements IDbAdapter {
           const request = new mssql.Request(transaction);
           await request.query(`SAVE TRANSACTION ${name}`);
         } catch (err) {
-          throw wrapError(err, ErrorCode.ADAPTER_DRIVER_ERROR, { operation: "savepoint", adapter: "mssql" }, "MSSQL SAVE TRANSACTION failed");
+          throw wrapError(
+            err,
+            ErrorCode.ADAPTER_DRIVER_ERROR,
+            { operation: "savepoint", adapter: "mssql" },
+            "MSSQL SAVE TRANSACTION failed",
+          );
         }
       },
       async releaseSavepoint(_name: string): Promise<void> {
@@ -184,7 +242,12 @@ export class MssqlAdapter implements IDbAdapter {
           const request = new mssql.Request(transaction);
           await request.query(`ROLLBACK TRANSACTION ${name}`);
         } catch (err) {
-          throw wrapError(err, ErrorCode.ADAPTER_DRIVER_ERROR, { operation: "rollbackToSavepoint", adapter: "mssql" }, "MSSQL ROLLBACK TRANSACTION failed");
+          throw wrapError(
+            err,
+            ErrorCode.ADAPTER_DRIVER_ERROR,
+            { operation: "rollbackToSavepoint", adapter: "mssql" },
+            "MSSQL ROLLBACK TRANSACTION failed",
+          );
         }
       },
     };
@@ -196,7 +259,12 @@ export class MssqlAdapter implements IDbAdapter {
       const pool = await this.getPool();
       await pool.request().query("SELECT 1");
     } catch (err) {
-      throw wrapError(err, ErrorCode.ADAPTER_DRIVER_ERROR, { operation: "ping", adapter: "mssql" }, "MSSQL ping failed");
+      throw wrapError(
+        err,
+        ErrorCode.ADAPTER_DRIVER_ERROR,
+        { operation: "ping", adapter: "mssql" },
+        "MSSQL ping failed",
+      );
     }
   }
 
@@ -207,7 +275,12 @@ export class MssqlAdapter implements IDbAdapter {
         this.pool = null;
       }
     } catch (err) {
-      throw wrapError(err, ErrorCode.ADAPTER_DRIVER_ERROR, { operation: "close", adapter: "mssql" }, "MSSQL close failed");
+      throw wrapError(
+        err,
+        ErrorCode.ADAPTER_DRIVER_ERROR,
+        { operation: "close", adapter: "mssql" },
+        "MSSQL close failed",
+      );
     }
   }
 

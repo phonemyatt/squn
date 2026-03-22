@@ -12,7 +12,8 @@ export const SQUN_REGEX = {
   STACKED_STATEMENTS: /;\s*(SELECT|INSERT|UPDATE|DELETE|DROP|ALTER|CREATE|EXEC|TRUNCATE|MERGE)\b/i,
 
   /** Critical — MSSQL dangerous procedures. */
-  MSSQL_DANGEROUS: /\b(xp_cmdshell|sp_oacreate|sp_oamethod|OPENROWSET|OPENDATASOURCE|xp_regread|xp_regwrite)\b/i,
+  MSSQL_DANGEROUS:
+    /\b(xp_cmdshell|sp_oacreate|sp_oamethod|OPENROWSET|OPENDATASOURCE|xp_regread|xp_regwrite)\b/i,
 
   /** High — UNION [ALL] SELECT injection. */
   UNION_INJECTION: /\bUNION\s+(ALL\s+)?SELECT\b/i,
@@ -39,7 +40,7 @@ export const SQUN_REGEX = {
   BLOCK_COMMENT: /\/\*[\s\S]*?\*\//,
 
   /** Low — line comments (-- or #). */
-  LINE_COMMENT: /--|\#/,
+  LINE_COMMENT: /--|#/,
 
   // ── Identifier validation (PRD 15.3) ────────────────────────────────
 
@@ -55,7 +56,7 @@ export const SQUN_REGEX = {
   VALID_DOMAIN_USER: /^[a-zA-Z0-9_\-.]+\\[a-zA-Z0-9_\-.]+$/,
 
   /** Valid UPN format (user@domain.tld). */
-  VALID_UPN: /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/,
+  VALID_UPN: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
 
   // ── Password masking (PRD 14.5) ─────────────────────────────────────
 

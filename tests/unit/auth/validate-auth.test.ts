@@ -1,8 +1,8 @@
-import { describe, it, expect } from "bun:test";
-import { validateAuth } from "../../../src/auth/validate-auth.ts";
-import { AuthError } from "../../../src/errors/types.ts";
-import { ErrorCode } from "../../../src/errors/codes.ts";
+import { describe, expect, it } from "bun:test";
 import type { AuthConfig } from "../../../src/auth/types.ts";
+import { validateAuth } from "../../../src/auth/validate-auth.ts";
+import { ErrorCode } from "../../../src/errors/codes.ts";
+import { AuthError } from "../../../src/errors/types.ts";
 
 describe("auth/validate-auth — validateAuth()", () => {
   describe("userpass auth type", () => {
@@ -12,7 +12,11 @@ describe("auth/validate-auth — validateAuth()", () => {
     });
 
     it("accepts a username with dots, hyphens, underscores, backslash, and @", () => {
-      const config: AuthConfig = { type: "userpass", username: "DOMAIN\\user.name-1@org", password: "pass" };
+      const config: AuthConfig = {
+        type: "userpass",
+        username: "DOMAIN\\user.name-1@org",
+        password: "pass",
+      };
       expect(() => validateAuth(config)).not.toThrow();
     });
 
@@ -51,7 +55,7 @@ describe("auth/validate-auth — validateAuth()", () => {
     });
 
     it("throws AUTH_INVALID_CREDENTIALS when password contains quotes", () => {
-      const config: AuthConfig = { type: "userpass", username: "user", password: "pa\"ss" };
+      const config: AuthConfig = { type: "userpass", username: "user", password: 'pa"ss' };
       expect(() => validateAuth(config)).toThrow(AuthError);
     });
 
@@ -90,7 +94,11 @@ describe("auth/validate-auth — validateAuth()", () => {
     });
 
     it("accepts a UPN with subdomains", () => {
-      const config: AuthConfig = { type: "windows-upn", upn: "admin@corp.example.com", password: "pass" };
+      const config: AuthConfig = {
+        type: "windows-upn",
+        upn: "admin@corp.example.com",
+        password: "pass",
+      };
       expect(() => validateAuth(config)).not.toThrow();
     });
 
@@ -119,7 +127,10 @@ describe("auth/validate-auth — validateAuth()", () => {
 
   describe("connection-string auth type", () => {
     it("accepts a non-empty URL", () => {
-      const config: AuthConfig = { type: "connection-string", url: "postgresql://user:pass@host/db" };
+      const config: AuthConfig = {
+        type: "connection-string",
+        url: "postgresql://user:pass@host/db",
+      };
       expect(() => validateAuth(config)).not.toThrow();
     });
 

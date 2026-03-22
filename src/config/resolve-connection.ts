@@ -1,5 +1,5 @@
-import type { AdapterType, AuthType, ConnectionConfig } from "./types.ts";
 import { SQUN_ENV_VARS } from "./env-vars.ts";
+import type { AdapterType, AuthType, ConnectionConfig } from "./types.ts";
 
 function env(name: string): string | undefined {
   return process.env[name];
@@ -48,39 +48,39 @@ interface EnvFieldMap {
 
 const ADAPTER_ENV_FIELDS: Record<AdapterType, EnvFieldMap> = {
   postgres: {
-    url:      SQUN_ENV_VARS.PG_URL,
-    host:     SQUN_ENV_VARS.PG_HOST,
-    port:     SQUN_ENV_VARS.PG_PORT,
+    url: SQUN_ENV_VARS.PG_URL,
+    host: SQUN_ENV_VARS.PG_HOST,
+    port: SQUN_ENV_VARS.PG_PORT,
     database: SQUN_ENV_VARS.PG_DATABASE,
-    user:     SQUN_ENV_VARS.PG_USER,
+    user: SQUN_ENV_VARS.PG_USER,
     password: SQUN_ENV_VARS.PG_PASSWORD,
-    ssl:      SQUN_ENV_VARS.PG_SSL,
+    ssl: SQUN_ENV_VARS.PG_SSL,
   },
   mysql: {
-    url:      SQUN_ENV_VARS.MYSQL_URL,
-    host:     SQUN_ENV_VARS.MYSQL_HOST,
-    port:     SQUN_ENV_VARS.MYSQL_PORT,
+    url: SQUN_ENV_VARS.MYSQL_URL,
+    host: SQUN_ENV_VARS.MYSQL_HOST,
+    port: SQUN_ENV_VARS.MYSQL_PORT,
     database: SQUN_ENV_VARS.MYSQL_DATABASE,
-    user:     SQUN_ENV_VARS.MYSQL_USER,
+    user: SQUN_ENV_VARS.MYSQL_USER,
     password: SQUN_ENV_VARS.MYSQL_PASSWORD,
   },
   mssql: {
-    url:      SQUN_ENV_VARS.MSSQL_URL,
-    host:     SQUN_ENV_VARS.MSSQL_HOST,
-    port:     SQUN_ENV_VARS.MSSQL_PORT,
+    url: SQUN_ENV_VARS.MSSQL_URL,
+    host: SQUN_ENV_VARS.MSSQL_HOST,
+    port: SQUN_ENV_VARS.MSSQL_PORT,
     database: SQUN_ENV_VARS.MSSQL_DATABASE,
-    user:     SQUN_ENV_VARS.MSSQL_USER,
+    user: SQUN_ENV_VARS.MSSQL_USER,
     password: SQUN_ENV_VARS.MSSQL_PASSWORD,
     authType: SQUN_ENV_VARS.MSSQL_AUTH_TYPE,
-    domain:   SQUN_ENV_VARS.MSSQL_DOMAIN,
-    upn:      SQUN_ENV_VARS.MSSQL_UPN,
+    domain: SQUN_ENV_VARS.MSSQL_DOMAIN,
+    upn: SQUN_ENV_VARS.MSSQL_UPN,
   },
   sqlite: {
-    url:      SQUN_ENV_VARS.SQLITE_FILE,
-    host:     "",
-    port:     "",
+    url: SQUN_ENV_VARS.SQLITE_FILE,
+    host: "",
+    port: "",
     database: "",
-    user:     "",
+    user: "",
     password: "",
   },
 };

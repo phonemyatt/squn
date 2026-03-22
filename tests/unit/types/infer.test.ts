@@ -1,15 +1,20 @@
-import { describe, it, expect } from "bun:test";
+import { describe, expect, it } from "bun:test";
 import { col } from "../../../src/types/col.ts";
+import type {
+  InferInsert,
+  InferModel,
+  InferReadonlyModel,
+  InferUpdate,
+} from "../../../src/types/infer.ts";
 import { defineTable } from "../../../src/types/table.ts";
-import type { InferModel, InferInsert, InferUpdate, InferReadonlyModel } from "../../../src/types/infer.ts";
 
 const Users = defineTable("users", {
-  id:        col.int().primaryKey(),
-  name:      col.nvarchar(100).notNull(),
-  email:     col.nvarchar(255).notNull().unique(),
-  age:       col.int().nullable(),
+  id: col.int().primaryKey(),
+  name: col.nvarchar(100).notNull(),
+  email: col.nvarchar(255).notNull().unique(),
+  age: col.int().nullable(),
   createdAt: col.datetime().notNull().readonly(),
-  fullName:  col.nvarchar(201).computed("firstName + ' ' + lastName"),
+  fullName: col.nvarchar(201).computed("firstName + ' ' + lastName"),
 });
 
 describe("types/infer — InferModel", () => {

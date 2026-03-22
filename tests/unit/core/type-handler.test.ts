@@ -1,14 +1,30 @@
-import { describe, it, expect } from "bun:test";
-import { TypeHandlerRegistry } from "../../../src/core/type-handler.ts";
+import { describe, expect, it } from "bun:test";
 import type { TypeHandler } from "../../../src/core/type-handler.ts";
+import { TypeHandlerRegistry } from "../../../src/core/type-handler.ts";
 
 describe("core/type-handler — TypeHandlerRegistry", () => {
   describe("registry lookup", () => {
     it("returns a handler for every built-in type", () => {
       const registry = new TypeHandlerRegistry();
-      const types = ["int", "bigint", "smallint", "float", "decimal", "boolean",
-        "text", "nvarchar", "varchar", "char", "datetime", "date", "time",
-        "uuid", "blob", "json", "array"];
+      const types = [
+        "int",
+        "bigint",
+        "smallint",
+        "float",
+        "decimal",
+        "boolean",
+        "text",
+        "nvarchar",
+        "varchar",
+        "char",
+        "datetime",
+        "date",
+        "time",
+        "uuid",
+        "blob",
+        "json",
+        "array",
+      ];
       for (const t of types) {
         expect(registry.get(t)).toBeDefined();
       }

@@ -1,12 +1,12 @@
-import type { Environment, SqunConfig } from "./types.ts";
 import { DEVELOPMENT_DEFAULTS } from "./defaults/development.ts";
 import { PRODUCTION_DEFAULTS } from "./defaults/production.ts";
 import { TEST_DEFAULTS } from "./defaults/test.ts";
+import type { Environment, SqunConfig } from "./types.ts";
 
 const PRESETS: Record<Environment, SqunConfig> = {
   development: DEVELOPMENT_DEFAULTS,
-  production:  PRODUCTION_DEFAULTS,
-  test:        TEST_DEFAULTS,
+  production: PRODUCTION_DEFAULTS,
+  test: TEST_DEFAULTS,
 };
 
 const VALID_ENVS = new Set<string>(["development", "production", "test"]);
@@ -32,7 +32,10 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
  * Scalar values in override win. Nested objects are merged recursively.
  * `null` in override is preserved (used for "disable this setting").
  */
-function deepMerge(base: Record<string, unknown>, override: Record<string, unknown>): Record<string, unknown> {
+function deepMerge(
+  base: Record<string, unknown>,
+  override: Record<string, unknown>,
+): Record<string, unknown> {
   const result: Record<string, unknown> = { ...base };
 
   for (const key of Object.keys(override)) {

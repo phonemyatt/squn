@@ -52,7 +52,13 @@ export class PoolStats {
     this._totalDestroyed++;
   }
 
-  snapshot(idle: number, acquired: number, waiting: number, min: number, max: number): PoolStatsSnapshot {
+  snapshot(
+    idle: number,
+    acquired: number,
+    waiting: number,
+    min: number,
+    max: number,
+  ): PoolStatsSnapshot {
     return {
       total: idle + acquired,
       idle,

@@ -1,8 +1,8 @@
-import { describe, it, expect } from "bun:test";
-import { assertWritable } from "../../../src/readonly/guard.ts";
-import type { ReadonlyConnection } from "../../../src/readonly/guard.ts";
-import { ReadonlyViolationError } from "../../../src/errors/types.ts";
+import { describe, expect, it } from "bun:test";
 import { ErrorCode } from "../../../src/errors/codes.ts";
+import { ReadonlyViolationError } from "../../../src/errors/types.ts";
+import type { ReadonlyConnection } from "../../../src/readonly/guard.ts";
+import { assertWritable } from "../../../src/readonly/guard.ts";
 
 const strictReadonly: ReadonlyConnection = { readonly: true, readonlyStrategy: "strict" };
 const warnReadonly: ReadonlyConnection = { readonly: true, readonlyStrategy: "warn" };
@@ -33,27 +33,27 @@ describe("readonly/guard — assertWritable()", () => {
     });
 
     it("throws READONLY_WRITE_BLOCKED for INSERT SQL", () => {
-      expect(() =>
-        assertWritable(strictReadonly, "query", "INSERT INTO users VALUES (1)")
-      ).toThrow(ReadonlyViolationError);
+      expect(() => assertWritable(strictReadonly, "query", "INSERT INTO users VALUES (1)")).toThrow(
+        ReadonlyViolationError,
+      );
     });
 
     it("throws READONLY_WRITE_BLOCKED for UPDATE SQL", () => {
-      expect(() =>
-        assertWritable(strictReadonly, "query", "UPDATE users SET name = 'x'")
-      ).toThrow(ReadonlyViolationError);
+      expect(() => assertWritable(strictReadonly, "query", "UPDATE users SET name = 'x'")).toThrow(
+        ReadonlyViolationError,
+      );
     });
 
     it("throws READONLY_WRITE_BLOCKED for DELETE SQL", () => {
       expect(() =>
-        assertWritable(strictReadonly, "query", "DELETE FROM users WHERE id = 1")
+        assertWritable(strictReadonly, "query", "DELETE FROM users WHERE id = 1"),
       ).toThrow(ReadonlyViolationError);
     });
 
     it("throws READONLY_WRITE_BLOCKED for DROP SQL", () => {
-      expect(() =>
-        assertWritable(strictReadonly, "query", "DROP TABLE users")
-      ).toThrow(ReadonlyViolationError);
+      expect(() => assertWritable(strictReadonly, "query", "DROP TABLE users")).toThrow(
+        ReadonlyViolationError,
+      );
     });
 
     it("does not throw for SELECT on strict readonly", () => {

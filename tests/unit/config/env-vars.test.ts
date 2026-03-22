@@ -1,4 +1,4 @@
-import { describe, it, expect } from "bun:test";
+import { describe, expect, it } from "bun:test";
 import { SQUN_ENV_VARS } from "../../../src/config/env-vars.ts";
 
 describe("config/env-vars — SQUN_ENV_VARS", () => {

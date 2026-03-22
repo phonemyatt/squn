@@ -2,8 +2,8 @@ import type { LogEntry, SqunLogger } from "./logger.ts";
 
 const PINO_LEVELS: Record<LogEntry["level"], number> = {
   debug: 20,
-  info:  30,
-  warn:  40,
+  info: 30,
+  warn: 40,
   error: 50,
   fatal: 60,
 };
@@ -15,9 +15,10 @@ function maskSql(sql: string): string {
 }
 
 function serialize(entry: LogEntry): string {
-  const ctx = entry.context.sql !== undefined
-    ? { ...entry.context, sql: maskSql(entry.context.sql) }
-    : entry.context;
+  const ctx =
+    entry.context.sql !== undefined
+      ? { ...entry.context, sql: maskSql(entry.context.sql) }
+      : entry.context;
 
   const record: Record<string, unknown> = {
     level: PINO_LEVELS[entry.level],
@@ -54,8 +55,8 @@ function write(entry: LogEntry): void {
 /** Production logger — structured JSON, one object per line, pino-compatible. */
 export const jsonLogger: SqunLogger = {
   debug: write,
-  info:  write,
-  warn:  write,
+  info: write,
+  warn: write,
   error: write,
   fatal: write,
 };

@@ -1,7 +1,7 @@
 import type { IDbAdapter } from "../adapters/base.ts";
-import type { ConnectionRegistry } from "./registry.ts";
 import { ErrorCode } from "../errors/codes.ts";
 import { ConnectionError } from "../errors/types.ts";
+import type { ConnectionRegistry } from "./registry.ts";
 
 /**
  * Failover group. When primary is unreachable, promotes first healthy standby.

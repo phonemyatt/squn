@@ -1,16 +1,22 @@
-import { describe, it, expect } from "bun:test";
+import { describe, expect, it } from "bun:test";
 import { col } from "../../../src/types/col.ts";
+import type {
+  IsNullable,
+  MutableKeys,
+  NotNullKeys,
+  NullableKeys,
+  ReadonlyKeys,
+} from "../../../src/types/infer.ts";
 import { defineTable } from "../../../src/types/table.ts";
-import type { NullableKeys, NotNullKeys, ReadonlyKeys, MutableKeys, IsNullable } from "../../../src/types/infer.ts";
 
 const Users = defineTable("users", {
-  id:        col.int().primaryKey(),
-  name:      col.nvarchar(100).notNull(),
-  email:     col.nvarchar(255).notNull().unique(),
-  age:       col.int().nullable(),
-  bio:       col.nvarchar("MAX").nullable(),
+  id: col.int().primaryKey(),
+  name: col.nvarchar(100).notNull(),
+  email: col.nvarchar(255).notNull().unique(),
+  age: col.int().nullable(),
+  bio: col.nvarchar("MAX").nullable(),
   createdAt: col.datetime().notNull().readonly(),
-  fullName:  col.nvarchar(201).computed("expr"),
+  fullName: col.nvarchar(201).computed("expr"),
 });
 
 // Compile-time type assertions — these assignments must compile.
@@ -45,11 +51,22 @@ type _IsNullableName = IsNullable<typeof Users, "name">;
 const _inName: _IsNullableName = false;
 
 // Suppress unused variable warnings — these are compile-time checks only
-void _n1; void _n2;
-void _nn1; void _nn2; void _nn3; void _nn4; void _nn5;
-void _r1; void _r2; void _r3;
-void _m1; void _m2; void _m3; void _m4;
-void _inAge; void _inName;
+void _n1;
+void _n2;
+void _nn1;
+void _nn2;
+void _nn3;
+void _nn4;
+void _nn5;
+void _r1;
+void _r2;
+void _r3;
+void _m1;
+void _m2;
+void _m3;
+void _m4;
+void _inAge;
+void _inName;
 
 describe("types/keys — key utility types", () => {
   describe("NullableKeys", () => {

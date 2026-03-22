@@ -15,22 +15,30 @@ type HasColumnDefs = { readonly columns: { readonly [key: string]: ColumnDef } }
 
 /** Union of column names where isNullable is true. */
 export type NullableKeys<T extends HasColumnDefs> = {
-  [K in keyof T["columns"] & string]: T["columns"][K] extends ColumnDef<infer _T, true, infer _R> ? K : never;
+  [K in keyof T["columns"] & string]: T["columns"][K] extends ColumnDef<infer _T, true, infer _R>
+    ? K
+    : never;
 }[keyof T["columns"] & string];
 
 /** Union of column names where isNullable is false. */
 export type NotNullKeys<T extends HasColumnDefs> = {
-  [K in keyof T["columns"] & string]: T["columns"][K] extends ColumnDef<infer _T, true, infer _R> ? never : K;
+  [K in keyof T["columns"] & string]: T["columns"][K] extends ColumnDef<infer _T, true, infer _R>
+    ? never
+    : K;
 }[keyof T["columns"] & string];
 
 /** Union of column names where isReadonly is true. */
 export type ReadonlyKeys<T extends HasColumnDefs> = {
-  [K in keyof T["columns"] & string]: T["columns"][K] extends ColumnDef<infer _T, infer _N, true> ? K : never;
+  [K in keyof T["columns"] & string]: T["columns"][K] extends ColumnDef<infer _T, infer _N, true>
+    ? K
+    : never;
 }[keyof T["columns"] & string];
 
 /** Union of column names where isReadonly is false (writable). */
 export type MutableKeys<T extends HasColumnDefs> = {
-  [K in keyof T["columns"] & string]: T["columns"][K] extends ColumnDef<infer _T, infer _N, true> ? never : K;
+  [K in keyof T["columns"] & string]: T["columns"][K] extends ColumnDef<infer _T, infer _N, true>
+    ? never
+    : K;
 }[keyof T["columns"] & string];
 
 /** true if column K is nullable, false otherwise. */

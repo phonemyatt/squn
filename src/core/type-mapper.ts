@@ -1,8 +1,8 @@
+import { ErrorCode } from "../errors/codes.ts";
+import { MappingError } from "../errors/types.ts";
 import type { ColumnDef } from "../types/col.ts";
 import type { Row } from "../types/primitives.ts";
 import { TypeHandlerRegistry } from "./type-handler.ts";
-import { ErrorCode } from "../errors/codes.ts";
-import { MappingError } from "../errors/types.ts";
 
 /** A compiled function that maps a raw Row to a typed T. */
 export type RowMapper<T> = (row: Row) => T;

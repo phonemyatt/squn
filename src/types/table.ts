@@ -21,10 +21,10 @@ export interface TableDefinition<
  * and all query methods that accept a table reference. It carries the table
  * name and the full column map at the type level.
  */
-export function defineTable<
-  Name extends string,
-  Columns extends ColumnMap,
->(tableName: Name, columns: Columns): TableDefinition<Name, Columns> {
+export function defineTable<Name extends string, Columns extends ColumnMap>(
+  tableName: Name,
+  columns: Columns,
+): TableDefinition<Name, Columns> {
   return {
     __brand: "TableDefinition" as const,
     tableName,

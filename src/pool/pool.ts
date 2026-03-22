@@ -1,9 +1,9 @@
-import { PooledConnection } from "./connection.ts";
-import { PoolStats } from "./stats.ts";
-import type { PoolStatsSnapshot } from "./stats.ts";
-import { ConnectionReaper } from "./reaper.ts";
 import { ErrorCode } from "../errors/codes.ts";
 import { ConnectionError } from "../errors/types.ts";
+import { PooledConnection } from "./connection.ts";
+import { ConnectionReaper } from "./reaper.ts";
+import type { PoolStatsSnapshot } from "./stats.ts";
+import { PoolStats } from "./stats.ts";
 
 export interface PoolConfig {
   readonly min?: number;
@@ -36,7 +36,10 @@ export class ConnectionPool {
   private readonly queue: Waiter[] = [];
   private readonly stats: PoolStats;
   private readonly reaper: ConnectionReaper;
-  private readonly config: Required<Pick<PoolConfig, "min" | "max" | "acquireTimeoutMs" | "idleTimeoutMs" | "maxQueueSize">> & PoolConfig;
+  private readonly config: Required<
+    Pick<PoolConfig, "min" | "max" | "acquireTimeoutMs" | "idleTimeoutMs" | "maxQueueSize">
+  > &
+    PoolConfig;
   private totalCreated = 0;
   private drained = false;
 
@@ -67,7 +70,9 @@ export class ConnectionPool {
   acquire(): Promise<PooledConnection> {
     if (this.drained) {
       return Promise.reject(
-        new ConnectionError(ErrorCode.POOL_QUEUE_FULL, "Pool has been drained", { operation: "acquire" }),
+        new ConnectionError(ErrorCode.POOL_QUEUE_FULL, "Pool has been drained", {
+          operation: "acquire",
+        }),
       );
     }
 
@@ -99,7 +104,9 @@ export class ConnectionPool {
     // Queue
     if (this.queue.length >= this.config.maxQueueSize) {
       return Promise.reject(
-        new ConnectionError(ErrorCode.POOL_QUEUE_FULL, "Pool acquire queue is full", { operation: "acquire" }),
+        new ConnectionError(ErrorCode.POOL_QUEUE_FULL, "Pool acquire queue is full", {
+          operation: "acquire",
+        }),
       );
     }
 
@@ -108,7 +115,12 @@ export class ConnectionPool {
       const timer = setTimeout(() => {
         const idx = this.queue.findIndex((w) => w.resolve === resolve);
         if (idx !== -1) this.queue.splice(idx, 1);
-        reject(new ConnectionError(ErrorCode.POOL_QUEUE_FULL, "Pool acquire timeout", { operation: "acquire", durationMs: Date.now() - start }));
+        reject(
+          new ConnectionError(ErrorCode.POOL_QUEUE_FULL, "Pool acquire timeout", {
+            operation: "acquire",
+            durationMs: Date.now() - start,
+          }),
+        );
       }, this.config.acquireTimeoutMs);
 
       this.queue.push({ resolve, reject, timer });
@@ -152,7 +164,9 @@ export class ConnectionPool {
     // Reject all waiters
     for (const waiter of this.queue) {
       clearTimeout(waiter.timer);
-      waiter.reject(new ConnectionError(ErrorCode.POOL_QUEUE_FULL, "Pool is draining", { operation: "drain" }));
+      waiter.reject(
+        new ConnectionError(ErrorCode.POOL_QUEUE_FULL, "Pool is draining", { operation: "drain" }),
+      );
     }
     this.queue.length = 0;
 

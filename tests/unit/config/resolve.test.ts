@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from "bun:test";
+import { afterEach, beforeEach, describe, expect, it } from "bun:test";
 import { resolveConfig } from "../../../src/config/resolve.ts";
 
 describe("config/resolve — resolveConfig()", () => {

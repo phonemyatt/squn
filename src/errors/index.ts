@@ -1,17 +1,17 @@
+export { SqunError } from "./base.ts";
 export { ErrorCode } from "./codes.ts";
 export type { ErrorContext } from "./context.ts";
-export { SqunError } from "./base.ts";
 export {
-  ConnectionError,
-  QueryError,
-  MappingError,
-  ValidationError,
-  TransactionError,
-  TimeoutError,
   AdapterError,
+  AuthError,
+  ConnectionError,
+  MappingError,
+  QueryError,
   ReadonlyViolationError,
   SecurityError,
   SqunConfigError,
-  AuthError,
+  TimeoutError,
+  TransactionError,
+  ValidationError,
 } from "./types.ts";
 export { wrapError } from "./wrap.ts";

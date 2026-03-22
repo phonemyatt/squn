@@ -5,7 +5,7 @@ import type { AuthConfig } from "./types.ts";
 const USERNAME_RE = /^[a-zA-Z0-9_\-.\\@]+$/;
 const PASSWORD_FORBIDDEN_RE = /[;{}"']/;
 const DOMAIN_USER_RE = /^[a-zA-Z0-9_\-.]+\\[a-zA-Z0-9_\-.]+$/;
-const UPN_RE = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
+const UPN_RE = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 const GUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const CTX = { operation: "validateAuth" } as const;
@@ -43,7 +43,10 @@ export function validateAuth(config: AuthConfig): void {
       if (config.domain !== undefined && config.username !== undefined) {
         const domainUser = `${config.domain}\\${config.username}`;
         if (!DOMAIN_USER_RE.test(domainUser)) {
-          fail(ErrorCode.AUTH_INVALID_CREDENTIALS, `Invalid Windows domain\\user: must match ${DOMAIN_USER_RE.source}`);
+          fail(
+            ErrorCode.AUTH_INVALID_CREDENTIALS,
+            `Invalid Windows domain\\user: must match ${DOMAIN_USER_RE.source}`,
+          );
         }
       }
       return;
@@ -72,7 +75,10 @@ export function validateAuth(config: AuthConfig): void {
         fail(ErrorCode.AUTH_INVALID_CREDENTIALS, "Azure AD clientId must be a valid GUID");
       }
       if (config.clientSecret === undefined && config.managedIdentity !== true) {
-        fail(ErrorCode.AUTH_MISSING, "Azure AD requires either clientSecret or managedIdentity: true");
+        fail(
+          ErrorCode.AUTH_MISSING,
+          "Azure AD requires either clientSecret or managedIdentity: true",
+        );
       }
       return;
     }

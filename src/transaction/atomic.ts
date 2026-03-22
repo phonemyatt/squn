@@ -1,7 +1,7 @@
 import type { IDbAdapter } from "../adapters/base.ts";
-import type { Row } from "../types/primitives.ts";
 import { ErrorCode } from "../errors/codes.ts";
-import { TransactionError, ConnectionError } from "../errors/types.ts";
+import { ConnectionError, TransactionError } from "../errors/types.ts";
+import type { Row } from "../types/primitives.ts";
 
 /** AtomicNestingError — a TransactionError with code TX_NESTING_FORBIDDEN. */
 export class AtomicNestingError extends TransactionError {}

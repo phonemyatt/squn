@@ -7,6 +7,11 @@ export async function healthCheck(adapter: IDbAdapter): Promise<void> {
   try {
     await adapter.ping();
   } catch (err) {
-    throw wrapError(err, ErrorCode.ADAPTER_DRIVER_ERROR, { operation: "healthCheck", adapter: adapter.type }, "Health check failed");
+    throw wrapError(
+      err,
+      ErrorCode.ADAPTER_DRIVER_ERROR,
+      { operation: "healthCheck", adapter: adapter.type },
+      "Health check failed",
+    );
   }
 }

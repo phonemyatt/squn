@@ -1,6 +1,6 @@
-import { describe, it, expect } from "bun:test";
-import { sql } from "../../../src/sql/tag.ts";
+import { describe, expect, it } from "bun:test";
 import type { TvpValue } from "../../../src/sql/fragment.ts";
+import { sql } from "../../../src/sql/tag.ts";
 
 describe("sql — tagged template literal", () => {
   describe("interpolation — scalar values (path 1)", () => {
@@ -74,7 +74,11 @@ describe("sql — tagged template literal", () => {
   });
 
   describe("interpolation — TvpValue (path 3)", () => {
-    const tvpVal: TvpValue = { __isTvp: true, tableType: { name: "UserTvp" }, rows: [{ name: "A" }] };
+    const tvpVal: TvpValue = {
+      __isTvp: true,
+      tableType: { name: "UserTvp" },
+      rows: [{ name: "A" }],
+    };
 
     it("places a __TVP_0__ sentinel in the text when a TvpValue is interpolated", () => {
       const f = sql`INSERT INTO users SELECT * FROM ${tvpVal}`;

@@ -1,6 +1,6 @@
 import type { IDbAdapter } from "../adapters/base.ts";
-import type { SqlFragment } from "../sql/fragment.ts";
 import { buildParams } from "../core/param-builder.ts";
+import type { SqlFragment } from "../sql/fragment.ts";
 
 /** Returns { rowsAffected }. */
 export async function execute(

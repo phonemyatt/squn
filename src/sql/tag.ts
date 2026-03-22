@@ -1,5 +1,5 @@
-import { createFragment, isSqlFragment, isTvpValue } from "./fragment.ts";
 import type { SqlFragment, TvpValue } from "./fragment.ts";
+import { createFragment, isSqlFragment, isTvpValue } from "./fragment.ts";
 
 const PLACEHOLDER_RE = /\$(\d+)/g;
 

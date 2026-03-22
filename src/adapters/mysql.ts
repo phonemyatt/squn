@@ -1,8 +1,8 @@
 import { SQL } from "bun";
-import type { Row } from "../types/primitives.ts";
-import type { IDbAdapter, IDbTransaction, TvpValue, TvpMaterialised } from "./base.ts";
 import { ErrorCode } from "../errors/codes.ts";
 import { wrapError } from "../errors/wrap.ts";
+import type { Row } from "../types/primitives.ts";
+import type { IDbAdapter, IDbTransaction, TvpMaterialised, TvpValue } from "./base.ts";
 
 export interface MysqlAdapterOptions {
   readonly url?: string;
@@ -28,7 +28,12 @@ export class MysqlAdapter implements IDbAdapter {
         password: options.password,
       });
     } catch (err) {
-      throw wrapError(err, ErrorCode.ADAPTER_DRIVER_ERROR, { operation: "connect", adapter: "mysql" }, "Failed to create MySQL connection");
+      throw wrapError(
+        err,
+        ErrorCode.ADAPTER_DRIVER_ERROR,
+        { operation: "connect", adapter: "mysql" },
+        "Failed to create MySQL connection",
+      );
     }
   }
 
@@ -37,7 +42,12 @@ export class MysqlAdapter implements IDbAdapter {
       const result = await this.sql.unsafe(sql, params as (string | number | boolean | null)[]);
       return { rowsAffected: result.count ?? 0 };
     } catch (err) {
-      throw wrapError(err, ErrorCode.ADAPTER_DRIVER_ERROR, { operation: "execute", adapter: "mysql", sql }, "MySQL execute failed");
+      throw wrapError(
+        err,
+        ErrorCode.ADAPTER_DRIVER_ERROR,
+        { operation: "execute", adapter: "mysql", sql },
+        "MySQL execute failed",
+      );
     }
   }
 
@@ -46,7 +56,12 @@ export class MysqlAdapter implements IDbAdapter {
       const result = await this.sql.unsafe(sql, params as (string | number | boolean | null)[]);
       return [...result] as Row[];
     } catch (err) {
-      throw wrapError(err, ErrorCode.ADAPTER_DRIVER_ERROR, { operation: "query", adapter: "mysql", sql }, "MySQL query failed");
+      throw wrapError(
+        err,
+        ErrorCode.ADAPTER_DRIVER_ERROR,
+        { operation: "query", adapter: "mysql", sql },
+        "MySQL query failed",
+      );
     }
   }
 
@@ -55,7 +70,12 @@ export class MysqlAdapter implements IDbAdapter {
       const result = await this.sql.unsafe(sql, params as (string | number | boolean | null)[]);
       return [[...result] as Row[]];
     } catch (err) {
-      throw wrapError(err, ErrorCode.ADAPTER_DRIVER_ERROR, { operation: "queryMultiple", adapter: "mysql", sql }, "MySQL queryMultiple failed");
+      throw wrapError(
+        err,
+        ErrorCode.ADAPTER_DRIVER_ERROR,
+        { operation: "queryMultiple", adapter: "mysql", sql },
+        "MySQL queryMultiple failed",
+      );
     }
   }
 
@@ -64,7 +84,12 @@ export class MysqlAdapter implements IDbAdapter {
     try {
       await conn.unsafe("BEGIN");
     } catch (err) {
-      throw wrapError(err, ErrorCode.ADAPTER_DRIVER_ERROR, { operation: "beginTransaction", adapter: "mysql" }, "MySQL BEGIN failed");
+      throw wrapError(
+        err,
+        ErrorCode.ADAPTER_DRIVER_ERROR,
+        { operation: "beginTransaction", adapter: "mysql" },
+        "MySQL BEGIN failed",
+      );
     }
 
     const tx: IDbTransaction = {
@@ -73,7 +98,12 @@ export class MysqlAdapter implements IDbAdapter {
           const result = await conn.unsafe(sql, params as (string | number | boolean | null)[]);
           return { rowsAffected: result.count ?? 0 };
         } catch (err) {
-          throw wrapError(err, ErrorCode.ADAPTER_DRIVER_ERROR, { operation: "execute", adapter: "mysql", sql }, "MySQL tx execute failed");
+          throw wrapError(
+            err,
+            ErrorCode.ADAPTER_DRIVER_ERROR,
+            { operation: "execute", adapter: "mysql", sql },
+            "MySQL tx execute failed",
+          );
         }
       },
       async query(sql: string, params: unknown[]): Promise<Row[]> {
@@ -81,32 +111,72 @@ export class MysqlAdapter implements IDbAdapter {
           const result = await conn.unsafe(sql, params as (string | number | boolean | null)[]);
           return [...result] as Row[];
         } catch (err) {
-          throw wrapError(err, ErrorCode.ADAPTER_DRIVER_ERROR, { operation: "query", adapter: "mysql", sql }, "MySQL tx query failed");
+          throw wrapError(
+            err,
+            ErrorCode.ADAPTER_DRIVER_ERROR,
+            { operation: "query", adapter: "mysql", sql },
+            "MySQL tx query failed",
+          );
         }
       },
       async commit(): Promise<void> {
-        try { await conn.unsafe("COMMIT"); } catch (err) {
-          throw wrapError(err, ErrorCode.ADAPTER_DRIVER_ERROR, { operation: "commit", adapter: "mysql" }, "MySQL COMMIT failed");
+        try {
+          await conn.unsafe("COMMIT");
+        } catch (err) {
+          throw wrapError(
+            err,
+            ErrorCode.ADAPTER_DRIVER_ERROR,
+            { operation: "commit", adapter: "mysql" },
+            "MySQL COMMIT failed",
+          );
         }
       },
       async rollback(): Promise<void> {
-        try { await conn.unsafe("ROLLBACK"); } catch (err) {
-          throw wrapError(err, ErrorCode.ADAPTER_DRIVER_ERROR, { operation: "rollback", adapter: "mysql" }, "MySQL ROLLBACK failed");
+        try {
+          await conn.unsafe("ROLLBACK");
+        } catch (err) {
+          throw wrapError(
+            err,
+            ErrorCode.ADAPTER_DRIVER_ERROR,
+            { operation: "rollback", adapter: "mysql" },
+            "MySQL ROLLBACK failed",
+          );
         }
       },
       async savepoint(name: string): Promise<void> {
-        try { await conn.unsafe(`SAVEPOINT ${name}`); } catch (err) {
-          throw wrapError(err, ErrorCode.ADAPTER_DRIVER_ERROR, { operation: "savepoint", adapter: "mysql" }, "MySQL SAVEPOINT failed");
+        try {
+          await conn.unsafe(`SAVEPOINT ${name}`);
+        } catch (err) {
+          throw wrapError(
+            err,
+            ErrorCode.ADAPTER_DRIVER_ERROR,
+            { operation: "savepoint", adapter: "mysql" },
+            "MySQL SAVEPOINT failed",
+          );
         }
       },
       async releaseSavepoint(name: string): Promise<void> {
-        try { await conn.unsafe(`RELEASE SAVEPOINT ${name}`); } catch (err) {
-          throw wrapError(err, ErrorCode.ADAPTER_DRIVER_ERROR, { operation: "releaseSavepoint", adapter: "mysql" }, "MySQL RELEASE failed");
+        try {
+          await conn.unsafe(`RELEASE SAVEPOINT ${name}`);
+        } catch (err) {
+          throw wrapError(
+            err,
+            ErrorCode.ADAPTER_DRIVER_ERROR,
+            { operation: "releaseSavepoint", adapter: "mysql" },
+            "MySQL RELEASE failed",
+          );
         }
       },
       async rollbackToSavepoint(name: string): Promise<void> {
-        try { await conn.unsafe(`ROLLBACK TO SAVEPOINT ${name}`); } catch (err) {
-          throw wrapError(err, ErrorCode.ADAPTER_DRIVER_ERROR, { operation: "rollbackToSavepoint", adapter: "mysql" }, "MySQL ROLLBACK TO failed");
+        try {
+          await conn.unsafe(`ROLLBACK TO SAVEPOINT ${name}`);
+        } catch (err) {
+          throw wrapError(
+            err,
+            ErrorCode.ADAPTER_DRIVER_ERROR,
+            { operation: "rollbackToSavepoint", adapter: "mysql" },
+            "MySQL ROLLBACK TO failed",
+          );
         }
       },
     };
@@ -117,7 +187,12 @@ export class MysqlAdapter implements IDbAdapter {
     try {
       await this.sql.unsafe("SELECT 1");
     } catch (err) {
-      throw wrapError(err, ErrorCode.ADAPTER_DRIVER_ERROR, { operation: "ping", adapter: "mysql" }, "MySQL ping failed");
+      throw wrapError(
+        err,
+        ErrorCode.ADAPTER_DRIVER_ERROR,
+        { operation: "ping", adapter: "mysql" },
+        "MySQL ping failed",
+      );
     }
   }
 
@@ -125,7 +200,12 @@ export class MysqlAdapter implements IDbAdapter {
     try {
       await this.sql.close();
     } catch (err) {
-      throw wrapError(err, ErrorCode.ADAPTER_DRIVER_ERROR, { operation: "close", adapter: "mysql" }, "MySQL close failed");
+      throw wrapError(
+        err,
+        ErrorCode.ADAPTER_DRIVER_ERROR,
+        { operation: "close", adapter: "mysql" },
+        "MySQL close failed",
+      );
     }
   }
 

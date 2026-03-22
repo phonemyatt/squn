@@ -1,6 +1,6 @@
-import type { SqlFragment } from "./fragment.ts";
 import { ErrorCode } from "../errors/codes.ts";
 import { SecurityError } from "../errors/types.ts";
+import type { SqlFragment } from "./fragment.ts";
 
 export interface ValidateOptions {
   readonly multiStatement?: boolean;

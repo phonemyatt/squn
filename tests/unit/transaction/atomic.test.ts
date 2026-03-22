@@ -1,21 +1,34 @@
-import { describe, it, expect } from "bun:test";
-import { runAtomically, AtomicNestingError } from "../../../src/transaction/atomic.ts";
-import type { IDbAdapter, IDbTransaction, TvpValue, TvpMaterialised } from "../../../src/adapters/base.ts";
-import type { Row } from "../../../src/types/primitives.ts";
-import { ConnectionError } from "../../../src/errors/types.ts";
+import { describe, expect, it } from "bun:test";
+import type {
+  IDbAdapter,
+  IDbTransaction,
+  TvpMaterialised,
+  TvpValue,
+} from "../../../src/adapters/base.ts";
 import { ErrorCode } from "../../../src/errors/codes.ts";
+import { ConnectionError } from "../../../src/errors/types.ts";
+import { AtomicNestingError, runAtomically } from "../../../src/transaction/atomic.ts";
+import type { Row } from "../../../src/types/primitives.ts";
 
 function mockAdapter(opts?: { queryFail?: boolean; commitFail?: boolean }): IDbAdapter {
   const log: string[] = [];
   const tx: IDbTransaction = {
-    async execute(s: string, _p: unknown[]) { log.push(`exec:${s}`); return { rowsAffected: 1 }; },
+    async execute(s: string, _p: unknown[]) {
+      log.push(`exec:${s}`);
+      return { rowsAffected: 1 };
+    },
     async query(s: string, _p: unknown[]) {
       log.push(`query:${s}`);
       if (opts?.queryFail) throw new Error("query fail");
       return [{ id: 1 }] as Row[];
     },
-    async commit() { log.push("commit"); if (opts?.commitFail) throw new Error("commit fail"); },
-    async rollback() { log.push("rollback"); },
+    async commit() {
+      log.push("commit");
+      if (opts?.commitFail) throw new Error("commit fail");
+    },
+    async rollback() {
+      log.push("rollback");
+    },
     async savepoint(_n: string) {},
     async releaseSavepoint(_n: string) {},
     async rollbackToSavepoint(_n: string) {},
@@ -23,14 +36,27 @@ function mockAdapter(opts?: { queryFail?: boolean; commitFail?: boolean }): IDbA
 
   return {
     type: "sqlite",
-    async execute(_s, _p) { return { rowsAffected: 0 }; },
-    async query(_s, _p) { return []; },
-    async queryMultiple(_s, _p) { return []; },
-    async beginTransaction() { log.push("begin"); return tx; },
+    async execute(_s, _p) {
+      return { rowsAffected: 0 };
+    },
+    async query(_s, _p) {
+      return [];
+    },
+    async queryMultiple(_s, _p) {
+      return [];
+    },
+    async beginTransaction() {
+      log.push("begin");
+      return tx;
+    },
     async ping() {},
     async close() {},
-    async materializeTvp(_t: TvpValue, _i: number): Promise<TvpMaterialised> { throw new Error("not impl"); },
-    get _log() { return log; },
+    async materializeTvp(_t: TvpValue, _i: number): Promise<TvpMaterialised> {
+      throw new Error("not impl");
+    },
+    get _log() {
+      return log;
+    },
   } as IDbAdapter & { _log: string[] };
 }
 
@@ -57,8 +83,12 @@ describe("transaction/atomic — runAtomically()", () => {
     it("sends ROLLBACK when the callback throws", async () => {
       const adapter = mockAdapter();
       try {
-        await runAtomically(adapter, async () => { throw new Error("oops"); });
-      } catch { /* expected */ }
+        await runAtomically(adapter, async () => {
+          throw new Error("oops");
+        });
+      } catch {
+        /* expected */
+      }
       const log = (adapter as unknown as { _log: string[] })._log;
       expect(log).toContain("rollback");
       expect(log).not.toContain("commit");
@@ -67,7 +97,9 @@ describe("transaction/atomic — runAtomically()", () => {
     it("rethrows the original error after rolling back", async () => {
       const adapter = mockAdapter();
       await expect(
-        runAtomically(adapter, async () => { throw new Error("original"); }),
+        runAtomically(adapter, async () => {
+          throw new Error("original");
+        }),
       ).rejects.toThrow("original");
     });
   });
@@ -76,11 +108,16 @@ describe("transaction/atomic — runAtomically()", () => {
     it("retries on ConnectionError when retryOnError is true", async () => {
       let attempt = 0;
       const adapter = mockAdapter();
-      const result = await runAtomically(adapter, async () => {
-        attempt++;
-        if (attempt === 1) throw new ConnectionError(ErrorCode.CONN_UNKNOWN, "transient", { operation: "q" });
-        return "ok";
-      }, { retryOnError: true, maxRetries: 2, retryDelayMs: 1 });
+      const result = await runAtomically(
+        adapter,
+        async () => {
+          attempt++;
+          if (attempt === 1)
+            throw new ConnectionError(ErrorCode.CONN_UNKNOWN, "transient", { operation: "q" });
+          return "ok";
+        },
+        { retryOnError: true, maxRetries: 2, retryDelayMs: 1 },
+      );
       expect(result).toBe("ok");
       expect(attempt).toBe(2);
     });
@@ -89,11 +126,17 @@ describe("transaction/atomic — runAtomically()", () => {
       let attempt = 0;
       const adapter = mockAdapter();
       try {
-        await runAtomically(adapter, async () => {
-          attempt++;
-          throw new Error("not transient");
-        }, { retryOnError: true, maxRetries: 3, retryDelayMs: 1 });
-      } catch { /* expected */ }
+        await runAtomically(
+          adapter,
+          async () => {
+            attempt++;
+            throw new Error("not transient");
+          },
+          { retryOnError: true, maxRetries: 3, retryDelayMs: 1 },
+        );
+      } catch {
+        /* expected */
+      }
       expect(attempt).toBe(1);
     });
   });

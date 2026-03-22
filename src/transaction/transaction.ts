@@ -1,9 +1,9 @@
 import type { IDbTransaction } from "../adapters/base.ts";
-import type { Row } from "../types/primitives.ts";
+import { TransactionClock } from "../async/clock.ts";
 import { ErrorCode } from "../errors/codes.ts";
 import { TransactionError } from "../errors/types.ts";
+import type { Row } from "../types/primitives.ts";
 import { Savepoint } from "./savepoint.ts";
-import { TransactionClock } from "../async/clock.ts";
 
 export type TransactionState = "ACTIVE" | "COMMITTED" | "ROLLED_BACK" | "TIMED_OUT" | "FAILED";
 
@@ -46,7 +46,12 @@ export class Transaction {
       this._state = "COMMITTED";
     } catch (err) {
       this._state = "FAILED";
-      throw new TransactionError(ErrorCode.TX_COMMIT_FAILED, "COMMIT failed", { operation: "commit", txId: this.id }, err);
+      throw new TransactionError(
+        ErrorCode.TX_COMMIT_FAILED,
+        "COMMIT failed",
+        { operation: "commit", txId: this.id },
+        err,
+      );
     }
   }
 
@@ -57,7 +62,12 @@ export class Transaction {
       this._state = "ROLLED_BACK";
     } catch (err) {
       this._state = "FAILED";
-      throw new TransactionError(ErrorCode.TX_ROLLBACK_FAILED, "ROLLBACK failed", { operation: "rollback", txId: this.id }, err);
+      throw new TransactionError(
+        ErrorCode.TX_ROLLBACK_FAILED,
+        "ROLLBACK failed",
+        { operation: "rollback", txId: this.id },
+        err,
+      );
     }
   }
 

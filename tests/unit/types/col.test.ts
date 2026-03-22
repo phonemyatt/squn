@@ -1,4 +1,4 @@
-import { describe, it, expect } from "bun:test";
+import { describe, expect, it } from "bun:test";
 import { col } from "../../../src/types/col.ts";
 
 describe("types/col — col builder", () => {

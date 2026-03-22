@@ -1,6 +1,6 @@
-import { describe, it, expect, afterEach } from "bun:test";
-import { QueryCache } from "../../../src/cache/query-cache.ts";
+import { afterEach, describe, expect, it } from "bun:test";
 import type { CompiledQuery } from "../../../src/cache/query-cache.ts";
+import { QueryCache } from "../../../src/cache/query-cache.ts";
 
 function compiled(sql: string): CompiledQuery {
   return { normalizedSql: sql, paramNames: [] };
