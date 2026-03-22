@@ -30,7 +30,7 @@ export function assertWritable(
     throw new ReadonlyViolationError(
       ErrorCode.READONLY_WRITE_BLOCKED,
       `Write operation '${operation}' blocked on readonly connection`,
-      { operation, sql },
+      { operation, ...(sql !== undefined ? { sql } : {}) },
     );
   }
 

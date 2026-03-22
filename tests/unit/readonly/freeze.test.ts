@@ -29,7 +29,7 @@ describe("readonly/freeze — @Readonly() decorator", () => {
 
     const point = new FrozenPoint(1, 2);
     expect(() => {
-      (point as Record<string, unknown>).x = 99;
+      (point as unknown as Record<string, unknown>).x = 99;
     }).toThrow();
     expect(point.x).toBe(1);
   });
