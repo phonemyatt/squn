@@ -1,0 +1,12 @@
+[test]
+timeout     = 5000          # 5s per test — fail fast
+coverage    = true
+root        = "./tests"
+preload     = ["./tests/setup.ts"]
+
+[test.coverageThreshold]
+line   = 90
+branch = 85
+
+[install]
+exact = true                # pin all versions in package.json
