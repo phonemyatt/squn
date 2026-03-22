@@ -1,6 +1,4 @@
 import { SQUN_REGEX } from "./regex.ts";
-import { ErrorCode } from "../errors/codes.ts";
-import { SecurityError } from "../errors/types.ts";
 
 export type Severity = "critical" | "high" | "medium" | "low";
 

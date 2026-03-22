@@ -22,16 +22,16 @@ function addRule(target: object, propertyKey: string, rule: ValidationRule): voi
 /** Marks a property as required — validates that the value is not null or undefined. */
 export function NotNull(_target: undefined, context: ClassFieldDecoratorContext): void {
   const name = String(context.name);
-  context.addInitializer(function (this: object) {
-    addRule(Object.getPrototypeOf(this) as object, name, { type: "notNull" });
+  context.addInitializer(function () {
+    addRule(Object.getPrototypeOf(this as object) as object, name, { type: "notNull" });
   });
 }
 
 /** Validates that a string property matches an email format. */
 export function Email(_target: undefined, context: ClassFieldDecoratorContext): void {
   const name = String(context.name);
-  context.addInitializer(function (this: object) {
-    addRule(Object.getPrototypeOf(this) as object, name, { type: "email" });
+  context.addInitializer(function () {
+    addRule(Object.getPrototypeOf(this as object) as object, name, { type: "email" });
   });
 }
 
@@ -39,8 +39,8 @@ export function Email(_target: undefined, context: ClassFieldDecoratorContext): 
 export function Min(value: number) {
   return function (_target: undefined, context: ClassFieldDecoratorContext): void {
     const name = String(context.name);
-    context.addInitializer(function (this: object) {
-      addRule(Object.getPrototypeOf(this) as object, name, { type: "min", value });
+    context.addInitializer(function () {
+      addRule(Object.getPrototypeOf(this as object) as object, name, { type: "min", value });
     });
   };
 }
@@ -49,8 +49,8 @@ export function Min(value: number) {
 export function Max(value: number) {
   return function (_target: undefined, context: ClassFieldDecoratorContext): void {
     const name = String(context.name);
-    context.addInitializer(function (this: object) {
-      addRule(Object.getPrototypeOf(this) as object, name, { type: "max", value });
+    context.addInitializer(function () {
+      addRule(Object.getPrototypeOf(this as object) as object, name, { type: "max", value });
     });
   };
 }

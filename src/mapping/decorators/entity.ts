@@ -1,6 +1,5 @@
 import { globalMapperRegistry } from "../mapper-registry.ts";
 import { propertyInjectionMapper } from "../class-mapper.ts";
-import type { Row } from "../../types/primitives.ts";
 
 interface SchemaLike {
   readonly columnNames: readonly string[];

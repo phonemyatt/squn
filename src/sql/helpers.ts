@@ -1,4 +1,4 @@
-import { createFragment, isSqlFragment } from "./fragment.ts";
+import { createFragment } from "./fragment.ts";
 import type { SqlFragment } from "./fragment.ts";
 import { SQUN_REGEX } from "./regex.ts";
 import { ErrorCode } from "../errors/codes.ts";

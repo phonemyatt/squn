@@ -1,6 +1,6 @@
 import { describe, it, expect } from "bun:test";
 import { createFragment, isSqlFragment, isTvpValue } from "../../../src/sql/fragment.ts";
-import type { SqlFragment, TvpValue } from "../../../src/sql/fragment.ts";
+import type { TvpValue } from "../../../src/sql/fragment.ts";
 
 describe("sql/fragment — SqlFragment", () => {
   it("createFragment returns an object with __isSql: true", () => {

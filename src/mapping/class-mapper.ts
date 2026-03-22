@@ -1,7 +1,8 @@
 import type { Row } from "../types/primitives.ts";
 import type { MapperFn } from "./mapper-registry.ts";
 
-type Constructor<T> = new (...args: unknown[]) => T;
+// biome-ignore lint/suspicious/noExplicitAny: constructor args are heterogeneous at runtime
+type Constructor<T> = new (...args: any[]) => T;
 
 export type ConstructionStrategy = "property" | "constructor" | "factory" | "static";
 

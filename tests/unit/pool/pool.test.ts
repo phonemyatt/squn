@@ -39,7 +39,7 @@ describe("pool/pool — ConnectionPool", () => {
       const c1 = await pool.acquire();
 
       // Fill the queue
-      const _pending = pool.acquire().catch(() => {});
+      void pool.acquire().catch(() => {});
       try {
         await pool.acquire();
         expect.unreachable("should have thrown");

@@ -2,7 +2,8 @@ import type { Row } from "../types/primitives.ts";
 
 export type MapperFn<T> = (row: Row) => T;
 
-type Constructor<T> = new (...args: unknown[]) => T;
+// biome-ignore lint/suspicious/noExplicitAny: constructor args are heterogeneous
+type Constructor<T> = new (...args: any[]) => T;
 
 /** Global class → mapper registry. defineMapper() and @Entity register here. */
 class MapperRegistry {

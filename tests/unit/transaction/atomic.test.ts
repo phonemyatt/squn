@@ -23,9 +23,9 @@ function mockAdapter(opts?: { queryFail?: boolean; commitFail?: boolean }): IDbA
 
   return {
     type: "sqlite",
-    async execute(s, p) { return { rowsAffected: 0 }; },
-    async query(s, p) { return []; },
-    async queryMultiple(s, p) { return []; },
+    async execute(_s, _p) { return { rowsAffected: 0 }; },
+    async query(_s, _p) { return []; },
+    async queryMultiple(_s, _p) { return []; },
     async beginTransaction() { log.push("begin"); return tx; },
     async ping() {},
     async close() {},
