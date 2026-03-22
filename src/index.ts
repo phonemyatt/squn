@@ -7,8 +7,9 @@ export { MysqlAdapter } from "./adapters/mysql.ts";
 export { PostgresAdapter } from "./adapters/postgres.ts";
 export { SqliteAdapter } from "./adapters/sqlite.ts";
 export { execute, executeBatch, insert, update } from "./api/execute.ts";
-export { execProc, queryProc } from "./api/proc.ts";
 // API
+export { PreparedQuery, prepare } from "./api/prepared.ts";
+export { execProc, queryProc } from "./api/proc.ts";
 export { query, queryFirst, queryMultiple, queryScalar, querySingle, stream } from "./api/query.ts";
 export { QueryBuilder, queryBuilder } from "./api/query-builder.ts";
 export { TransactionClock } from "./async/clock.ts";

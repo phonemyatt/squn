@@ -1,4 +1,6 @@
 import type { IDbAdapter } from "./adapters/base.ts";
+import type { PreparedQuery } from "./api/prepared.ts";
+import { prepare } from "./api/prepared.ts";
 import { resolveConfig } from "./config/resolve.ts";
 import type { SqunConfig } from "./config/types.ts";
 import { validateConfig } from "./config/validate.ts";
@@ -6,10 +8,16 @@ import { validateProductionConfig } from "./config/validate-production.ts";
 import { ConnectionRegistry } from "./connections/registry.ts";
 import type { MultiDbConfig } from "./connections/types.ts";
 import { noopLogger } from "./logging/noop-logger.ts";
+import type { SqlFragment } from "./sql/fragment.ts";
 
 export interface Db {
   readonly adapter: IDbAdapter;
   readonly config: SqunConfig;
+  /** Compile a query once — returns a PreparedQuery that only binds params on each call. */
+  prepare<T, P extends Record<string, unknown>>(
+    fragment: SqlFragment,
+    paramNames: readonly string[],
+  ): PreparedQuery<T, P>;
 }
 
 /**
@@ -23,7 +31,16 @@ export function createDb(adapter: IDbAdapter, userConfig: Partial<SqunConfig> = 
   const logger = config.log?.logger ?? noopLogger;
   validateProductionConfig(config, adapter.type, config.connection ?? {}, logger);
 
-  return { adapter, config };
+  return {
+    adapter,
+    config,
+    prepare<T, P extends Record<string, unknown>>(
+      fragment: SqlFragment,
+      paramNames: readonly string[],
+    ): PreparedQuery<T, P> {
+      return prepare<T, P>(adapter, fragment, paramNames);
+    },
+  };
 }
 
 export interface MultiDb<Names extends string = string> {
