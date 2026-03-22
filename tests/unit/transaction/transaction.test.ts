@@ -109,6 +109,52 @@ describe("transaction/transaction — Transaction state machine", () => {
     });
   });
 
+  describe("markTimedOut and markFailed", () => {
+    it("markFailed() transitions to FAILED", () => {
+      const tx = new Transaction(mockTx());
+      tx.markFailed();
+      expect(tx.state).toBe("FAILED");
+    });
+
+    it("throws TX_ALREADY_CLOSED after markTimedOut()", async () => {
+      const tx = new Transaction(mockTx());
+      tx.markTimedOut();
+      await expect(tx.query("SELECT 1", [])).rejects.toThrow(TransactionError);
+    });
+
+    it("throws TX_ALREADY_CLOSED after markFailed()", async () => {
+      const tx = new Transaction(mockTx());
+      tx.markFailed();
+      await expect(tx.execute("SELECT 1", [])).rejects.toThrow(TransactionError);
+    });
+  });
+
+  describe("rollback failure", () => {
+    it("transitions to FAILED when rollback throws", async () => {
+      const tx = new Transaction(mockTx({ rollbackFail: true }));
+      try {
+        await tx.rollback();
+      } catch {
+        /* expected */
+      }
+      expect(tx.state).toBe("FAILED");
+    });
+  });
+
+  describe("query and execute on active transaction", () => {
+    it("query() returns rows on an ACTIVE transaction", async () => {
+      const tx = new Transaction(mockTx());
+      const rows = await tx.query("SELECT 1", []);
+      expect(rows).toEqual([{ id: 1 }]);
+    });
+
+    it("execute() returns rowsAffected on an ACTIVE transaction", async () => {
+      const tx = new Transaction(mockTx());
+      const result = await tx.execute("UPDATE t SET x = 1", []);
+      expect(result.rowsAffected).toBe(1);
+    });
+  });
+
   describe("metadata", () => {
     it("has a unique id", () => {
       const tx = new Transaction(mockTx());

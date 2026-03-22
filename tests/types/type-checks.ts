@@ -180,14 +180,8 @@ const _adapter = db.adapter;
 const _config = db.config;
 use(_adapter, _config);
 
-// @ts-expect-error — Db has no .query() method
-db.query;
-
-// @ts-expect-error — Db has no .execute() method
-db.execute;
-
-// @ts-expect-error — Db has no .atomically() method
-db.atomically;
+// Db now has .query(), .execute(), .atomically() — verify they exist
+use(db.query, db.execute, db.atomically);
 
 // ═══════════════════════════════════════════════════════════════════════════
 // createConnections — MultiDb<Names> type inference

@@ -71,6 +71,15 @@ describe("sql — tagged template literal", () => {
       expect(query.text).toBe("SELECT * FROM users WHERE deleted_at IS NULL");
       expect(query.params).toEqual([]);
     });
+
+    it("renumbers placeholders with offset 0 when nested fragment is the first interpolation", () => {
+      // Inner fragment has $1, outer has no preceding params → offset is 0
+      // The renumber function should return text unchanged (early return path)
+      const inner = sql`id = ${42}`;
+      const outer = sql`SELECT * FROM users WHERE ${inner}`;
+      expect(outer.text).toBe("SELECT * FROM users WHERE id = $1");
+      expect(outer.params).toEqual([42]);
+    });
   });
 
   describe("interpolation — TvpValue (path 3)", () => {
