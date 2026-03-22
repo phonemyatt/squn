@@ -1,5 +1,4 @@
 import type { ColumnDef } from "../types/col.ts";
-import type { TableDefinition } from "../types/table.ts";
 import type { Row } from "../types/primitives.ts";
 import { TypeHandlerRegistry } from "./type-handler.ts";
 import { ErrorCode } from "../errors/codes.ts";
@@ -7,6 +6,12 @@ import { MappingError } from "../errors/types.ts";
 
 /** A compiled function that maps a raw Row to a typed T. */
 export type RowMapper<T> = (row: Row) => T;
+
+/** Structural constraint — accepts both TableDefinition and any object with columns + tableName. */
+interface SchemaLike {
+  readonly tableName: string;
+  readonly columns: { readonly [key: string]: ColumnDef };
+}
 
 interface ColumnMapping {
   readonly name: string;
@@ -23,7 +28,7 @@ interface ColumnMapping {
  * and for unknown columns in the result. In lenient mode, warns and continues.
  */
 export function compileMapper<T>(
-  schema: TableDefinition,
+  schema: SchemaLike,
   registry: TypeHandlerRegistry = new TypeHandlerRegistry(),
   strict: boolean = true,
 ): RowMapper<T> {
@@ -31,12 +36,11 @@ export function compileMapper<T>(
   const columnSet = new Set<string>();
 
   for (const [name, colDef] of Object.entries(schema.columns)) {
-    const col = colDef as ColumnDef;
     columnSet.add(name);
     mappings.push({
       name,
-      dbType: col.dbType,
-      isNullable: col.isNullable,
+      dbType: colDef.dbType,
+      isNullable: colDef.isNullable,
     });
   }
 
@@ -61,7 +65,6 @@ export function compileMapper<T>(
       result[mapping.name] = registry.fromDb(mapping.dbType, raw);
     }
 
-    // Check for unknown columns in strict mode
     if (strict) {
       for (const key of Object.keys(row)) {
         if (!columnSet.has(key)) {

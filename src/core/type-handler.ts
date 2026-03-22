@@ -1,6 +1,3 @@
-import { ErrorCode } from "../errors/codes.ts";
-import { MappingError } from "../errors/types.ts";
-
 /** Converts values between database driver types and TypeScript types. */
 export interface TypeHandler<T = unknown> {
   fromDb(raw: unknown): T;
@@ -64,15 +61,6 @@ const bufferHandler: TypeHandler<Buffer> = {
   },
   toDb(value: Buffer): unknown {
     return value;
-  },
-};
-
-const nullHandler: TypeHandler<null> = {
-  fromDb(_raw: unknown): null {
-    return null;
-  },
-  toDb(_value: null): unknown {
-    return null;
   },
 };
 
