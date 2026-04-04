@@ -9,7 +9,7 @@ export async function query<T>(
   adapter: IDbAdapter,
   fragment: SqlFragment,
 ): Promise<T[]> {
-  const rows = await adapter.query(fragment.text, [...fragment.params]);
+  const rows = await adapter.query(fragment.text, fragment.params);
   return rows as T[];
 }
 
@@ -18,7 +18,7 @@ export async function queryFirst<T>(
   adapter: IDbAdapter,
   fragment: SqlFragment,
 ): Promise<T | null> {
-  const rows = await adapter.query(fragment.text, [...fragment.params]);
+  const rows = await adapter.query(fragment.text, fragment.params);
   if (rows.length === 0) return null;
   return rows[0] as T;
 }
@@ -29,7 +29,7 @@ export async function querySingle<T>(
   fragment: SqlFragment,
   strict: boolean = true,
 ): Promise<T> {
-  const rows = await adapter.query(fragment.text, [...fragment.params]);
+  const rows = await adapter.query(fragment.text, fragment.params);
 
   if (rows.length === 0) {
     if (!strict) return null as T;
@@ -59,7 +59,7 @@ export async function queryScalar<T>(
   adapter: IDbAdapter,
   fragment: SqlFragment,
 ): Promise<T> {
-  const rows = await adapter.query(fragment.text, [...fragment.params]);
+  const rows = await adapter.query(fragment.text, fragment.params);
   if (rows.length === 0) {
     throw new QueryError(
       ErrorCode.NO_ROWS_FOUND,
@@ -91,7 +91,7 @@ export async function queryMultiple(
   adapter: IDbAdapter,
   fragment: SqlFragment,
 ): Promise<Row[][]> {
-  return adapter.queryMultiple(fragment.text, [...fragment.params]);
+  return adapter.queryMultiple(fragment.text, fragment.params);
 }
 
 /** AsyncIterableIterator<T> — streaming cursor with configurable batch size. */
@@ -101,7 +101,7 @@ export async function* stream<T>(
   batchSize: number = 100,
 ): AsyncIterableIterator<T> {
   // For adapters without native cursor support, fetch all and yield in batches
-  const rows = await adapter.query(fragment.text, [...fragment.params]);
+  const rows = await adapter.query(fragment.text, fragment.params);
   for (let i = 0; i < rows.length; i += batchSize) {
     const batch = rows.slice(i, i + batchSize);
     for (const row of batch) {

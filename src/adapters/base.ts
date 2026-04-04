@@ -18,8 +18,8 @@ export interface TvpValue {
 
 /** Transaction handle returned by beginTransaction(). */
 export interface IDbTransaction {
-  execute(sql: string, params: unknown[]): Promise<{ rowsAffected: number }>;
-  query(sql: string, params: unknown[]): Promise<Row[]>;
+  execute(sql: string, params: readonly unknown[]): Promise<{ rowsAffected: number }>;
+  query(sql: string, params: readonly unknown[]): Promise<Row[]>;
   commit(): Promise<void>;
   rollback(): Promise<void>;
   savepoint(name: string): Promise<void>;
@@ -30,9 +30,9 @@ export interface IDbTransaction {
 /** Database adapter contract — all database-specific behaviour lives here. */
 export interface IDbAdapter {
   readonly type: AdapterType;
-  execute(sql: string, params: unknown[]): Promise<{ rowsAffected: number }>;
-  query(sql: string, params: unknown[]): Promise<Row[]>;
-  queryMultiple(sql: string, params: unknown[]): Promise<Row[][]>;
+  execute(sql: string, params: readonly unknown[]): Promise<{ rowsAffected: number }>;
+  query(sql: string, params: readonly unknown[]): Promise<Row[]>;
+  queryMultiple(sql: string, params: readonly unknown[]): Promise<Row[][]>;
   beginTransaction(): Promise<IDbTransaction>;
   ping(): Promise<void>;
   close(): Promise<void>;

@@ -13,7 +13,7 @@ export class Savepoint {
     txId: string,
     depth: number,
   ) {
-    this.name = `squn_sp_${txId.replace(/-/g, "")}_${depth}`;
+    this.name = `squn_sp_${txId}_${depth}`;
   }
 
   /** Creates the savepoint on the database. */

@@ -7,7 +7,7 @@ export async function execute(
   adapter: IDbAdapter,
   fragment: SqlFragment,
 ): Promise<{ rowsAffected: number }> {
-  return adapter.execute(fragment.text, [...fragment.params]);
+  return adapter.execute(fragment.text, fragment.params);
 }
 
 /** Single prepared statement executed once per row. */
@@ -19,7 +19,7 @@ export async function executeBatch(
   let total = 0;
   for (const row of rows) {
     const built = buildParams(fragment.text, row, adapter.type);
-    const result = await adapter.execute(built.text, [...built.params]);
+    const result = await adapter.execute(built.text, built.params);
     total += result.rowsAffected;
   }
   return { rowsAffected: total };
