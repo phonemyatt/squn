@@ -202,8 +202,24 @@ multi.registry.get("replica");
 // @ts-expect-error — "analytics" is not a registered connection name
 multi.registry.get("analytics");
 
-// .query() now exists — full assertions added in multi-db type checks
+// .query() exists and is callable — no @ts-expect-error needed
 use(multi.query);
+
+// .use() exists and returns a ScopedDb
+const _scopedDb = multi.use("primary");
+use(_scopedDb);
+
+// options.connection is typed as the Names union — valid names compile
+use(multi.query(sql`SELECT 1`, { connection: "primary" }));
+use(multi.query(sql`SELECT 1`, { connection: "replica" }));
+
+// @ts-expect-error — "analytics" is not a registered connection name
+use(multi.query(sql`SELECT 1`, { connection: "analytics" }));
+
+// ScopedDb.query() takes only a SqlFragment — no connection option
+const _scoped = multi.use("primary");
+// @ts-expect-error — ScopedDb has no options argument, connection is pre-resolved
+use(_scoped.query(sql`SELECT 1`, { connection: "replica" }));
 
 // ═══════════════════════════════════════════════════════════════════════════
 // sql tagged template — type safety
