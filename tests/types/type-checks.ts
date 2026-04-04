@@ -202,8 +202,8 @@ multi.registry.get("replica");
 // @ts-expect-error — "analytics" is not a registered connection name
 multi.registry.get("analytics");
 
-// @ts-expect-error — MultiDb has no .query() method
-multi.query;
+// .query() now exists — full assertions added in multi-db type checks
+use(multi.query);
 
 // ═══════════════════════════════════════════════════════════════════════════
 // sql tagged template — type safety
