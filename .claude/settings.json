@@ -1,0 +1,44 @@
+{
+  "permissions": {
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./secrets/**)",
+      "Read(./config/credentials.json)",
+      "Read(./build/**)",
+      "Read(./dist/**)",
+      "Read(./coverage/**)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [[ \"$CLAUDE_FILE_PATHS\" =~ \\.(ts|tsx)$ ]]; then bun run typecheck 2>&1 | head -20 || echo '⚠️  TypeScript errors detected — review before continuing'; fi"
+          },
+          {
+            "type": "command",
+            "command": "if [[ \"$CLAUDE_FILE_PATHS\" =~ \\.(ts|tsx|json)$ ]]; then biome check --write \"$CLAUDE_FILE_PATHS\" 2>/dev/null || true; fi"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "CMD=$(echo \"$CLAUDE_TOOL_INPUT\" | jq -r '.command // empty'); if echo \"$CMD\" | grep -qE 'rm -rf /|DROP TABLE|DELETE FROM [a-z]+ *;|format c:|shutdown -|mkfs'; then echo 'BLOCKED: destructive command requires manual confirmation' >&2; exit 2; fi"
+          }
+        ]
+      }
+    ]
+  },
+  "env": {
+    "DISABLE_NON_ESSENTIAL_MODEL_CALLS": "1"
+  }
+}
