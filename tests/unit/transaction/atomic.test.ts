@@ -11,6 +11,7 @@ import {
   AtomicNestingError,
   runAtomically,
 } from "../../../src/transaction/atomic.ts";
+import { sql } from "../../../src/sql/tag.ts";
 import type { Row } from "../../../src/types/primitives.ts";
 
 function mockAdapter(opts?: {
@@ -71,7 +72,7 @@ describe("transaction/atomic — runAtomically()", () => {
     it("sends BEGIN before any query and COMMIT after", async () => {
       const adapter = mockAdapter();
       await runAtomically(adapter, async (q) => {
-        await q.execute("INSERT INTO users VALUES ($1)", [1]);
+        await q.execute(sql`INSERT INTO users VALUES (${1})`);
       });
       const log = (adapter as unknown as { _log: string[] })._log;
       expect(log[0]).toBe("begin");

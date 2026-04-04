@@ -1,6 +1,8 @@
 import type { IDbAdapter } from "../adapters/base.ts";
+import { buildParams } from "../core/param-builder.ts";
 import { ErrorCode } from "../errors/codes.ts";
-import { ConnectionError, TransactionError } from "../errors/types.ts";
+import { ConnectionError, QueryError, TransactionError } from "../errors/types.ts";
+import type { SqlFragment } from "../sql/fragment.ts";
 import type { Row } from "../types/primitives.ts";
 
 /** AtomicNestingError — a TransactionError with code TX_NESTING_FORBIDDEN. */
@@ -8,8 +10,15 @@ export class AtomicNestingError extends TransactionError {}
 
 /** The limited API available inside an atomically() callback. */
 export interface AtomicExecutor {
-  query(sql: string, params: unknown[]): Promise<Row[]>;
-  execute(sql: string, params: unknown[]): Promise<{ rowsAffected: number }>;
+  query<T>(fragment: SqlFragment): Promise<T[]>;
+  queryFirst<T>(fragment: SqlFragment): Promise<T | null>;
+  querySingle<T>(fragment: SqlFragment): Promise<T>;
+  queryScalar<T>(fragment: SqlFragment): Promise<T>;
+  execute(fragment: SqlFragment): Promise<{ rowsAffected: number }>;
+  executeBatch(
+    fragment: SqlFragment,
+    rows: readonly Record<string, unknown>[],
+  ): Promise<{ rowsAffected: number }>;
 }
 
 export interface AtomicOptions {
@@ -52,9 +61,69 @@ export async function runAtomically<T>(
 
   for (let attempt = 0; attempt < attempts; attempt++) {
     const tx = await adapter.beginTransaction();
+
     const executor: AtomicExecutor = {
-      query: (sql, params) => tx.query(sql, params),
-      execute: (sql, params) => tx.execute(sql, params),
+      query: async <T>(fragment: SqlFragment): Promise<T[]> => {
+        const rows = await tx.query(fragment.text, fragment.params);
+        return rows as T[];
+      },
+      queryFirst: async <T>(fragment: SqlFragment): Promise<T | null> => {
+        const rows = await tx.query(fragment.text, fragment.params);
+        if (rows.length === 0) return null;
+        return (rows[0] ?? null) as T | null;
+      },
+      querySingle: async <T>(fragment: SqlFragment): Promise<T> => {
+        const rows = await tx.query(fragment.text, fragment.params);
+        if (rows.length === 0) {
+          throw new QueryError(
+            ErrorCode.NO_ROWS_FOUND,
+            "querySingle() returned zero rows",
+            { operation: "querySingle", sql: fragment.text },
+          );
+        }
+        if (rows.length > 1) {
+          throw new QueryError(
+            ErrorCode.MULTIPLE_ROWS_FOUND,
+            `querySingle() returned ${rows.length} rows, expected exactly one`,
+            { operation: "querySingle", sql: fragment.text },
+          );
+        }
+        return (rows[0] as T | undefined) as T;
+      },
+      queryScalar: async <T>(fragment: SqlFragment): Promise<T> => {
+        const rows = await tx.query(fragment.text, fragment.params);
+        if (rows.length === 0) {
+          throw new QueryError(
+            ErrorCode.NO_ROWS_FOUND,
+            "queryScalar() returned zero rows",
+            { operation: "queryScalar", sql: fragment.text },
+          );
+        }
+        const firstRow = rows[0] as Row;
+        const firstKey = Object.keys(firstRow)[0];
+        if (firstKey === undefined) {
+          throw new QueryError(
+            ErrorCode.NO_ROWS_FOUND,
+            "queryScalar() row has no columns",
+            { operation: "queryScalar", sql: fragment.text },
+          );
+        }
+        return firstRow[firstKey] as T;
+      },
+      execute: (fragment: SqlFragment) =>
+        tx.execute(fragment.text, fragment.params),
+      executeBatch: async (
+        fragment: SqlFragment,
+        rows: readonly Record<string, unknown>[],
+      ): Promise<{ rowsAffected: number }> => {
+        let total = 0;
+        for (const row of rows) {
+          const built = buildParams(fragment.text, row, adapter.type);
+          const result = await tx.execute(built.text, built.params);
+          total += result.rowsAffected;
+        }
+        return { rowsAffected: total };
+      },
     };
 
     try {
