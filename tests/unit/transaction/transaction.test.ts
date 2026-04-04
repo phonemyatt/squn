@@ -5,7 +5,10 @@ import { TransactionError } from "../../../src/errors/types.ts";
 import { Transaction } from "../../../src/transaction/transaction.ts";
 import type { Row } from "../../../src/types/primitives.ts";
 
-function mockTx(opts?: { commitFail?: boolean; rollbackFail?: boolean }): IDbTransaction {
+function mockTx(opts?: {
+  commitFail?: boolean;
+  rollbackFail?: boolean;
+}): IDbTransaction {
   return {
     async execute(_s: string, _p: unknown[]) {
       return { rowsAffected: 1 };
@@ -125,7 +128,9 @@ describe("transaction/transaction — Transaction state machine", () => {
     it("throws TX_ALREADY_CLOSED after markFailed()", async () => {
       const tx = new Transaction(mockTx());
       tx.markFailed();
-      await expect(tx.execute("SELECT 1", [])).rejects.toThrow(TransactionError);
+      await expect(tx.execute("SELECT 1", [])).rejects.toThrow(
+        TransactionError,
+      );
     });
   });
 

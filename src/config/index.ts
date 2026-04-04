@@ -4,7 +4,10 @@ export { PRODUCTION_DEFAULTS } from "./defaults/production.ts";
 export { TEST_DEFAULTS } from "./defaults/test.ts";
 export { SQUN_ENV_VARS } from "./env-vars.ts";
 export { resolveConfig } from "./resolve.ts";
-export { resolveConnectionConfig, resolveNamedConnectionConfig } from "./resolve-connection.ts";
+export {
+  resolveConnectionConfig,
+  resolveNamedConnectionConfig,
+} from "./resolve-connection.ts";
 export type {
   AdapterType,
   AuthType,

@@ -18,15 +18,21 @@ describe("sql/regex — SQUN_REGEX", () => {
 
   describe("STACKED_STATEMENTS", () => {
     it("matches '; DROP TABLE users'", () => {
-      expect(SQUN_REGEX.STACKED_STATEMENTS.test("; DROP TABLE users")).toBe(true);
+      expect(SQUN_REGEX.STACKED_STATEMENTS.test("; DROP TABLE users")).toBe(
+        true,
+      );
     });
 
     it("matches '; SELECT * FROM secrets'", () => {
-      expect(SQUN_REGEX.STACKED_STATEMENTS.test("; SELECT * FROM secrets")).toBe(true);
+      expect(
+        SQUN_REGEX.STACKED_STATEMENTS.test("; SELECT * FROM secrets"),
+      ).toBe(true);
     });
 
     it("matches regardless of whitespace around the semicolon", () => {
-      expect(SQUN_REGEX.STACKED_STATEMENTS.test(";   DELETE FROM users")).toBe(true);
+      expect(SQUN_REGEX.STACKED_STATEMENTS.test(";   DELETE FROM users")).toBe(
+        true,
+      );
     });
 
     it("does not match a semicolon at the very end with no following keyword", () => {
@@ -40,7 +46,9 @@ describe("sql/regex — SQUN_REGEX", () => {
 
   describe("MSSQL_DANGEROUS", () => {
     it("matches xp_cmdshell", () => {
-      expect(SQUN_REGEX.MSSQL_DANGEROUS.test("EXEC xp_cmdshell 'dir'")).toBe(true);
+      expect(SQUN_REGEX.MSSQL_DANGEROUS.test("EXEC xp_cmdshell 'dir'")).toBe(
+        true,
+      );
     });
 
     it("matches sp_oacreate", () => {
@@ -48,11 +56,15 @@ describe("sql/regex — SQUN_REGEX", () => {
     });
 
     it("matches OPENROWSET", () => {
-      expect(SQUN_REGEX.MSSQL_DANGEROUS.test("SELECT * FROM OPENROWSET(...)")).toBe(true);
+      expect(
+        SQUN_REGEX.MSSQL_DANGEROUS.test("SELECT * FROM OPENROWSET(...)"),
+      ).toBe(true);
     });
 
     it("does not match a normal query", () => {
-      expect(SQUN_REGEX.MSSQL_DANGEROUS.test("SELECT id FROM users")).toBe(false);
+      expect(SQUN_REGEX.MSSQL_DANGEROUS.test("SELECT id FROM users")).toBe(
+        false,
+      );
     });
   });
 
@@ -70,7 +82,9 @@ describe("sql/regex — SQUN_REGEX", () => {
     });
 
     it("does not match the word 'union' in a column alias", () => {
-      expect(SQUN_REGEX.UNION_INJECTION.test("SELECT union_type FROM t")).toBe(false);
+      expect(SQUN_REGEX.UNION_INJECTION.test("SELECT union_type FROM t")).toBe(
+        false,
+      );
     });
   });
 
@@ -106,31 +120,43 @@ describe("sql/regex — SQUN_REGEX", () => {
     });
 
     it("matches BENCHMARK()", () => {
-      expect(SQUN_REGEX.TIME_BASED.test("BENCHMARK(1000, SHA1('a'))")).toBe(true);
+      expect(SQUN_REGEX.TIME_BASED.test("BENCHMARK(1000, SHA1('a'))")).toBe(
+        true,
+      );
     });
 
     it("does not match normal SQL", () => {
-      expect(SQUN_REGEX.TIME_BASED.test("SELECT sleep_hours FROM schedule")).toBe(false);
+      expect(
+        SQUN_REGEX.TIME_BASED.test("SELECT sleep_hours FROM schedule"),
+      ).toBe(false);
     });
   });
 
   describe("MYSQL_DANGEROUS", () => {
     it("matches LOAD_FILE()", () => {
-      expect(SQUN_REGEX.MYSQL_DANGEROUS.test("LOAD_FILE('/etc/passwd')")).toBe(true);
+      expect(SQUN_REGEX.MYSQL_DANGEROUS.test("LOAD_FILE('/etc/passwd')")).toBe(
+        true,
+      );
     });
 
     it("matches INTO OUTFILE", () => {
-      expect(SQUN_REGEX.MYSQL_DANGEROUS.test("INTO OUTFILE '/tmp/dump'")).toBe(true);
+      expect(SQUN_REGEX.MYSQL_DANGEROUS.test("INTO OUTFILE '/tmp/dump'")).toBe(
+        true,
+      );
     });
 
     it("does not match normal INSERT INTO", () => {
-      expect(SQUN_REGEX.MYSQL_DANGEROUS.test("INSERT INTO users VALUES (1)")).toBe(false);
+      expect(
+        SQUN_REGEX.MYSQL_DANGEROUS.test("INSERT INTO users VALUES (1)"),
+      ).toBe(false);
     });
   });
 
   describe("PG_DANGEROUS", () => {
     it("matches pg_read_file()", () => {
-      expect(SQUN_REGEX.PG_DANGEROUS.test("pg_read_file('/etc/passwd')")).toBe(true);
+      expect(SQUN_REGEX.PG_DANGEROUS.test("pg_read_file('/etc/passwd')")).toBe(
+        true,
+      );
     });
 
     it("matches lo_import()", () => {
@@ -138,7 +164,9 @@ describe("sql/regex — SQUN_REGEX", () => {
     });
 
     it("does not match normal pg_ prefixed columns", () => {
-      expect(SQUN_REGEX.PG_DANGEROUS.test("SELECT pg_class FROM catalog")).toBe(false);
+      expect(SQUN_REGEX.PG_DANGEROUS.test("SELECT pg_class FROM catalog")).toBe(
+        false,
+      );
     });
   });
 
@@ -244,7 +272,9 @@ describe("sql/regex — SQUN_REGEX", () => {
     });
 
     it("matches a domain with hyphens", () => {
-      expect(SQUN_REGEX.VALID_DOMAIN_USER.test("my-corp.local\\svc_user")).toBe(true);
+      expect(SQUN_REGEX.VALID_DOMAIN_USER.test("my-corp.local\\svc_user")).toBe(
+        true,
+      );
     });
 
     it("does not match a username with no domain prefix", () => {
@@ -278,7 +308,9 @@ describe("sql/regex — SQUN_REGEX", () => {
     it("matches the password portion of a URL", () => {
       // Reset lastIndex for global regex
       SQUN_REGEX.PASSWORD_IN_URL.lastIndex = 0;
-      expect(SQUN_REGEX.PASSWORD_IN_URL.test("postgresql://user:secret@host")).toBe(true);
+      expect(
+        SQUN_REGEX.PASSWORD_IN_URL.test("postgresql://user:secret@host"),
+      ).toBe(true);
     });
 
     it("can be used to mask passwords", () => {

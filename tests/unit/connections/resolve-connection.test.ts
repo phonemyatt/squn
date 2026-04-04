@@ -37,7 +37,10 @@ type Names = "primary" | "replica";
 describe("connections/resolve-connection — resolveConnection()", () => {
   const primary = stub();
   const replica = stub();
-  const registry = new ConnectionRegistry<Names>({ primary, replica }, "primary");
+  const registry = new ConnectionRegistry<Names>(
+    { primary, replica },
+    "primary",
+  );
 
   it("uses options.connection when provided", () => {
     expect(resolveConnection(registry, "replica")).toBe(replica);
@@ -48,7 +51,9 @@ describe("connections/resolve-connection — resolveConnection()", () => {
   });
 
   it("falls back to builderConnection when no options or scope", () => {
-    expect(resolveConnection(registry, undefined, undefined, "replica")).toBe(replica);
+    expect(resolveConnection(registry, undefined, undefined, "replica")).toBe(
+      replica,
+    );
   });
 
   it("falls back to default when nothing is specified", () => {
@@ -60,10 +65,14 @@ describe("connections/resolve-connection — resolveConnection()", () => {
   });
 
   it("useScope wins over builderConnection", () => {
-    expect(resolveConnection(registry, undefined, "replica", "primary")).toBe(replica);
+    expect(resolveConnection(registry, undefined, "replica", "primary")).toBe(
+      replica,
+    );
   });
 
   it("throws CONN_UNKNOWN for an unregistered name", () => {
-    expect(() => resolveConnection(registry, "typo" as Names)).toThrow(ConnectionError);
+    expect(() => resolveConnection(registry, "typo" as Names)).toThrow(
+      ConnectionError,
+    );
   });
 });

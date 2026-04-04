@@ -28,7 +28,10 @@ function formatEntry(entry: LogEntry): string {
     line += `\n      sql: ${maskSql(entry.context.sql)}`;
   }
 
-  if (entry.context.paramKeys !== undefined && entry.context.paramKeys.length > 0) {
+  if (
+    entry.context.paramKeys !== undefined &&
+    entry.context.paramKeys.length > 0
+  ) {
     line += `\n      paramKeys: [${entry.context.paramKeys.join(", ")}]`;
   }
 

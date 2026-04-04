@@ -72,7 +72,10 @@ export class QueryBuilder<Names extends string = never> {
     return this.where(clause);
   }
 
-  orderBy(column: string, direction: "ASC" | "DESC" = "ASC"): QueryBuilder<Names> {
+  orderBy(
+    column: string,
+    direction: "ASC" | "DESC" = "ASC",
+  ): QueryBuilder<Names> {
     return new QueryBuilder(
       this._tableName,
       this._selectCols,
@@ -128,7 +131,9 @@ export class QueryBuilder<Names extends string = never> {
   /** Builds the SqlFragment for execution. */
   build(): SqlFragment {
     const cols =
-      this._selectCols.length > 0 ? this._selectCols.map((c) => `"${c}"`).join(", ") : "*";
+      this._selectCols.length > 0
+        ? this._selectCols.map((c) => `"${c}"`).join(", ")
+        : "*";
     const parts: string[] = [`SELECT ${cols} FROM "${this._tableName}"`];
     const allParams: unknown[] = [];
 
@@ -178,8 +183,12 @@ export class QueryBuilder<Names extends string = never> {
 
 /** Creates a query builder for a table. */
 export function queryBuilder(tableName: string): QueryBuilder<never>;
-export function queryBuilder(schema: { tableName: string }): QueryBuilder<never>;
-export function queryBuilder(arg: string | { tableName: string }): QueryBuilder<never> {
+export function queryBuilder(schema: {
+  tableName: string;
+}): QueryBuilder<never>;
+export function queryBuilder(
+  arg: string | { tableName: string },
+): QueryBuilder<never> {
   const name = typeof arg === "string" ? arg : arg.tableName;
   return new QueryBuilder<never>(name);
 }

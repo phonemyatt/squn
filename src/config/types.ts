@@ -4,7 +4,12 @@ export type Environment = "development" | "production" | "test";
 
 export type AdapterType = "sqlite" | "postgres" | "mysql" | "mssql";
 
-export type AuthType = "userpass" | "windows" | "windows-upn" | "connection-string" | "azure-ad";
+export type AuthType =
+  | "userpass"
+  | "windows"
+  | "windows-upn"
+  | "connection-string"
+  | "azure-ad";
 
 export type ErrorVerbosity = "full" | "minimal";
 

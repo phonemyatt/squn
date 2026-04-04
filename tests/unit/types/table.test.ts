@@ -20,11 +20,23 @@ describe("types/table — defineTable()", () => {
   });
 
   it("contains all declared columns in the columns map", () => {
-    expect(Object.keys(Users.columns)).toEqual(["id", "name", "email", "age", "createdAt"]);
+    expect(Object.keys(Users.columns)).toEqual([
+      "id",
+      "name",
+      "email",
+      "age",
+      "createdAt",
+    ]);
   });
 
   it("columnNames contains every column key as a string array", () => {
-    expect([...Users.columnNames].sort()).toEqual(["age", "createdAt", "email", "id", "name"]);
+    expect([...Users.columnNames].sort()).toEqual([
+      "age",
+      "createdAt",
+      "email",
+      "id",
+      "name",
+    ]);
   });
 
   it("each column retains its metadata", () => {

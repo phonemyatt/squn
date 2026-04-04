@@ -35,7 +35,9 @@ export class ConnectionGroup<Names extends string = string> {
     let name: Names;
     switch (this.readMode) {
       case "round-robin": {
-        name = this.readNames[this.roundRobinIndex % this.readNames.length] as Names;
+        name = this.readNames[
+          this.roundRobinIndex % this.readNames.length
+        ] as Names;
         this.roundRobinIndex++;
         break;
       }
@@ -46,7 +48,9 @@ export class ConnectionGroup<Names extends string = string> {
       }
       case "least-load": {
         // Fallback to round-robin — real implementation needs pool stats
-        name = this.readNames[this.roundRobinIndex % this.readNames.length] as Names;
+        name = this.readNames[
+          this.roundRobinIndex % this.readNames.length
+        ] as Names;
         this.roundRobinIndex++;
         break;
       }

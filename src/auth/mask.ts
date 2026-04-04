@@ -9,5 +9,7 @@ const PASSWORD_KV_RE = /((?:password|pwd)\s*=\s*)([^;]*)/gi;
  * Passwords must never appear in any log output.
  */
 export function maskConnectionString(s: string): string {
-  return s.replace(PASSWORD_IN_URL_RE, "$1****$3").replace(PASSWORD_KV_RE, "$1****");
+  return s
+    .replace(PASSWORD_IN_URL_RE, "$1****$3")
+    .replace(PASSWORD_KV_RE, "$1****");
 }

@@ -16,12 +16,28 @@ interface PatternEntry {
 
 const PATTERNS: readonly PatternEntry[] = [
   { key: "NULL_BYTE", regex: SQUN_REGEX.NULL_BYTE, severity: "critical" },
-  { key: "STACKED_STATEMENTS", regex: SQUN_REGEX.STACKED_STATEMENTS, severity: "critical" },
-  { key: "MSSQL_DANGEROUS", regex: SQUN_REGEX.MSSQL_DANGEROUS, severity: "critical" },
-  { key: "UNION_INJECTION", regex: SQUN_REGEX.UNION_INJECTION, severity: "high" },
+  {
+    key: "STACKED_STATEMENTS",
+    regex: SQUN_REGEX.STACKED_STATEMENTS,
+    severity: "critical",
+  },
+  {
+    key: "MSSQL_DANGEROUS",
+    regex: SQUN_REGEX.MSSQL_DANGEROUS,
+    severity: "critical",
+  },
+  {
+    key: "UNION_INJECTION",
+    regex: SQUN_REGEX.UNION_INJECTION,
+    severity: "high",
+  },
   { key: "TAUTOLOGY", regex: SQUN_REGEX.TAUTOLOGY, severity: "high" },
   { key: "TIME_BASED", regex: SQUN_REGEX.TIME_BASED, severity: "high" },
-  { key: "MYSQL_DANGEROUS", regex: SQUN_REGEX.MYSQL_DANGEROUS, severity: "high" },
+  {
+    key: "MYSQL_DANGEROUS",
+    regex: SQUN_REGEX.MYSQL_DANGEROUS,
+    severity: "high",
+  },
   { key: "PG_DANGEROUS", regex: SQUN_REGEX.PG_DANGEROUS, severity: "high" },
   { key: "CHAR_ENCODING", regex: SQUN_REGEX.CHAR_ENCODING, severity: "medium" },
   { key: "HEX_ENCODING", regex: SQUN_REGEX.HEX_ENCODING, severity: "medium" },

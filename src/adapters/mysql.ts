@@ -2,7 +2,12 @@ import { SQL } from "bun";
 import { ErrorCode } from "../errors/codes.ts";
 import { wrapError } from "../errors/wrap.ts";
 import type { Row } from "../types/primitives.ts";
-import type { IDbAdapter, IDbTransaction, TvpMaterialised, TvpValue } from "./base.ts";
+import type {
+  IDbAdapter,
+  IDbTransaction,
+  TvpMaterialised,
+  TvpValue,
+} from "./base.ts";
 
 export interface MysqlAdapterOptions {
   readonly url?: string;
@@ -37,9 +42,15 @@ export class MysqlAdapter implements IDbAdapter {
     }
   }
 
-  async execute(sql: string, params: unknown[]): Promise<{ rowsAffected: number }> {
+  async execute(
+    sql: string,
+    params: unknown[],
+  ): Promise<{ rowsAffected: number }> {
     try {
-      const result = await this.sql.unsafe(sql, params as (string | number | boolean | null)[]);
+      const result = await this.sql.unsafe(
+        sql,
+        params as (string | number | boolean | null)[],
+      );
       return { rowsAffected: result.count ?? 0 };
     } catch (err) {
       throw wrapError(
@@ -53,7 +64,10 @@ export class MysqlAdapter implements IDbAdapter {
 
   async query(sql: string, params: unknown[]): Promise<Row[]> {
     try {
-      const result = await this.sql.unsafe(sql, params as (string | number | boolean | null)[]);
+      const result = await this.sql.unsafe(
+        sql,
+        params as (string | number | boolean | null)[],
+      );
       return [...result] as Row[];
     } catch (err) {
       throw wrapError(
@@ -67,7 +81,10 @@ export class MysqlAdapter implements IDbAdapter {
 
   async queryMultiple(sql: string, params: unknown[]): Promise<Row[][]> {
     try {
-      const result = await this.sql.unsafe(sql, params as (string | number | boolean | null)[]);
+      const result = await this.sql.unsafe(
+        sql,
+        params as (string | number | boolean | null)[],
+      );
       return [[...result] as Row[]];
     } catch (err) {
       throw wrapError(
@@ -109,9 +126,15 @@ export class MysqlAdapter implements IDbAdapter {
     }
 
     const tx: IDbTransaction = {
-      async execute(sql: string, params: unknown[]): Promise<{ rowsAffected: number }> {
+      async execute(
+        sql: string,
+        params: unknown[],
+      ): Promise<{ rowsAffected: number }> {
         try {
-          const result = await reserved.unsafe(sql, params as (string | number | boolean | null)[]);
+          const result = await reserved.unsafe(
+            sql,
+            params as (string | number | boolean | null)[],
+          );
           return { rowsAffected: result.count ?? 0 };
         } catch (err) {
           throw wrapError(
@@ -124,7 +147,10 @@ export class MysqlAdapter implements IDbAdapter {
       },
       async query(sql: string, params: unknown[]): Promise<Row[]> {
         try {
-          const result = await reserved.unsafe(sql, params as (string | number | boolean | null)[]);
+          const result = await reserved.unsafe(
+            sql,
+            params as (string | number | boolean | null)[],
+          );
           return [...result] as Row[];
         } catch (err) {
           throw wrapError(
@@ -229,7 +255,10 @@ export class MysqlAdapter implements IDbAdapter {
     }
   }
 
-  async materializeTvp(_tvp: TvpValue, _index: number): Promise<TvpMaterialised> {
+  async materializeTvp(
+    _tvp: TvpValue,
+    _index: number,
+  ): Promise<TvpMaterialised> {
     throw wrapError(
       new Error("TVP materialisation not yet implemented for MySQL"),
       ErrorCode.ADAPTER_NOT_SUPPORTED,

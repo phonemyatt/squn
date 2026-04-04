@@ -4,8 +4,10 @@ import type { AzureAdAuth } from "./types.ts";
 
 const CTX = { operation: "acquireAzureToken" } as const;
 
-const TOKEN_URL_TEMPLATE = "https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/token";
-const MANAGED_IDENTITY_URL = "http://169.254.169.254/metadata/identity/oauth2/token";
+const TOKEN_URL_TEMPLATE =
+  "https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/token";
+const MANAGED_IDENTITY_URL =
+  "http://169.254.169.254/metadata/identity/oauth2/token";
 const DATABASE_SCOPE = "https://database.windows.net/.default";
 
 /**
@@ -25,7 +27,11 @@ export async function acquireAzureToken(config: AzureAdAuth): Promise<string> {
     );
   }
 
-  return acquireServicePrincipalToken(config.tenantId, config.clientId, config.clientSecret);
+  return acquireServicePrincipalToken(
+    config.tenantId,
+    config.clientId,
+    config.clientSecret,
+  );
 }
 
 async function acquireServicePrincipalToken(

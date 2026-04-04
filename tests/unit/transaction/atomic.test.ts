@@ -7,10 +7,16 @@ import type {
 } from "../../../src/adapters/base.ts";
 import { ErrorCode } from "../../../src/errors/codes.ts";
 import { ConnectionError } from "../../../src/errors/types.ts";
-import { AtomicNestingError, runAtomically } from "../../../src/transaction/atomic.ts";
+import {
+  AtomicNestingError,
+  runAtomically,
+} from "../../../src/transaction/atomic.ts";
 import type { Row } from "../../../src/types/primitives.ts";
 
-function mockAdapter(opts?: { queryFail?: boolean; commitFail?: boolean }): IDbAdapter {
+function mockAdapter(opts?: {
+  queryFail?: boolean;
+  commitFail?: boolean;
+}): IDbAdapter {
   const log: string[] = [];
   const tx: IDbTransaction = {
     async execute(s: string, _p: unknown[]) {
@@ -113,7 +119,9 @@ describe("transaction/atomic — runAtomically()", () => {
         async () => {
           attempt++;
           if (attempt === 1)
-            throw new ConnectionError(ErrorCode.CONN_UNKNOWN, "transient", { operation: "q" });
+            throw new ConnectionError(ErrorCode.CONN_UNKNOWN, "transient", {
+              operation: "q",
+            });
           return "ok";
         },
         { retryOnError: true, maxRetries: 2, retryDelayMs: 1 },

@@ -67,7 +67,10 @@ describe("mapping/class-mapper — construction strategies", () => {
 
   describe("factory function", () => {
     it("uses the provided factory to create instances", () => {
-      const mapper = factoryMapper((r: Row) => ({ userId: r.id, displayName: r.name }));
+      const mapper = factoryMapper((r: Row) => ({
+        userId: r.id,
+        displayName: r.name,
+      }));
       const result = mapper(row);
       expect(result).toEqual({ userId: 1, displayName: "Alice Smith" });
     });

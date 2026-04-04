@@ -6,37 +6,57 @@ import type { ColumnDef } from "./col.ts";
  * (ColumnBuilder & ColumnDef intersections) satisfy the constraint without
  * needing to match Record<string, ColumnDef> exactly.
  */
-type HasColumns = { readonly columns: { readonly [key: string]: { readonly _type: unknown } } };
+type HasColumns = {
+  readonly columns: { readonly [key: string]: { readonly _type: unknown } };
+};
 
 /** Structural constraint for any object with a ColumnDef-shaped columns map. */
-type HasColumnDefs = { readonly columns: { readonly [key: string]: ColumnDef } };
+type HasColumnDefs = {
+  readonly columns: { readonly [key: string]: ColumnDef };
+};
 
 // ── Key utilities ─────────────────────────────────────────────────────
 
 /** Union of column names where isNullable is true. */
 export type NullableKeys<T extends HasColumnDefs> = {
-  [K in keyof T["columns"] & string]: T["columns"][K] extends ColumnDef<infer _T, true, infer _R>
+  [K in keyof T["columns"] & string]: T["columns"][K] extends ColumnDef<
+    infer _T,
+    true,
+    infer _R
+  >
     ? K
     : never;
 }[keyof T["columns"] & string];
 
 /** Union of column names where isNullable is false. */
 export type NotNullKeys<T extends HasColumnDefs> = {
-  [K in keyof T["columns"] & string]: T["columns"][K] extends ColumnDef<infer _T, true, infer _R>
+  [K in keyof T["columns"] & string]: T["columns"][K] extends ColumnDef<
+    infer _T,
+    true,
+    infer _R
+  >
     ? never
     : K;
 }[keyof T["columns"] & string];
 
 /** Union of column names where isReadonly is true. */
 export type ReadonlyKeys<T extends HasColumnDefs> = {
-  [K in keyof T["columns"] & string]: T["columns"][K] extends ColumnDef<infer _T, infer _N, true>
+  [K in keyof T["columns"] & string]: T["columns"][K] extends ColumnDef<
+    infer _T,
+    infer _N,
+    true
+  >
     ? K
     : never;
 }[keyof T["columns"] & string];
 
 /** Union of column names where isReadonly is false (writable). */
 export type MutableKeys<T extends HasColumnDefs> = {
-  [K in keyof T["columns"] & string]: T["columns"][K] extends ColumnDef<infer _T, infer _N, true>
+  [K in keyof T["columns"] & string]: T["columns"][K] extends ColumnDef<
+    infer _T,
+    infer _N,
+    true
+  >
     ? never
     : K;
 }[keyof T["columns"] & string];
@@ -68,7 +88,10 @@ export type InferReadonlyModel<T extends HasColumnDefs> = {
 };
 
 /** Narrowed shape — only the selected column keys. */
-export type InferSelect<T extends HasColumns, K extends keyof T["columns"] & string> = {
+export type InferSelect<
+  T extends HasColumns,
+  K extends keyof T["columns"] & string,
+> = {
   [P in K]: T["columns"][P]["_type"];
 };
 

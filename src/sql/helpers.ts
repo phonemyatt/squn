@@ -11,7 +11,10 @@ export function sqlIf(condition: boolean, fragment: SqlFragment): SqlFragment {
 }
 
 /** Joins multiple fragments with a separator string. */
-export function sqlJoin(fragments: readonly SqlFragment[], separator: string = ", "): SqlFragment {
+export function sqlJoin(
+  fragments: readonly SqlFragment[],
+  separator: string = ", ",
+): SqlFragment {
   if (fragments.length === 0) return createFragment("", []);
 
   const textParts: string[] = [];
@@ -42,10 +45,14 @@ export function sqlJoin(fragments: readonly SqlFragment[], separator: string = "
 export function sqlRaw(text: string): SqlFragment {
   // Check critical patterns
   if (SQUN_REGEX.NULL_BYTE.test(text)) {
-    throw new SecurityError(ErrorCode.INJECTION_DETECTED, "Null byte detected in sqlRaw()", {
-      operation: "sqlRaw",
-      sql: text,
-    });
+    throw new SecurityError(
+      ErrorCode.INJECTION_DETECTED,
+      "Null byte detected in sqlRaw()",
+      {
+        operation: "sqlRaw",
+        sql: text,
+      },
+    );
   }
   if (SQUN_REGEX.STACKED_STATEMENTS.test(text)) {
     throw new SecurityError(
@@ -63,16 +70,24 @@ export function sqlRaw(text: string): SqlFragment {
   }
   // Check high patterns
   if (SQUN_REGEX.UNION_INJECTION.test(text)) {
-    throw new SecurityError(ErrorCode.INJECTION_DETECTED, "UNION injection detected in sqlRaw()", {
-      operation: "sqlRaw",
-      sql: text,
-    });
+    throw new SecurityError(
+      ErrorCode.INJECTION_DETECTED,
+      "UNION injection detected in sqlRaw()",
+      {
+        operation: "sqlRaw",
+        sql: text,
+      },
+    );
   }
   if (SQUN_REGEX.TAUTOLOGY.test(text)) {
-    throw new SecurityError(ErrorCode.INJECTION_DETECTED, "Tautology detected in sqlRaw()", {
-      operation: "sqlRaw",
-      sql: text,
-    });
+    throw new SecurityError(
+      ErrorCode.INJECTION_DETECTED,
+      "Tautology detected in sqlRaw()",
+      {
+        operation: "sqlRaw",
+        sql: text,
+      },
+    );
   }
   if (SQUN_REGEX.TIME_BASED.test(text)) {
     throw new SecurityError(
@@ -102,9 +117,13 @@ export function sqlRaw(text: string): SqlFragment {
 /** Validates and double-quotes a SQL identifier. Max 128 chars. */
 export function sqlIdentifier(name: string): SqlFragment {
   if (name.length === 0) {
-    throw new SecurityError(ErrorCode.INVALID_IDENTIFIER, "Identifier must not be empty", {
-      operation: "sqlIdentifier",
-    });
+    throw new SecurityError(
+      ErrorCode.INVALID_IDENTIFIER,
+      "Identifier must not be empty",
+      {
+        operation: "sqlIdentifier",
+      },
+    );
   }
   if (name.length > 128) {
     throw new SecurityError(
@@ -125,7 +144,10 @@ export function sqlIdentifier(name: string): SqlFragment {
 }
 
 /** Validates and double-quotes a qualified identifier: "schema"."table". */
-export function sqlQualifiedIdentifier(schema: string, table: string): SqlFragment {
+export function sqlQualifiedIdentifier(
+  schema: string,
+  table: string,
+): SqlFragment {
   const s = sqlIdentifier(schema);
   const t = sqlIdentifier(table);
   return createFragment(`${s.text}.${t.text}`, []);

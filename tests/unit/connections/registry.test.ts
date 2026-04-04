@@ -52,7 +52,10 @@ describe("connections/registry — ConnectionRegistry", () => {
   });
 
   it("get() throws CONN_UNKNOWN for an unregistered name", () => {
-    const registry = new ConnectionRegistry<"primary">({ primary: stub() }, "primary");
+    const registry = new ConnectionRegistry<"primary">(
+      { primary: stub() },
+      "primary",
+    );
     try {
       registry.get("typo" as "primary");
       expect.unreachable("should throw");
@@ -60,7 +63,9 @@ describe("connections/registry — ConnectionRegistry", () => {
       expect(e).toBeInstanceOf(ConnectionError);
       expect((e as ConnectionError).code).toBe(ErrorCode.CONN_UNKNOWN);
       expect((e as ConnectionError).context.requestedName).toBe("typo");
-      expect((e as ConnectionError).context.registeredNames).toContain("primary");
+      expect((e as ConnectionError).context.registeredNames).toContain(
+        "primary",
+      );
     }
   });
 
@@ -73,14 +78,17 @@ describe("connections/registry — ConnectionRegistry", () => {
   });
 
   it("has() returns true for registered and false for unregistered", () => {
-    const registry = new ConnectionRegistry<"primary">({ primary: stub() }, "primary");
+    const registry = new ConnectionRegistry<"primary">(
+      { primary: stub() },
+      "primary",
+    );
     expect(registry.has("primary")).toBe(true);
     expect(registry.has("missing")).toBe(false);
   });
 
   it("constructor throws if default name is not in the map", () => {
-    expect(() => new ConnectionRegistry<"a">({ a: stub() }, "missing" as "a")).toThrow(
-      ConnectionError,
-    );
+    expect(
+      () => new ConnectionRegistry<"a">({ a: stub() }, "missing" as "a"),
+    ).toThrow(ConnectionError);
   });
 });

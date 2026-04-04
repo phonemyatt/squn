@@ -4,9 +4,15 @@ const ITERATIONS = 10_000;
 
 // Setup
 const adapter = new SqliteAdapter({ file: ":memory:" });
-await adapter.execute("CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT, age INTEGER)", []);
+await adapter.execute(
+  "CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT, age INTEGER)",
+  [],
+);
 for (let i = 1; i <= 100; i++) {
-  await adapter.execute("INSERT INTO users (name, age) VALUES (?, ?)", [`user_${i}`, 20 + (i % 50)]);
+  await adapter.execute("INSERT INTO users (name, age) VALUES (?, ?)", [
+    `user_${i}`,
+    20 + (i % 50),
+  ]);
 }
 
 // Warm up
@@ -23,7 +29,7 @@ const elapsed = Bun.nanoseconds() - start;
 
 const elapsedMs = elapsed / 1_000_000;
 const qps = Math.round((ITERATIONS / elapsedMs) * 1000);
-const avgUs = Math.round((elapsed / ITERATIONS) / 1000 * 100) / 100;
+const avgUs = Math.round((elapsed / ITERATIONS / 1000) * 100) / 100;
 
 console.log(`SQLite adapter benchmark`);
 console.log(`  ${ITERATIONS.toLocaleString()} sequential SELECT queries`);

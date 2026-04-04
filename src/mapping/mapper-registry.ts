@@ -14,7 +14,9 @@ class MapperRegistry {
   }
 
   get<T>(cls: Constructor<T>): MapperFn<T> | undefined {
-    return this.mappers.get(cls as Constructor<unknown>) as MapperFn<T> | undefined;
+    return this.mappers.get(cls as Constructor<unknown>) as
+      | MapperFn<T>
+      | undefined;
   }
 
   has(cls: Constructor<unknown>): boolean {

@@ -4,9 +4,18 @@ import { ReadonlyViolationError } from "../../../src/errors/types.ts";
 import type { ReadonlyConnection } from "../../../src/readonly/guard.ts";
 import { assertWritable } from "../../../src/readonly/guard.ts";
 
-const strictReadonly: ReadonlyConnection = { readonly: true, readonlyStrategy: "strict" };
-const warnReadonly: ReadonlyConnection = { readonly: true, readonlyStrategy: "warn" };
-const writable: ReadonlyConnection = { readonly: false, readonlyStrategy: "strict" };
+const strictReadonly: ReadonlyConnection = {
+  readonly: true,
+  readonlyStrategy: "strict",
+};
+const warnReadonly: ReadonlyConnection = {
+  readonly: true,
+  readonlyStrategy: "warn",
+};
+const writable: ReadonlyConnection = {
+  readonly: false,
+  readonlyStrategy: "strict",
+};
 
 describe("readonly/guard — assertWritable()", () => {
   describe("writable connection", () => {
@@ -16,7 +25,9 @@ describe("readonly/guard — assertWritable()", () => {
     });
 
     it("returns true even for write operations on a writable connection", () => {
-      expect(assertWritable(writable, "execute", "INSERT INTO users VALUES (1)")).toBe(true);
+      expect(
+        assertWritable(writable, "execute", "INSERT INTO users VALUES (1)"),
+      ).toBe(true);
     });
   });
 
@@ -27,37 +38,45 @@ describe("readonly/guard — assertWritable()", () => {
         expect.unreachable("should throw");
       } catch (e) {
         expect(e).toBeInstanceOf(ReadonlyViolationError);
-        expect((e as ReadonlyViolationError).code).toBe(ErrorCode.READONLY_WRITE_BLOCKED);
+        expect((e as ReadonlyViolationError).code).toBe(
+          ErrorCode.READONLY_WRITE_BLOCKED,
+        );
         expect((e as ReadonlyViolationError).message).toContain("execute");
       }
     });
 
     it("throws READONLY_WRITE_BLOCKED for INSERT SQL", () => {
-      expect(() => assertWritable(strictReadonly, "query", "INSERT INTO users VALUES (1)")).toThrow(
-        ReadonlyViolationError,
-      );
+      expect(() =>
+        assertWritable(strictReadonly, "query", "INSERT INTO users VALUES (1)"),
+      ).toThrow(ReadonlyViolationError);
     });
 
     it("throws READONLY_WRITE_BLOCKED for UPDATE SQL", () => {
-      expect(() => assertWritable(strictReadonly, "query", "UPDATE users SET name = 'x'")).toThrow(
-        ReadonlyViolationError,
-      );
+      expect(() =>
+        assertWritable(strictReadonly, "query", "UPDATE users SET name = 'x'"),
+      ).toThrow(ReadonlyViolationError);
     });
 
     it("throws READONLY_WRITE_BLOCKED for DELETE SQL", () => {
       expect(() =>
-        assertWritable(strictReadonly, "query", "DELETE FROM users WHERE id = 1"),
+        assertWritable(
+          strictReadonly,
+          "query",
+          "DELETE FROM users WHERE id = 1",
+        ),
       ).toThrow(ReadonlyViolationError);
     });
 
     it("throws READONLY_WRITE_BLOCKED for DROP SQL", () => {
-      expect(() => assertWritable(strictReadonly, "query", "DROP TABLE users")).toThrow(
-        ReadonlyViolationError,
-      );
+      expect(() =>
+        assertWritable(strictReadonly, "query", "DROP TABLE users"),
+      ).toThrow(ReadonlyViolationError);
     });
 
     it("does not throw for SELECT on strict readonly", () => {
-      expect(assertWritable(strictReadonly, "query", "SELECT * FROM users")).toBe(true);
+      expect(
+        assertWritable(strictReadonly, "query", "SELECT * FROM users"),
+      ).toBe(true);
     });
 
     it("does not throw for read operations without SQL", () => {
@@ -70,7 +89,9 @@ describe("readonly/guard — assertWritable()", () => {
         expect.unreachable("should throw");
       } catch (e) {
         expect((e as ReadonlyViolationError).context.operation).toBe("execute");
-        expect((e as ReadonlyViolationError).context.sql).toBe("DELETE FROM users");
+        expect((e as ReadonlyViolationError).context.sql).toBe(
+          "DELETE FROM users",
+        );
       }
     });
   });
@@ -85,11 +106,15 @@ describe("readonly/guard — assertWritable()", () => {
     });
 
     it("returns false for INSERT SQL in warn mode", () => {
-      expect(assertWritable(warnReadonly, "query", "INSERT INTO users VALUES (1)")).toBe(false);
+      expect(
+        assertWritable(warnReadonly, "query", "INSERT INTO users VALUES (1)"),
+      ).toBe(false);
     });
 
     it("returns true for SELECT on warn readonly", () => {
-      expect(assertWritable(warnReadonly, "query", "SELECT * FROM users")).toBe(true);
+      expect(assertWritable(warnReadonly, "query", "SELECT * FROM users")).toBe(
+        true,
+      );
     });
   });
 });

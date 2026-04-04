@@ -55,7 +55,11 @@ export function compileMapper<T>(
           throw new MappingError(
             ErrorCode.NULL_VIOLATION,
             `Column '${mapping.name}' is notNull but received null`,
-            { operation: "mapRow", column: mapping.name, table: schema.tableName },
+            {
+              operation: "mapRow",
+              column: mapping.name,
+              table: schema.tableName,
+            },
           );
         }
         result[mapping.name] = null;

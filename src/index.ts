@@ -1,7 +1,11 @@
 // Public exports — the entire surface area of Squn.
 
 // Adapters
-export type { IDbAdapter, IDbTransaction, TvpMaterialised } from "./adapters/base.ts";
+export type {
+  IDbAdapter,
+  IDbTransaction,
+  TvpMaterialised,
+} from "./adapters/base.ts";
 export { MssqlAdapter } from "./adapters/mssql.ts";
 export { MysqlAdapter } from "./adapters/mysql.ts";
 export { PostgresAdapter } from "./adapters/postgres.ts";
@@ -10,7 +14,14 @@ export { execute, executeBatch, insert, update } from "./api/execute.ts";
 // API
 export { PreparedQuery, prepare } from "./api/prepared.ts";
 export { execProc, queryProc } from "./api/proc.ts";
-export { query, queryFirst, queryMultiple, queryScalar, querySingle, stream } from "./api/query.ts";
+export {
+  query,
+  queryFirst,
+  queryMultiple,
+  queryScalar,
+  querySingle,
+  stream,
+} from "./api/query.ts";
 export { QueryBuilder, queryBuilder } from "./api/query-builder.ts";
 export { TransactionClock } from "./async/clock.ts";
 // Async
@@ -107,15 +118,27 @@ export { createRouter } from "./readonly/router.ts";
 export { formatSql } from "./sql/formatter.ts";
 export type { SqlFragment, TvpValue } from "./sql/fragment.ts";
 export { isSqlFragment, isTvpValue } from "./sql/fragment.ts";
-export { sqlIdentifier, sqlIf, sqlJoin, sqlQualifiedIdentifier, sqlRaw } from "./sql/helpers.ts";
+export {
+  sqlIdentifier,
+  sqlIf,
+  sqlJoin,
+  sqlQualifiedIdentifier,
+  sqlRaw,
+} from "./sql/helpers.ts";
 export { detectInjection } from "./sql/injection-detector.ts";
 export { SQUN_REGEX } from "./sql/regex.ts";
 // SQL authoring
 export { sql } from "./sql/tag.ts";
 export { validateSql } from "./sql/validator.ts";
-export type { AtomicExecutor, AtomicOptions as AtomicBlockOptions } from "./transaction/atomic.ts";
+export type {
+  AtomicExecutor,
+  AtomicOptions as AtomicBlockOptions,
+} from "./transaction/atomic.ts";
 export { AtomicNestingError, runAtomically } from "./transaction/atomic.ts";
-export { isDeadlock, retryWithDeadlockBackoff } from "./transaction/deadlock.ts";
+export {
+  isDeadlock,
+  retryWithDeadlockBackoff,
+} from "./transaction/deadlock.ts";
 export { IsolationLevel } from "./transaction/isolation.ts";
 export { Savepoint } from "./transaction/savepoint.ts";
 // Transaction

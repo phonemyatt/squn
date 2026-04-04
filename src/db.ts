@@ -2,7 +2,14 @@ import type { IDbAdapter } from "./adapters/base.ts";
 import { execute, executeBatch } from "./api/execute.ts";
 import type { PreparedQuery } from "./api/prepared.ts";
 import { prepare } from "./api/prepared.ts";
-import { query, queryFirst, queryMultiple, queryScalar, querySingle, stream } from "./api/query.ts";
+import {
+  query,
+  queryFirst,
+  queryMultiple,
+  queryScalar,
+  querySingle,
+  stream,
+} from "./api/query.ts";
 import { resolveConfig } from "./config/resolve.ts";
 import type { SqunConfig } from "./config/types.ts";
 import { validateConfig } from "./config/validate.ts";
@@ -30,8 +37,14 @@ export interface Db {
     fragment: SqlFragment,
     rows: readonly Record<string, unknown>[],
   ): Promise<{ rowsAffected: number }>;
-  stream<T>(fragment: SqlFragment, batchSize?: number): AsyncIterableIterator<T>;
-  atomically<T>(fn: (q: AtomicExecutor) => Promise<T>, options?: AtomicOptions): Promise<T>;
+  stream<T>(
+    fragment: SqlFragment,
+    batchSize?: number,
+  ): AsyncIterableIterator<T>;
+  atomically<T>(
+    fn: (q: AtomicExecutor) => Promise<T>,
+    options?: AtomicOptions,
+  ): Promise<T>;
   transaction(fn: (tx: Transaction) => Promise<void>): Promise<void>;
   prepare<T, P extends Record<string, unknown>>(
     fragment: SqlFragment,
@@ -43,12 +56,20 @@ export interface Db {
  * Single connection entry point.
  * Calls validateProductionConfig() synchronously — app never starts in invalid state.
  */
-export function createDb(adapter: IDbAdapter, userConfig: Partial<SqunConfig> = {}): Db {
+export function createDb(
+  adapter: IDbAdapter,
+  userConfig: Partial<SqunConfig> = {},
+): Db {
   const config = resolveConfig(userConfig);
   validateConfig(config);
 
   const logger = config.log?.logger ?? noopLogger;
-  validateProductionConfig(config, adapter.type, config.connection ?? {}, logger);
+  validateProductionConfig(
+    config,
+    adapter.type,
+    config.connection ?? {},
+    logger,
+  );
 
   return {
     adapter,
@@ -77,10 +98,16 @@ export function createDb(adapter: IDbAdapter, userConfig: Partial<SqunConfig> = 
     ): Promise<{ rowsAffected: number }> {
       return executeBatch(adapter, fragment, rows);
     },
-    stream<T>(fragment: SqlFragment, batchSize?: number): AsyncIterableIterator<T> {
+    stream<T>(
+      fragment: SqlFragment,
+      batchSize?: number,
+    ): AsyncIterableIterator<T> {
       return stream<T>(adapter, fragment, batchSize);
     },
-    atomically<T>(fn: (q: AtomicExecutor) => Promise<T>, options?: AtomicOptions): Promise<T> {
+    atomically<T>(
+      fn: (q: AtomicExecutor) => Promise<T>,
+      options?: AtomicOptions,
+    ): Promise<T> {
       return runAtomically(adapter, fn, options);
     },
     async transaction(fn: (tx: Transaction) => Promise<void>): Promise<void> {

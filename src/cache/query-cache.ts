@@ -29,7 +29,8 @@ export class QueryCache {
     this.ttlMs = config.ttlMs === undefined ? null : config.ttlMs;
     this.maxAgeMs = config.maxAgeMs === undefined ? null : config.maxAgeMs;
 
-    const reaperMs = config.reaperIntervalMs === undefined ? null : config.reaperIntervalMs;
+    const reaperMs =
+      config.reaperIntervalMs === undefined ? null : config.reaperIntervalMs;
     if (reaperMs !== null && reaperMs > 0 && this.maxSize > 0) {
       this.reaperTimer = setInterval(() => this.reap(), reaperMs);
       // Allow the process to exit even if the reaper is running

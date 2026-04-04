@@ -33,7 +33,11 @@ export class ConnectionRegistry<Names extends string = string> {
       throw new ConnectionError(
         ErrorCode.CONN_UNKNOWN,
         `Connection '${resolved}' not found in registry`,
-        { operation: "resolveConnection", requestedName: resolved, registeredNames: this.names() },
+        {
+          operation: "resolveConnection",
+          requestedName: resolved,
+          registeredNames: this.names(),
+        },
       );
     }
     return adapter;
@@ -60,7 +64,11 @@ export class ConnectionRegistry<Names extends string = string> {
         throw new ConnectionError(
           ErrorCode.CONN_UNKNOWN,
           `Ping failed for connection '${name}'`,
-          { operation: "pingAll", requestedName: name, registeredNames: this.names() },
+          {
+            operation: "pingAll",
+            requestedName: name,
+            registeredNames: this.names(),
+          },
           err,
         );
       }

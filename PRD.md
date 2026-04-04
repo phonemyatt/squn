@@ -2,7 +2,7 @@
 
 **Version:** 2.4.2  
 **Runtime:** Bun ≥ 1.2 (TypeScript-native)  
-**Status:** Pre-development — design complete  
+**Status:** Pre-development — design complete
 
 ---
 
@@ -91,26 +91,26 @@ What Squn does not do is generate SQL from method chains or manage your database
 
 ## 3. Supported databases
 
-| Adapter | Driver | Pool | TVP strategy | Windows auth |
-|---|---|---|---|---|
-| SQLite | `bun:sqlite` (native) | No — in-process | Temp table / JSON | No |
-| PostgreSQL | `Bun.SQL` (native, Bun ≥ 1.2) | Built-in | `unnest()` arrays | No |
-| MySQL | `Bun.SQL` (native, Bun ≥ 1.2) | Built-in | Temp table | No |
-| MSSQL | `mssql` (npm) | Squn-managed | Native structured type | Yes |
+| Adapter    | Driver                        | Pool            | TVP strategy           | Windows auth |
+| ---------- | ----------------------------- | --------------- | ---------------------- | ------------ |
+| SQLite     | `bun:sqlite` (native)         | No — in-process | Temp table / JSON      | No           |
+| PostgreSQL | `Bun.SQL` (native, Bun ≥ 1.2) | Built-in        | `unnest()` arrays      | No           |
+| MySQL      | `Bun.SQL` (native, Bun ≥ 1.2) | Built-in        | Temp table             | No           |
+| MSSQL      | `mssql` (npm)                 | Squn-managed    | Native structured type | Yes          |
 
 ### 3.1 Driver strategy
 
 **PostgreSQL and MySQL use `Bun.SQL`** — Bun's native database client introduced in Bun 1.2. It supports PostgreSQL and MySQL with a built-in connection pool, prepared statements, streaming, and transactions. No external npm driver is needed. This reduces the dependency surface, improves startup performance, and keeps the adapters aligned with the Bun-native philosophy.
 
-`Bun.SQL` exposes a tagged template interface (`sql\`SELECT ...\``) that produces parameterized queries automatically — structurally identical to the Squn `sql` tag approach. The PostgreSQL and MySQL adapters wrap `Bun.SQL` behind the `IDbAdapter` interface so the core engine remains database-agnostic.
+`Bun.SQL` exposes a tagged template interface (`sql\`SELECT ...\``) that produces parameterized queries automatically — structurally identical to the Squn `sql`tag approach. The PostgreSQL and MySQL adapters wrap`Bun.SQL`behind the`IDbAdapter` interface so the core engine remains database-agnostic.
 
 ```typescript
 // What the PostgreSQL adapter wraps internally
 import { SQL } from "bun";
 
 const sql = new SQL({
-  url:      config.url,
-  max:      config.pool.max,
+  url: config.url,
+  max: config.pool.max,
   idleTimeout: config.pool.idleTimeoutMs / 1000,
   // Bun.SQL uses its own built-in pool — Squn does not wrap it in ConnectionPool
 });
@@ -191,8 +191,8 @@ interface IDbAdapter {
 // releases native TVP handles. Always called in a finally block.
 interface TvpMaterialised {
   readonly sqlExpression: string;
-  readonly extraParams:   readonly unknown[];
-  readonly cleanup:       () => Promise<void>;
+  readonly extraParams: readonly unknown[];
+  readonly cleanup: () => Promise<void>;
 }
 ```
 
@@ -204,15 +204,15 @@ interface TvpMaterialised {
 
 ```typescript
 const Users = defineTable("users", {
-  id:        col.int().primaryKey().readonly(),
-  name:      col.nvarchar(100).notNull(),
-  email:     col.nvarchar(255).notNull().unique(),
-  age:       col.int().nullable(),
-  bio:       col.nvarchar("MAX").nullable(),
+  id: col.int().primaryKey().readonly(),
+  name: col.nvarchar(100).notNull(),
+  email: col.nvarchar(255).notNull().unique(),
+  age: col.int().nullable(),
+  bio: col.nvarchar("MAX").nullable(),
   createdAt: col.datetime().notNull().readonly(),
   updatedAt: col.datetime().notNull(),
   deletedAt: col.datetime().nullable(),
-  fullName:  col.nvarchar(201).computed("firstName + ' ' + lastName").readonly(),
+  fullName: col.nvarchar(201).computed("firstName + ' ' + lastName").readonly(),
 });
 ```
 
@@ -245,32 +245,32 @@ type TableDefinition = ReturnType<typeof defineTable>;
 
 ### 5.3 Inferred types
 
-| Utility | Description |
-|---|---|
-| `InferModel<T>` | Full row type with nullability |
-| `InferInsert<T>` | Insert shape — primaryKey and readonly columns excluded |
-| `InferUpdate<T>` | Update shape — all optional except PK, readonly excluded |
-| `InferReadonlyModel<T>` | All fields marked `readonly` |
-| `InferSelect<T, K>` | Narrowed shape from `.select()` |
-| `InferTableType<T>` | TypeScript type from a `TableType` TVP definition |
-| `NullableKeys<T>` | Union of nullable column names |
-| `NotNullKeys<T>` | Union of non-null column names |
-| `ReadonlyKeys<T>` | Union of readonly column names |
-| `MutableKeys<T>` | Union of writable column names |
-| `IsNullable<T, K>` | `true` or `false` for a specific column |
+| Utility                 | Description                                              |
+| ----------------------- | -------------------------------------------------------- |
+| `InferModel<T>`         | Full row type with nullability                           |
+| `InferInsert<T>`        | Insert shape — primaryKey and readonly columns excluded  |
+| `InferUpdate<T>`        | Update shape — all optional except PK, readonly excluded |
+| `InferReadonlyModel<T>` | All fields marked `readonly`                             |
+| `InferSelect<T, K>`     | Narrowed shape from `.select()`                          |
+| `InferTableType<T>`     | TypeScript type from a `TableType` TVP definition        |
+| `NullableKeys<T>`       | Union of nullable column names                           |
+| `NotNullKeys<T>`        | Union of non-null column names                           |
+| `ReadonlyKeys<T>`       | Union of readonly column names                           |
+| `MutableKeys<T>`        | Union of writable column names                           |
+| `IsNullable<T, K>`      | `true` or `false` for a specific column                  |
 
 ### 5.4 Column modifiers
 
-| Modifier | Effect |
-|---|---|
-| `.nullable()` | Type becomes `T \| null` |
-| `.notNull()` | Type is `T` — null not permitted |
-| `.readonly()` | Excluded from `InferInsert` and `InferUpdate` |
-| `.primaryKey()` | Implies `.readonly()` |
-| `.computed(expr)` | DB-computed — always `.readonly()` |
-| `.unique()` | Documented constraint — no TypeScript effect |
-| `.array()` | PostgreSQL only — column is a native array type, maps to `T[]` |
-| `.json<T>()` | Stores value as JSON text on write, parses on read. The TypeScript type `T` is **asserted after parse, not validated at runtime** — JSON.parse returns `any`. Use `.json<T>({ validate: (v): v is T => ... })` to supply a runtime type guard if the column can contain external or untrusted data |
+| Modifier          | Effect                                                                                                                                                                                                                                                                                             |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `.nullable()`     | Type becomes `T \| null`                                                                                                                                                                                                                                                                           |
+| `.notNull()`      | Type is `T` — null not permitted                                                                                                                                                                                                                                                                   |
+| `.readonly()`     | Excluded from `InferInsert` and `InferUpdate`                                                                                                                                                                                                                                                      |
+| `.primaryKey()`   | Implies `.readonly()`                                                                                                                                                                                                                                                                              |
+| `.computed(expr)` | DB-computed — always `.readonly()`                                                                                                                                                                                                                                                                 |
+| `.unique()`       | Documented constraint — no TypeScript effect                                                                                                                                                                                                                                                       |
+| `.array()`        | PostgreSQL only — column is a native array type, maps to `T[]`                                                                                                                                                                                                                                     |
+| `.json<T>()`      | Stores value as JSON text on write, parses on read. The TypeScript type `T` is **asserted after parse, not validated at runtime** — JSON.parse returns `any`. Use `.json<T>({ validate: (v): v is T => ... })` to supply a runtime type guard if the column can contain external or untrusted data |
 
 ---
 
@@ -297,7 +297,7 @@ const users = await db.query<User>(sql`
 
 ### 6.2 SqlFragment
 
-The return type of `sql` `` and all composition helpers. Only `SqlFragment` values are accepted by the query methods — raw strings generate a warning. The full type definition is in the "Special interpolations" subsection below — it includes `tvpValues` which the three-path interpolation design requires.
+The return type of `sql` ``and all composition helpers. Only`SqlFragment`values are accepted by the query methods — raw strings generate a warning. The full type definition is in the "Special interpolations" subsection below — it includes`tvpValues` which the three-path interpolation design requires.
 
 ### 6.3 Special interpolations — three kinds of value the `sql` tag handles
 
@@ -306,7 +306,7 @@ The `sql` tag does not treat all interpolated values identically. When it encoun
 **Path 1 — Scalar value.** A string, number, boolean, `null`, `Date`, or any other plain value. The tag appends the value to `params[]` and replaces the interpolation site with a positional placeholder (`?` or `$N` depending on the adapter). This is the common case.
 
 ```typescript
-sql`SELECT * FROM users WHERE active = ${true} AND age >= ${18}`
+sql`SELECT * FROM users WHERE active = ${true} AND age >= ${18}`;
 // text:   "SELECT * FROM users WHERE active = $1 AND age >= $2"
 // params: [true, 18]
 ```
@@ -315,7 +315,7 @@ sql`SELECT * FROM users WHERE active = ${true} AND age >= ${18}`
 
 ```typescript
 const filter = sql`deleted_at IS NULL AND active = ${true}`;
-const query  = sql`SELECT * FROM users WHERE ${filter}`;
+const query = sql`SELECT * FROM users WHERE ${filter}`;
 // text:   "SELECT * FROM users WHERE deleted_at IS NULL AND active = $1"
 // params: [true]
 ```
@@ -324,20 +324,20 @@ const query  = sql`SELECT * FROM users WHERE ${filter}`;
 
 ```typescript
 interface SqlFragment {
-  readonly text:      string;
-  readonly params:    readonly unknown[];     // scalar params only
-  readonly tvpValues: readonly TvpValue[];   // extracted TVP objects
-  readonly __isSql:   true;
+  readonly text: string;
+  readonly params: readonly unknown[]; // scalar params only
+  readonly tvpValues: readonly TvpValue[]; // extracted TVP objects
+  readonly __isSql: true;
 }
 
 interface TvpValue {
-  readonly __isTvp:    true;
-  readonly tableType:  TableType;
-  readonly rows:       readonly Record<string, unknown>[];
+  readonly __isTvp: true;
+  readonly tableType: TableType;
+  readonly rows: readonly Record<string, unknown>[];
 }
 
 // What the sql tag produces for a TVP interpolation:
-sql`INSERT INTO users (name) SELECT name FROM ${tvp(UserTvp, rows)}`
+sql`INSERT INTO users (name) SELECT name FROM ${tvp(UserTvp, rows)}`;
 // text:      "INSERT INTO users (name) SELECT name FROM __TVP_0__"
 // params:    []
 // tvpValues: [{ __isTvp: true, tableType: UserTvp, rows: [...] }]
@@ -351,14 +351,14 @@ This three-path design means the `sql` tag remains a pure function with no datab
 
 ### 6.4 Composition helpers
 
-| Helper | Description |
-|---|---|
-| `sql` `` | Tagged template — primary authoring method |
-| `sqlIf(cond, fragment)` | Includes fragment only if condition is true |
-| `sqlJoin(fragments, sep)` | Joins fragments with a separator |
-| `sqlIdentifier(value)` | Sanitizes and double-quotes an identifier |
-| `sqlQualifiedIdentifier(schema, table)` | `"schema"."table"` |
-| `sqlRaw(value)` | Explicit raw escape hatch — always logged as warning |
+| Helper                                  | Description                                          |
+| --------------------------------------- | ---------------------------------------------------- |
+| `sql` ``                                | Tagged template — primary authoring method           |
+| `sqlIf(cond, fragment)`                 | Includes fragment only if condition is true          |
+| `sqlJoin(fragments, sep)`               | Joins fragments with a separator                     |
+| `sqlIdentifier(value)`                  | Sanitizes and double-quotes an identifier            |
+| `sqlQualifiedIdentifier(schema, table)` | `"schema"."table"`                                   |
+| `sqlRaw(value)`                         | Explicit raw escape hatch — always logged as warning |
 
 ### 6.5 sqlRaw audit rule
 
@@ -386,8 +386,8 @@ TypeScript infers the valid connection names from the config you passed to `crea
 ```typescript
 const db = createConnections({
   connections: {
-    primary:   new PostgresAdapter({ url: "..." }),
-    replica:   new PostgresAdapter({ url: "..." }),
+    primary: new PostgresAdapter({ url: "..." }),
+    replica: new PostgresAdapter({ url: "..." }),
     analytics: new PostgresAdapter({ url: "..." }),
   },
   default: "primary",
@@ -417,7 +417,7 @@ For every query method except `executeBatch`, parameters are embedded in the `Sq
 // ✅ Right — params live inside the fragment
 const users = await db.query<User>(
   sql`SELECT * FROM users WHERE active = ${true} AND age >= ${minAge}`,
-  { connection: "replica" }
+  { connection: "replica" },
 );
 
 // The SqlFragment that was passed contains:
@@ -427,7 +427,7 @@ const users = await db.query<User>(
 // ❌ Wrong — there is no separate params argument for single queries
 const users = await db.query<User>(
   "SELECT * FROM users WHERE active = $1",
-  [true]   // not a valid signature — raw strings cannot carry params safely
+  [true], // not a valid signature — raw strings cannot carry params safely
 );
 // Always use the sql`` tag. Raw strings are accepted with a warning
 // but cannot carry parameters and will never be parameterized.
@@ -440,10 +440,10 @@ const users = await db.query<User>(
 await db.executeBatch(
   sql`INSERT INTO events (user_id, type, ts) VALUES (@userId, @type, @ts)`,
   [
-    { userId: 1, type: "login",  ts: new Date() },
+    { userId: 1, type: "login", ts: new Date() },
     { userId: 2, type: "logout", ts: new Date() },
   ],
-  { connection: "primary" }
+  { connection: "primary" },
 );
 // Internally: one prepared statement, bound and executed once per row.
 // One round trip regardless of row count.
@@ -467,13 +467,17 @@ const user = await db
 
 // Multi-call — save the scope and reuse across related queries
 const replicaDb = db.use("replica");
-const users  = await replicaDb.query<User>(sql`SELECT * FROM users`);
+const users = await replicaDb.query<User>(sql`SELECT * FROM users`);
 const orders = await replicaDb.query<Order>(sql`SELECT * FROM orders`);
 
 // Transaction — the entire block is pinned to "billing"
 await db.use("billing").transaction(async (tx) => {
-  const inv = await tx.querySingle<Invoice>(sql`INSERT INTO invoices ... RETURNING *`);
-  await tx.execute(sql`UPDATE billing_summary SET total = total + ${inv.total}`);
+  const inv = await tx.querySingle<Invoice>(
+    sql`INSERT INTO invoices ... RETURNING *`,
+  );
+  await tx.execute(
+    sql`UPDATE billing_summary SET total = total + ${inv.total}`,
+  );
 });
 
 // Atomic block — the full BEGIN...COMMIT runs on "primary"
@@ -493,7 +497,7 @@ const q = queryBuilder(Users)
   .whereIf(filter.minAge !== undefined, sql`age >= ${filter.minAge}`)
   .orderBy("name", "ASC")
   .paginate({ page: 1, pageSize: 20 })
-  .connection("replica")   // ← part of the description, typed as Names
+  .connection("replica") // ← part of the description, typed as Names
   .readonly();
 
 // Execute — connection is resolved from the query description
@@ -513,7 +517,7 @@ const activeUsers = queryBuilder(Users)
   .where(Users.active.eq(true));
 
 // Extend for replica
-const replicaQ   = activeUsers.connection("replica").orderBy("name", "ASC");
+const replicaQ = activeUsers.connection("replica").orderBy("name", "ASC");
 
 // Extend for analytics — same base, different connection + pagination
 const analyticsQ = activeUsers.connection("analytics");
@@ -545,7 +549,7 @@ multiDb default           ← config-level — lowest priority
 
 ```typescript
 const replicaDb = db.use("replica");
-const q         = queryBuilder(Users).connection("analytics");
+const q = queryBuilder(Users).connection("analytics");
 
 // options.connection wins — result from "billing"
 const r1 = await replicaDb.run(q, { connection: "billing" });
@@ -673,12 +677,12 @@ db.queryScalar<T>()  → T              — first column of first row, throws on
 
 **Decision rule — pick based on what you expect the database to return:**
 
-| You expect | Use | Why |
-|---|---|---|
-| Zero or more rows (a list) | `query` | Returns `[]` for empty, never throws |
-| Zero or one row (optional lookup) | `queryFirst` | Returns `null` safely when not found; warns if multiple rows returned |
-| Exactly one row (required lookup by PK/unique) | `querySingle` | Throws if missing — surfaces the bug immediately |
-| A single value (COUNT, SUM, MAX) | `queryScalar` | Returns the value directly, no unwrapping |
+| You expect                                     | Use           | Why                                                                   |
+| ---------------------------------------------- | ------------- | --------------------------------------------------------------------- |
+| Zero or more rows (a list)                     | `query`       | Returns `[]` for empty, never throws                                  |
+| Zero or one row (optional lookup)              | `queryFirst`  | Returns `null` safely when not found; warns if multiple rows returned |
+| Exactly one row (required lookup by PK/unique) | `querySingle` | Throws if missing — surfaces the bug immediately                      |
+| A single value (COUNT, SUM, MAX)               | `queryScalar` | Returns the value directly, no unwrapping                             |
 
 #### `db.query<T>()` — zero or more rows
 
@@ -814,10 +818,10 @@ When a PostgreSQL column is an array type, `col.array()` maps it to and from a T
 
 ```typescript
 const Tags = defineTable("tags", {
-  id:     col.int().primaryKey().readonly(),
-  name:   col.nvarchar(100).notNull(),
-  labels: col.array(col.nvarchar(100)).notNull(),   // text[] column → string[]
-  scores: col.array(col.int()).nullable(),           // int[] column → number[] | null
+  id: col.int().primaryKey().readonly(),
+  name: col.nvarchar(100).notNull(),
+  labels: col.array(col.nvarchar(100)).notNull(), // text[] column → string[]
+  scores: col.array(col.int()).nullable(), // int[] column → number[] | null
 });
 
 type Tag = InferModel<typeof Tags>;
@@ -825,14 +829,14 @@ type Tag = InferModel<typeof Tags>;
 
 // Insert — pass a TypeScript array directly
 await db.insert(Tags, {
-  name:   "colours",
+  name: "colours",
   labels: ["red", "green", "blue"],
   scores: null,
 });
 
 // Query — labels comes back as string[]
 const tag = await db.querySingle<Tag>(sql`SELECT * FROM tags WHERE id = ${1}`);
-console.log(tag.labels);  // ["red", "green", "blue"]
+console.log(tag.labels); // ["red", "green", "blue"]
 
 // Array containment filter — PostgreSQL @> operator
 const tags = await db.query<Tag>(sql`
@@ -852,7 +856,7 @@ For databases without native array column types, use `col.json<T>()` to store an
 
 ```typescript
 const Posts = defineTable("posts", {
-  id:   col.int().primaryKey().readonly(),
+  id: col.int().primaryKey().readonly(),
 
   // Basic — T is asserted after JSON.parse, not validated at runtime.
   // Safe when your application owns the database and the schema is stable.
@@ -861,18 +865,22 @@ const Posts = defineTable("posts", {
   // Validated — supply a type guard when the column may contain external
   // or evolving data. Squn calls the guard on every row read and throws
   // MappingError(TYPE_CONVERSION_FAILED) if it returns false.
-  meta: col.json<Record<string, unknown>>({
-    validate: (v): v is Record<string, unknown> =>
-      typeof v === "object" && v !== null && !Array.isArray(v),
-  }).nullable(),
+  meta: col
+    .json<Record<string, unknown>>({
+      validate: (v): v is Record<string, unknown> =>
+        typeof v === "object" && v !== null && !Array.isArray(v),
+    })
+    .nullable(),
 });
 
 // Insert — TypeScript ensures correct shape at compile time
 await db.insert(Posts, { tags: ["typescript", "bun", "sql"], meta: null });
 
 // Query — tags comes back as string[] (asserted) or validated meta
-const post = await db.querySingle<Post>(sql`SELECT * FROM posts WHERE id = ${1}`);
-console.log(post.tags);  // string[]
+const post = await db.querySingle<Post>(
+  sql`SELECT * FROM posts WHERE id = ${1}`,
+);
+console.log(post.tags); // string[]
 
 // Filter using MySQL JSON_CONTAINS
 const posts = await db.query<Post>(sql`
@@ -892,18 +900,18 @@ Returns an array of typed row arrays — one per result set. Used when a stored 
 
 **Adapter support:**
 
-| Adapter | Support |
-|---|---|
-| MSSQL | Native — stored procedures and multi-statement batches both supported |
-| MySQL | Native — multiple result sets in a single query |
+| Adapter    | Support                                                               |
+| ---------- | --------------------------------------------------------------------- |
+| MSSQL      | Native — stored procedures and multi-statement batches both supported |
+| MySQL      | Native — multiple result sets in a single query                       |
 | PostgreSQL | Not natively supported — use separate `db.concurrent()` calls instead |
-| SQLite | Not supported — use separate queries |
+| SQLite     | Not supported — use separate queries                                  |
 
 ```typescript
 // MSSQL stored procedure returning two result sets
 const [orders, summary] = await db.queryMultiple(
   sql`EXEC sp_get_order_report @userId = ${userId}`,
-  { multiStatement: true }
+  { multiStatement: true },
 );
 // orders:  Row[]  — first result set, untyped without mappers
 // summary: Row[]  — second result set
@@ -913,9 +921,9 @@ const [orders, summary] = await db.queryMultiple(
   sql`EXEC sp_get_order_report @userId = ${userId}`,
   { multiStatement: true },
   [
-    (rows) => rows.map(mapOrder),    // mapper for first result set → Order[]
-    (rows) => rows.map(mapSummary),  // mapper for second result set → Summary[]
-  ]
+    (rows) => rows.map(mapOrder), // mapper for first result set → Order[]
+    (rows) => rows.map(mapSummary), // mapper for second result set → Summary[]
+  ],
 );
 // orders:  Order[]
 // summary: Summary[]
@@ -930,7 +938,7 @@ const [orders, summary] = await db.queryMultiple(
 const users = await db.queryProc<User>(
   "sp_get_users_by_role",
   { roleId: 2, active: true },
-  { connection: "primary" }
+  { connection: "primary" },
 );
 // users: User[]
 
@@ -939,17 +947,17 @@ const users = await db.queryProc<User>(
 const result = await db.execProc<Order, { newOrderId: number; status: string }>(
   "sp_create_order",
   {
-    userId:     userId,
-    total:      total,
-    newOrderId: sql.output("int"),      // OUTPUT parameter — declared with sql.output()
-    status:     sql.output("nvarchar"), // OUTPUT parameter
+    userId: userId,
+    total: total,
+    newOrderId: sql.output("int"), // OUTPUT parameter — declared with sql.output()
+    status: sql.output("nvarchar"), // OUTPUT parameter
   },
-  { connection: "primary" }
+  { connection: "primary" },
 );
 
-result.rows;             // Order[]  — rows returned by the procedure
-result.output.newOrderId // number   — resolved OUTPUT value
-result.output.status     // string   — resolved OUTPUT value
+result.rows; // Order[]  — rows returned by the procedure
+result.output.newOrderId; // number   — resolved OUTPUT value
+result.output.status; // string   — resolved OUTPUT value
 ```
 
 `sql.output(dbType)` is a marker that tells the adapter to declare the parameter as an OUTPUT parameter. The resolved values are available on `result.output` after the procedure executes. OUTPUT parameters are MSSQL-specific — other adapters throw `AdapterError(ADAPTER_NOT_SUPPORTED)` if OUTPUT params are passed.
@@ -984,7 +992,9 @@ interface BaseOptions<Names extends string = never> {
 }
 
 // Query-specific options
-interface QueryOptions<Names extends string = never> extends BaseOptions<Names> {
+interface QueryOptions<
+  Names extends string = never,
+> extends BaseOptions<Names> {
   // Allow this specific query to contain multiple statements
   // (normally banned by validateSql() for security reasons)
   multiStatement?: boolean;
@@ -999,13 +1009,17 @@ interface QueryOptions<Names extends string = never> extends BaseOptions<Names> 
 }
 
 // Execute-specific options
-interface ExecuteOptions<Names extends string = never> extends BaseOptions<Names> {
+interface ExecuteOptions<
+  Names extends string = never,
+> extends BaseOptions<Names> {
   // Return the full row after INSERT/UPDATE (uses RETURNING * or OUTPUT INSERTED.*)
   returning?: boolean;
 }
 
 // Stream-specific options
-interface StreamOptions<Names extends string = never> extends BaseOptions<Names> {
+interface StreamOptions<
+  Names extends string = never,
+> extends BaseOptions<Names> {
   // How many rows to fetch from the cursor per round trip
   batchSize?: number;
 }
@@ -1015,10 +1029,10 @@ interface AtomicOptions<Names extends string = never> {
   // Which connection to open the BEGIN ... COMMIT block on.
   // Typed as the exact union of your registered connection names.
   // Absent entirely when using createDb() (single connection).
-  connection?:   [Names] extends [never] ? never : Names;
+  connection?: [Names] extends [never] ? never : Names;
 
   // Overrides the global transaction timeout for this block.
-  timeoutMs?:    number;
+  timeoutMs?: number;
 
   // Retry the whole block on transient infrastructure errors (connection
   // drops, pool timeouts). Does NOT retry on QueryError or MappingError —
@@ -1026,10 +1040,10 @@ interface AtomicOptions<Names extends string = never> {
   retryOnError?: boolean;
 
   // Maximum number of retries when retryOnError is true. Default: 3.
-  maxRetries?:   number;
+  maxRetries?: number;
 
   // Base delay in ms between retries, with random jitter added. Default: 50.
-  retryDelay?:   number;
+  retryDelay?: number;
 }
 ```
 
@@ -1081,10 +1095,12 @@ const db = createConnections({
 ```typescript
 const db = createConnections({
   connections: {
-    primary:   new PostgresAdapter({ url: process.env.SQUN_CONN_PRIMARY_URL }),
-    replica:   new PostgresAdapter({ url: process.env.SQUN_CONN_REPLICA_URL }),
-    analytics: new PostgresAdapter({ url: process.env.SQUN_CONN_ANALYTICS_URL }),
-    billing:   new MssqlAdapter  ({ url: process.env.SQUN_CONN_BILLING_URL }),
+    primary: new PostgresAdapter({ url: process.env.SQUN_CONN_PRIMARY_URL }),
+    replica: new PostgresAdapter({ url: process.env.SQUN_CONN_REPLICA_URL }),
+    analytics: new PostgresAdapter({
+      url: process.env.SQUN_CONN_ANALYTICS_URL,
+    }),
+    billing: new MssqlAdapter({ url: process.env.SQUN_CONN_BILLING_URL }),
   },
   default: "primary",
 });
@@ -1096,62 +1112,65 @@ const allUsers = await db.query<User>(sql`SELECT * FROM users`);
 // Reads from replica — lighter load on primary
 const activeUsers = await db.query<User>(
   sql`SELECT * FROM users WHERE active = ${true}`,
-  { connection: "replica" }
+  { connection: "replica" },
 );
 
 // Analytics query — gets the 120s timeout configured for that connection
 const report = await db.query<ReportRow>(
   sql`SELECT * FROM monthly_summary WHERE month = ${month}`,
-  { connection: "analytics" }
+  { connection: "analytics" },
 );
 
 // ── queryFirst ─────────────────────────────────────────────────────────────
 const user = await db.queryFirst<User>(
   sql`SELECT * FROM users WHERE email = ${email}`,
-  { connection: "replica" }
+  { connection: "replica" },
 );
 
 // ── querySingle ────────────────────────────────────────────────────────────
 const invoice = await db.querySingle<Invoice>(
   sql`SELECT * FROM invoices WHERE id = ${invoiceId}`,
-  { connection: "billing" }   // MSSQL billing database
+  { connection: "billing" }, // MSSQL billing database
 );
 
 // ── execute ────────────────────────────────────────────────────────────────
 // Write — must use a writable connection (replica would throw ReadonlyViolationError)
 await db.execute(
   sql`UPDATE users SET last_login = ${new Date()} WHERE id = ${id}`,
-  { connection: "primary" }   // explicit — makes intent clear in code review
+  { connection: "primary" }, // explicit — makes intent clear in code review
 );
 
 // ── executeBatch ───────────────────────────────────────────────────────────
 await db.executeBatch(
   sql`INSERT INTO events (user_id, type, ts) VALUES (@userId, @type, @ts)`,
   events,
-  { connection: "primary" }
+  { connection: "primary" },
 );
 
 // ── stream ─────────────────────────────────────────────────────────────────
-for await (const row of db.stream<ReportRow>(
-  sql`SELECT * FROM large_dataset`,
-  { connection: "analytics", batchSize: 500 }
-)) {
+for await (const row of db.stream<ReportRow>(sql`SELECT * FROM large_dataset`, {
+  connection: "analytics",
+  batchSize: 500,
+})) {
   await process(row);
 }
 
 // ── atomically ─────────────────────────────────────────────────────────────
-await db.atomically(async (q) => {
-  await q.execute(sql`INSERT INTO orders ...`);
-  await q.execute(sql`UPDATE inventory ...`);
-}, {
-  connection: "primary"   // the entire atomic batch runs on this connection
-});
+await db.atomically(
+  async (q) => {
+    await q.execute(sql`INSERT INTO orders ...`);
+    await q.execute(sql`UPDATE inventory ...`);
+  },
+  {
+    connection: "primary", // the entire atomic batch runs on this connection
+  },
+);
 
 // ── queryProc ──────────────────────────────────────────────────────────────
 const results = await db.queryProc<ProcessedUser>(
   "sp_process_users",
   { roleId: 2 },
-  { connection: "primary" }
+  { connection: "primary" },
 );
 ```
 
@@ -1178,7 +1197,10 @@ await db.atomically(async (q) => {
 
 // ✅ One stored proc call — atomicity is guaranteed by the database
 const order = await db.queryProc<Order>("sp_create_order", {
-  userId, sku, qty, total,
+  userId,
+  sku,
+  qty,
+  total,
 });
 ```
 
@@ -1213,13 +1235,17 @@ Squn supports this model fully. `db.query()`, `db.queryFirst()`, `db.querySingle
 // This application follows least-privilege — the connection only has
 // SELECT and EXECUTE. All writes go through stored procedures.
 
-const db = createDb(new PostgresAdapter({
-  url:  process.env.SQUN_PG_URL,
-  user: "app_user",  // SELECT + EXECUTE only — no INSERT/UPDATE/DELETE
-}));
+const db = createDb(
+  new PostgresAdapter({
+    url: process.env.SQUN_PG_URL,
+    user: "app_user", // SELECT + EXECUTE only — no INSERT/UPDATE/DELETE
+  }),
+);
 
 // ✅ Read — uses SELECT
-const users = await db.query<User>(sql`SELECT * FROM users WHERE active = ${true}`);
+const users = await db.query<User>(
+  sql`SELECT * FROM users WHERE active = ${true}`,
+);
 
 // ✅ Write — uses EXECUTE via stored procedure
 await db.execProc("sp_deactivate_user", { userId });
@@ -1242,8 +1268,10 @@ await db.execute(sql`UPDATE users SET active = ${false} WHERE id = ${userId}`);
 The explicit mapper is the recommended approach. It has no dependencies, no decorator support required, and full compatibility with the canonical tsconfig in the style guide. It is always available regardless of TypeScript version or project configuration.
 
 ```typescript
-const UserMapper = defineMapper(UserModel, Users,
-  (row) => new UserModel(row.id, row.name, row.email, row.age, row.createdAt)
+const UserMapper = defineMapper(
+  UserModel,
+  Users,
+  (row) => new UserModel(row.id, row.name, row.email, row.age, row.createdAt),
 );
 
 const users = await db.queryAs(UserModel, sql`SELECT * FROM users`);
@@ -1272,15 +1300,24 @@ import "reflect-metadata";
 ```typescript
 @Entity(Users)
 class UserModel {
-  id!:        number;
-  name!:      string;
-  email!:     string;
-  age!:       number | null;
+  id!: number;
+  name!: string;
+  email!: string;
+  age!: number | null;
   createdAt!: Date;
 
-  getInitials() { return this.name.split(" ").map(w => w[0]).join(""); }
-  isAdult()     { return this.age !== null && this.age >= 18; }
-  get displayName() { return `${this.name} <${this.email}>`; }
+  getInitials() {
+    return this.name
+      .split(" ")
+      .map((w) => w[0])
+      .join("");
+  }
+  isAdult() {
+    return this.age !== null && this.age >= 18;
+  }
+  get displayName() {
+    return `${this.name} <${this.email}>`;
+  }
 }
 
 const users = await db.queryAs(UserModel, sql`SELECT * FROM users`);
@@ -1291,12 +1328,12 @@ const users = await db.queryAs(UserModel, sql`SELECT * FROM users`);
 
 ### 8.3 Construction strategies
 
-| Strategy | How Squn builds the instance | Available via |
-|---|---|---|
-| Property injection | `Object.create()` then assign fields | `@Entity` decorator (default) or `defineMapper()` |
-| Constructor | `new Model(...args)` in declared order | `defineMapper()` with `strategy: "constructor"` |
-| Factory function | `factory(row)` — full control | `defineMapper()` with a factory function |
-| Static `fromDb()` | Calls `Model.fromDb(row)` automatically | `defineMapper()` with `strategy: "static"` |
+| Strategy           | How Squn builds the instance            | Available via                                     |
+| ------------------ | --------------------------------------- | ------------------------------------------------- |
+| Property injection | `Object.create()` then assign fields    | `@Entity` decorator (default) or `defineMapper()` |
+| Constructor        | `new Model(...args)` in declared order  | `defineMapper()` with `strategy: "constructor"`   |
+| Factory function   | `factory(row)` — full control           | `defineMapper()` with a factory function          |
+| Static `fromDb()`  | Calls `Model.fromDb(row)` automatically | `defineMapper()` with `strategy: "static"`        |
 
 ### 8.4 Nested class mapping
 
@@ -1312,20 +1349,20 @@ Classes may implement `toJSON()` for API serialization and `toDb()` for write op
 
 ### 9.1 Supported strategies per adapter
 
-| Adapter | Strategy |
-|---|---|
-| MSSQL | Native `CREATE TYPE` structured parameter |
-| PostgreSQL | `unnest()` with typed arrays |
-| MySQL | Temporary table shim with bulk insert |
-| SQLite | Temporary table or JSON shim |
+| Adapter    | Strategy                                  |
+| ---------- | ----------------------------------------- |
+| MSSQL      | Native `CREATE TYPE` structured parameter |
+| PostgreSQL | `unnest()` with typed arrays              |
+| MySQL      | Temporary table shim with bulk insert     |
+| SQLite     | Temporary table or JSON shim              |
 
 ### 9.2 Defining a TVP type
 
 ```typescript
 const OrderTvp = new TableType("dbo.OrderTableType", {
   orderId: { dbType: "int" },
-  total:   { dbType: "decimal", precision: 10, scale: 2 },
-  status:  { dbType: "nvarchar", length: 50 },
+  total: { dbType: "decimal", precision: 10, scale: 2 },
+  status: { dbType: "nvarchar", length: 50 },
 });
 
 type OrderRow = InferTableType<typeof OrderTvp>;
@@ -1338,7 +1375,7 @@ The original and most common use — passing a set of rows into a stored procedu
 
 ```typescript
 await db.execute(sql`EXEC sp_bulk_insert_orders @orders`, {
-  orders: tvp(OrderTvp, rows)   // type-checked against OrderRow
+  orders: tvp(OrderTvp, rows), // type-checked against OrderRow
 });
 ```
 
@@ -1348,14 +1385,14 @@ TVPs can be used as the source for a direct `INSERT INTO ... SELECT FROM` statem
 
 ```typescript
 const UserTvp = new TableType("dbo.UserTableType", {
-  name:  { dbType: "nvarchar", length: 100 },
+  name: { dbType: "nvarchar", length: 100 },
   email: { dbType: "nvarchar", length: 255 },
-  age:   { dbType: "int" },
+  age: { dbType: "int" },
 });
 
 const newUsers = [
-  { name: "Alice",   email: "alice@example.com",   age: 30 },
-  { name: "Bob",     email: "bob@example.com",     age: 25 },
+  { name: "Alice", email: "alice@example.com", age: 30 },
+  { name: "Bob", email: "bob@example.com", age: 25 },
   { name: "Charlie", email: "charlie@example.com", age: 35 },
 ];
 
@@ -1460,14 +1497,14 @@ When your input data carries human-readable references (category names, status l
 
 ```typescript
 const ProductTvp = new TableType("dbo.ProductTableType", {
-  sku:          { dbType: "nvarchar", length: 50 },
-  name:         { dbType: "nvarchar", length: 200 },
-  categoryName: { dbType: "nvarchar", length: 100 },  // name, not ID
-  price:        { dbType: "decimal", precision: 10, scale: 2 },
+  sku: { dbType: "nvarchar", length: 50 },
+  name: { dbType: "nvarchar", length: 200 },
+  categoryName: { dbType: "nvarchar", length: 100 }, // name, not ID
+  price: { dbType: "decimal", precision: 10, scale: 2 },
 });
 
 const products = [
-  { sku: "A1", name: "Widget", categoryName: "Hardware",    price: 9.99  },
+  { sku: "A1", name: "Widget", categoryName: "Hardware", price: 9.99 },
   { sku: "B2", name: "Gadget", categoryName: "Electronics", price: 49.99 },
 ];
 
@@ -1487,15 +1524,15 @@ TVP inserts compose naturally with `atomically()` — all tables are written ato
 ```typescript
 const OrderTvp = new TableType("dbo.OrderTableType", {
   userId: { dbType: "int" },
-  sku:    { dbType: "nvarchar", length: 50 },
-  qty:    { dbType: "int" },
-  total:  { dbType: "decimal", precision: 10, scale: 2 },
+  sku: { dbType: "nvarchar", length: 50 },
+  qty: { dbType: "int" },
+  total: { dbType: "decimal", precision: 10, scale: 2 },
 });
 
 const AuditTvp = new TableType("dbo.AuditTableType", {
   orderId: { dbType: "int" },
-  action:  { dbType: "nvarchar", length: 50 },
-  ts:      { dbType: "datetime" },
+  action: { dbType: "nvarchar", length: 50 },
+  ts: { dbType: "datetime" },
 });
 
 await db.atomically(async (q) => {
@@ -1508,10 +1545,10 @@ await db.atomically(async (q) => {
   `);
 
   // Build audit rows from the returned IDs
-  const auditRows = inserted.map(o => ({
+  const auditRows = inserted.map((o) => ({
     orderId: o.id,
-    action:  "order_created",
-    ts:      new Date(),
+    action: "order_created",
+    ts: new Date(),
   }));
 
   // Insert audit log in one round trip
@@ -1534,7 +1571,7 @@ type ProductRow = InferTableType<typeof ProductTvp>;
 
 // TypeScript catches shape errors before execution
 const bad = [
-  { sku: 123, name: "Widget", categoryName: "Hardware", price: "free" }
+  { sku: 123, name: "Widget", categoryName: "Hardware", price: "free" },
   //   ^^^                                                       ^^^^^^
   // TS Error: number not assignable to string
   // TS Error: string not assignable to number
@@ -1553,12 +1590,12 @@ await db.execute(sql`
 
 The SQL you write is identical across all adapters. What changes is how Squn materialises the TVP as a table source underneath.
 
-| Adapter | Mechanism | Notes |
-|---|---|---|
-| MSSQL | Native structured parameter | Declared as a typed variable, zero temp objects created |
+| Adapter    | Mechanism                    | Notes                                                                             |
+| ---------- | ---------------------------- | --------------------------------------------------------------------------------- |
+| MSSQL      | Native structured parameter  | Declared as a typed variable, zero temp objects created                           |
 | PostgreSQL | `unnest()` with typed arrays | `FROM tvp(...)` rewrites to `FROM unnest($1::text[], $2::int[]) AS t(col1, col2)` |
-| MySQL | Temp table shim | Three steps: CREATE, bulk INSERT VALUES, your query, DROP — all in `try/finally` |
-| SQLite | Temp table shim | Same as MySQL — scoped to connection, guaranteed cleanup |
+| MySQL      | Temp table shim              | Three steps: CREATE, bulk INSERT VALUES, your query, DROP — all in `try/finally`  |
+| SQLite     | Temp table shim              | Same as MySQL — scoped to connection, guaranteed cleanup                          |
 
 The temp-table adapters use a single multi-row `VALUES (…), (…), (…)` statement for the shim INSERT — not one INSERT per row. For PostgreSQL, large TVPs use the `COPY` protocol rather than `unnest()` when the row count exceeds a configurable threshold (`tvpCopyThreshold`, default 1000 rows).
 
@@ -1583,13 +1620,13 @@ Squn provides two distinct transaction APIs designed for different levels of com
 
 ### 10.1 When to use which
 
-| Need | Use |
-|---|---|
-| All queries succeed or all roll back, no partial recovery needed | `db.atomically()` |
-| Partial rollback to an intermediate checkpoint | `db.transaction()` with savepoints |
-| Specific isolation level | `db.transaction()` |
-| Nested transactional logic composed from multiple functions | `db.transaction()` |
-| Simple fire-and-forget batch in everyday application code | `db.atomically()` |
+| Need                                                             | Use                                |
+| ---------------------------------------------------------------- | ---------------------------------- |
+| All queries succeed or all roll back, no partial recovery needed | `db.atomically()`                  |
+| Partial rollback to an intermediate checkpoint                   | `db.transaction()` with savepoints |
+| Specific isolation level                                         | `db.transaction()`                 |
+| Nested transactional logic composed from multiple functions      | `db.transaction()`                 |
+| Simple fire-and-forget batch in everyday application code        | `db.atomically()`                  |
 
 ### 10.2 Atomic batch — `db.atomically()`
 
@@ -1614,10 +1651,10 @@ const newOrder = await db.atomically(async (q) => {
     VALUES (${"order_placed"}, ${new Date()})
   `);
 
-  return order;   // typed return value — available after commit
+  return order; // typed return value — available after commit
 });
 
-console.log(newOrder.id);   // Order — fully typed
+console.log(newOrder.id); // Order — fully typed
 ```
 
 The `AtomicExecutor` interface is intentionally narrower than `db.*`. It deliberately omits `transaction()`, `savepoint()`, and `stream()` — the absence of these methods is a design signal, not an oversight. If you find yourself wanting them, you have outgrown `atomically` and should use `db.transaction()`.
@@ -1628,8 +1665,15 @@ interface AtomicExecutor {
   queryFirst<T>(sql: SqlFragment, options?: QueryOptions): Promise<T | null>;
   querySingle<T>(sql: SqlFragment, options?: QueryOptions): Promise<T>;
   queryScalar<T>(sql: SqlFragment, options?: QueryOptions): Promise<T>;
-  execute(sql: SqlFragment, options?: ExecuteOptions): Promise<{ rowsAffected: number }>;
-  executeBatch<Row extends Record<string, unknown>>(sql: SqlFragment, rows: Row[], options?: ExecuteOptions): Promise<{ rowsAffected: number }>;
+  execute(
+    sql: SqlFragment,
+    options?: ExecuteOptions,
+  ): Promise<{ rowsAffected: number }>;
+  executeBatch<Row extends Record<string, unknown>>(
+    sql: SqlFragment,
+    rows: Row[],
+    options?: ExecuteOptions,
+  ): Promise<{ rowsAffected: number }>;
 }
 ```
 
@@ -1641,10 +1685,10 @@ Options available on `db.atomically()`:
 interface AtomicOptions<Names extends string = never> {
   // Which connection to open the BEGIN ... COMMIT block on.
   // Typed as the exact union of your registered connection names.
-  connection?:   [Names] extends [never] ? never : Names;
+  connection?: [Names] extends [never] ? never : Names;
 
   // Overrides the global transaction timeout for this block.
-  timeoutMs?:    number;
+  timeoutMs?: number;
 
   // Retry the whole block on transient infrastructure errors (connection
   // drops, pool timeouts). Does NOT retry on QueryError or MappingError —
@@ -1652,10 +1696,10 @@ interface AtomicOptions<Names extends string = never> {
   retryOnError?: boolean;
 
   // Maximum number of retries when retryOnError is true. Default: 3.
-  maxRetries?:   number;
+  maxRetries?: number;
 
   // Base delay in ms between retries, with random jitter added. Default: 50.
-  retryDelay?:   number;
+  retryDelay?: number;
 }
 ```
 
@@ -1800,14 +1844,14 @@ await db.pool.drain({ timeoutMs: 30_000 });
 
 ### 12.1 Timeout levels
 
-| Level | Config key | Description |
-|---|---|---|
-| Connect | `timeouts.connect` | Initial connection / reconnect |
-| Acquire | `timeouts.acquire` | Wait for pool connection |
-| Query | `timeouts.query` | Per-query deadline |
-| Transaction | `timeouts.transaction` | Entire transaction wall-clock |
-| Idle | `timeouts.idle` | Close idle pool connections |
-| Stream | `timeouts.stream` | Null by default — streams run until done |
+| Level       | Config key             | Description                              |
+| ----------- | ---------------------- | ---------------------------------------- |
+| Connect     | `timeouts.connect`     | Initial connection / reconnect           |
+| Acquire     | `timeouts.acquire`     | Wait for pool connection                 |
+| Query       | `timeouts.query`       | Per-query deadline                       |
+| Transaction | `timeouts.transaction` | Entire transaction wall-clock            |
+| Idle        | `timeouts.idle`        | Close idle pool connections              |
+| Stream      | `timeouts.stream`      | Null by default — streams run until done |
 
 ### 12.2 Precedence chain
 
@@ -1845,21 +1889,21 @@ All timeouts are implemented via `AbortController`. Timers are always cleared in
 
 ### 13.1 Readonly levels
 
-| Level | Compile-time | Runtime | How to enable |
-|---|---|---|---|
-| Column `.readonly()` | Excluded from Insert/Update types | Stripped before SQL | Schema definition |
-| `InferReadonlyModel<T>` | All fields `readonly` | — | Type utility |
-| `@Readonly()` class | Returns `Readonly<T>` | `Object.freeze()` | Decorator |
-| Query `{ readonly: true }` | Returns `Readonly<T>[]` | — | Per-call option |
-| Connection `readonly: true` | — | Throws before any write | `createDb` config |
-| Transaction `readonly: true` | — | Throws before any write | Per-transaction option |
+| Level                        | Compile-time                      | Runtime                 | How to enable          |
+| ---------------------------- | --------------------------------- | ----------------------- | ---------------------- |
+| Column `.readonly()`         | Excluded from Insert/Update types | Stripped before SQL     | Schema definition      |
+| `InferReadonlyModel<T>`      | All fields `readonly`             | —                       | Type utility           |
+| `@Readonly()` class          | Returns `Readonly<T>`             | `Object.freeze()`       | Decorator              |
+| Query `{ readonly: true }`   | Returns `Readonly<T>[]`           | —                       | Per-call option        |
+| Connection `readonly: true`  | —                                 | Throws before any write | `createDb` config      |
+| Transaction `readonly: true` | —                                 | Throws before any write | Per-transaction option |
 
 ### 13.2 Readonly connection
 
 ```typescript
 const replica = createDb(new PostgresAdapter(config), {
   readonly: true,
-  readonlyStrategy: "strict",   // "strict" | "warn"
+  readonlyStrategy: "strict", // "strict" | "warn"
   // "strict" — throws ReadonlyViolationError before any write SQL is sent (default)
   // "warn"   — logs a warning and allows the write (for gradual migration only)
   //
@@ -1878,7 +1922,7 @@ Write operations throw `ReadonlyViolationError(SQUN_READONLY_001)` before any SQ
 // Convenience wrapper — one writer, one reader
 const db = createRouter({
   write: createDb(new PostgresAdapter(primaryConfig)),
-  read:  createDb(new PostgresAdapter(replicaConfig), { readonly: true }),
+  read: createDb(new PostgresAdapter(replicaConfig), { readonly: true }),
 });
 // Reads → replica, writes → primary, transactions → primary always
 
@@ -1890,7 +1934,11 @@ const db = createConnections({
   },
   default: "primary",
   groups: {
-    default: group({ write: "primary", read: ["replica"], readMode: "round-robin" }),
+    default: group({
+      write: "primary",
+      read: ["replica"],
+      readMode: "round-robin",
+    }),
   },
 });
 ```
@@ -1903,13 +1951,13 @@ Use `createRouter()` when you have one primary and one replica. Use `createConne
 
 ### 14.1 Supported auth types
 
-| Type | Adapters | Description |
-|---|---|---|
-| `userpass` | All | Username and password |
-| `windows` | MSSQL only | Current Windows process identity or explicit domain\\user |
-| `windows-upn` | MSSQL only | UPN format — user@domain.com + password |
-| `connection-string` | All | Auth embedded in the connection URL |
-| `azure-ad` | MSSQL only | Service principal or Managed Identity |
+| Type                | Adapters   | Description                                               |
+| ------------------- | ---------- | --------------------------------------------------------- |
+| `userpass`          | All        | Username and password                                     |
+| `windows`           | MSSQL only | Current Windows process identity or explicit domain\\user |
+| `windows-upn`       | MSSQL only | UPN format — user@domain.com + password                   |
+| `connection-string` | All        | Auth embedded in the connection URL                       |
+| `azure-ad`          | MSSQL only | Service principal or Managed Identity                     |
 
 ### 14.2 Username + password validation
 
@@ -1939,7 +1987,7 @@ Passwords are never written to logs. `maskConnectionString()` strips passwords f
 
 ### 15.1 Five defence layers
 
-1. **Parameterization** — `sql` `` never concatenates values into SQL text. `${value}` always becomes a placeholder. This applies to every query in the library regardless of how it is constructed.
+1. **Parameterization** — `sql` ``never concatenates values into SQL text.`${value}` always becomes a placeholder. This applies to every query in the library regardless of how it is constructed.
 
 2. **Type validation** — param values are checked against expected column types before execution, but only where schema context is available. This covers three surfaces: `db.insert(table, data)` and `db.update(table, data)` where the `defineTable()` schema is explicit, and `db.executeBatch()` where the rows array is typed against the template. Raw `sql` template queries (`db.query(sql`...`)`) carry no schema context — Squn cannot know the intended type of each interpolated value and does not attempt to validate them. TypeScript's own type system is the validation layer for those call sites.
 
@@ -1953,20 +2001,20 @@ Passwords are never written to logs. `maskConnectionString()` strips passwords f
 
 All patterns live in `SQUN_REGEX` — a single exported constant, fully testable.
 
-| Pattern | Regex key | Severity |
-|---|---|---|
-| Null byte | `NULL_BYTE` | critical |
-| Stacked statements | `STACKED_STATEMENTS` | critical |
-| MSSQL dangerous procs | `MSSQL_DANGEROUS` | critical |
-| UNION injection | `UNION_INJECTION` | high |
-| Tautology | `TAUTOLOGY` | high |
-| Time-based injection | `TIME_BASED` | high |
-| MySQL file ops | `MYSQL_DANGEROUS` | high |
-| PostgreSQL system fns | `PG_DANGEROUS` | high |
-| CHAR encoding | `CHAR_ENCODING` | medium |
-| Hex encoding | `HEX_ENCODING` | medium |
-| Block comments | `BLOCK_COMMENT` | low |
-| Line comments | `LINE_COMMENT` | low |
+| Pattern               | Regex key            | Severity |
+| --------------------- | -------------------- | -------- |
+| Null byte             | `NULL_BYTE`          | critical |
+| Stacked statements    | `STACKED_STATEMENTS` | critical |
+| MSSQL dangerous procs | `MSSQL_DANGEROUS`    | critical |
+| UNION injection       | `UNION_INJECTION`    | high     |
+| Tautology             | `TAUTOLOGY`          | high     |
+| Time-based injection  | `TIME_BASED`         | high     |
+| MySQL file ops        | `MYSQL_DANGEROUS`    | high     |
+| PostgreSQL system fns | `PG_DANGEROUS`       | high     |
+| CHAR encoding         | `CHAR_ENCODING`      | medium   |
+| Hex encoding          | `HEX_ENCODING`       | medium   |
+| Block comments        | `BLOCK_COMMENT`      | low      |
+| Line comments         | `LINE_COMMENT`       | low      |
 
 Critical and high severity → throws `SecurityError`. Medium and low → logs warning.
 
@@ -1987,6 +2035,7 @@ Before every query execution, `validateSql()` checks:
 - No unresolved TVP sentinels (a `__TVP_N__` still present after materialisation means a bug in the TVP strategy)
 
 > **Note — quote-balance check.** A naive odd-single-quote check is not applied to parameterized queries produced by the `sql` tag, because the SQL text on the parameterized path contains no quoted string literals — all string values have been extracted as params. Applying the check there would produce false positives on valid SQL that uses single quotes for other purposes (e.g. PostgreSQL type casts like `'active'::text`). The quote-balance check **is** applied inside `detectInjection()` on values passed to `sqlRaw()`, where quoted literals may appear in dynamic SQL fragments.
+
 - No multiple statements (unless `multiStatement: true` is explicitly set)
 - No write statements on readonly connections
 
@@ -2079,12 +2128,12 @@ No `Bun.SQL`, `bun:sqlite`, or `mssql` error objects ever escape the adapter lay
 
 ### 16.4 Strict vs lenient mode
 
-| Scenario | Strict (default) | Lenient |
-|---|---|---|
-| DB returns null on `notNull` column | throws `MappingError` | warns, returns null |
-| Unknown column in result | throws `MappingError` | warns, ignores |
-| TVP row with extra fields | throws `ValidationError` | warns, strips |
-| `querySingle` returns 0 rows | throws `QueryError` | returns null |
+| Scenario                            | Strict (default)         | Lenient             |
+| ----------------------------------- | ------------------------ | ------------------- |
+| DB returns null on `notNull` column | throws `MappingError`    | warns, returns null |
+| Unknown column in result            | throws `MappingError`    | warns, ignores      |
+| TVP row with extra fields           | throws `ValidationError` | warns, strips       |
+| `querySingle` returns 0 rows        | throws `QueryError`      | returns null        |
 
 ---
 
@@ -2095,8 +2144,8 @@ No `Bun.SQL`, `bun:sqlite`, or `mssql` error objects ever escape the adapter lay
 ```typescript
 interface SqunLogger {
   debug(entry: LogEntry): void;
-  info (entry: LogEntry): void;
-  warn (entry: LogEntry): void;
+  info(entry: LogEntry): void;
+  warn(entry: LogEntry): void;
   error(entry: LogEntry): void;
   fatal(entry: LogEntry): void;
 }
@@ -2110,31 +2159,31 @@ Log entries are typed differently depending on whether they represent an error c
 // Lifecycle event codes — used in debug and info log entries
 // that have no associated error
 enum EventCode {
-  QUERY_START       = "SQUN_EVT_001",
-  QUERY_END         = "SQUN_EVT_002",
-  CONN_OPENED       = "SQUN_EVT_003",
-  CONN_CLOSED       = "SQUN_EVT_004",
-  TX_START          = "SQUN_EVT_005",
-  TX_COMMIT         = "SQUN_EVT_006",
-  TX_ROLLBACK       = "SQUN_EVT_007",
-  SLOW_QUERY        = "SQUN_EVT_008",
-  RAW_SQL_USED      = "SQUN_EVT_009",
-  POOL_ACQUIRED     = "SQUN_EVT_010",
-  POOL_RELEASED     = "SQUN_EVT_011",
-  TVP_MATERIALISED  = "SQUN_EVT_012",
+  QUERY_START = "SQUN_EVT_001",
+  QUERY_END = "SQUN_EVT_002",
+  CONN_OPENED = "SQUN_EVT_003",
+  CONN_CLOSED = "SQUN_EVT_004",
+  TX_START = "SQUN_EVT_005",
+  TX_COMMIT = "SQUN_EVT_006",
+  TX_ROLLBACK = "SQUN_EVT_007",
+  SLOW_QUERY = "SQUN_EVT_008",
+  RAW_SQL_USED = "SQUN_EVT_009",
+  POOL_ACQUIRED = "SQUN_EVT_010",
+  POOL_RELEASED = "SQUN_EVT_011",
+  TVP_MATERIALISED = "SQUN_EVT_012",
 }
 
 interface LogEntry {
-  level:      "debug" | "info" | "warn" | "error" | "fatal";
-  timestamp:  string;                    // ISO 8601
-  traceId:    string;                    // ties query → result → error together
-  code:       ErrorCode | EventCode;     // EventCode for lifecycle, ErrorCode for failures
-  message:    string;
-  context:    ErrorContext;
-  stack?:     string;                    // error/fatal only
-  cause?:     string;                    // driver error message, stringified
-  durationMs?: number;                   // present on QUERY_END and SLOW_QUERY
-  rowCount?:   number;                   // present on QUERY_END
+  level: "debug" | "info" | "warn" | "error" | "fatal";
+  timestamp: string; // ISO 8601
+  traceId: string; // ties query → result → error together
+  code: ErrorCode | EventCode; // EventCode for lifecycle, ErrorCode for failures
+  message: string;
+  context: ErrorContext;
+  stack?: string; // error/fatal only
+  cause?: string; // driver error message, stringified
+  durationMs?: number; // present on QUERY_END and SLOW_QUERY
+  rowCount?: number; // present on QUERY_END
 }
 ```
 
@@ -2142,21 +2191,21 @@ interface LogEntry {
 
 ### 17.3 Built-in loggers
 
-| Logger | Use case |
-|---|---|
+| Logger          | Use case                                                |
+| --------------- | ------------------------------------------------------- |
 | `consoleLogger` | Development — colorized, human-readable, pretty-printed |
-| `jsonLogger` | Production — machine-parseable, pino-compatible |
-| `noopLogger` | Tests — completely silent |
+| `jsonLogger`    | Production — machine-parseable, pino-compatible         |
+| `noopLogger`    | Tests — completely silent                               |
 
 ### 17.4 Log levels by event
 
-| Level | Events |
-|---|---|
-| `debug` | Query start (sql + paramKeys + traceId), query end (durationMs + rowCount) |
-| `info` | Connection opened/closed, transaction start/commit |
-| `warn` | Slow query, nullable null, tx rollback, `sqlRaw()` used, suspicious patterns |
-| `error` | Query failed, mapping failed, TVP validation failed |
-| `fatal` | Connection lost mid-transaction, unrecoverable adapter failure |
+| Level   | Events                                                                       |
+| ------- | ---------------------------------------------------------------------------- |
+| `debug` | Query start (sql + paramKeys + traceId), query end (durationMs + rowCount)   |
+| `info`  | Connection opened/closed, transaction start/commit                           |
+| `warn`  | Slow query, nullable null, tx rollback, `sqlRaw()` used, suspicious patterns |
+| `error` | Query failed, mapping failed, TVP validation failed                          |
+| `fatal` | Connection lost mid-transaction, unrecoverable adapter failure               |
 
 ### 17.5 Sensitive data rules
 
@@ -2177,42 +2226,44 @@ interface LogEntry {
 
 ### 18.2 Default presets
 
-| Setting | Development | Production | Test |
-|---|---|---|---|
-| Logger | console pretty | JSON structured | silent |
-| Log level | debug | warn | fatal |
-| Pool min | 1 | 5 | 1 |
-| Pool max | 5 | 20 | 1 |
-| Query timeout | 60s | 30s | 5s |
-| Transaction timeout | 120s | 60s | 10s |
-| Slow query threshold | 200ms | 1000ms | — |
-| Error verbosity | full | minimal | full |
-| Mask sensitive | false | **true** | false |
-| Cache max size | 100 entries | 1000 entries | **disabled** (0) |
-| Cache TTL | 5 minutes | 1 hour | — |
-| Cache max age | none | 24 hours | — |
-| Cache reaper interval | 60s | 60s | — |
-| Deadlock retries | 1 | 3 | 0 |
-| Connection recycle | never | 1hr / 10k uses | never |
+| Setting               | Development    | Production      | Test             |
+| --------------------- | -------------- | --------------- | ---------------- |
+| Logger                | console pretty | JSON structured | silent           |
+| Log level             | debug          | warn            | fatal            |
+| Pool min              | 1              | 5               | 1                |
+| Pool max              | 5              | 20              | 1                |
+| Query timeout         | 60s            | 30s             | 5s               |
+| Transaction timeout   | 120s           | 60s             | 10s              |
+| Slow query threshold  | 200ms          | 1000ms          | —                |
+| Error verbosity       | full           | minimal         | full             |
+| Mask sensitive        | false          | **true**        | false            |
+| Cache max size        | 100 entries    | 1000 entries    | **disabled** (0) |
+| Cache TTL             | 5 minutes      | 1 hour          | —                |
+| Cache max age         | none           | 24 hours        | —                |
+| Cache reaper interval | 60s            | 60s             | —                |
+| Deadlock retries      | 1              | 3               | 0                |
+| Connection recycle    | never          | 1hr / 10k uses  | never            |
 
 ### 18.3 Default connection strings
 
-| Env | PostgreSQL | MySQL | MSSQL | SQLite |
-|---|---|---|---|---|
-| development | `localhost:5432/squn_dev` | `localhost:3306/squn_dev` | `localhost:1433/squn_dev` | `./squn_dev.db` |
-| test | `localhost:5432/squn_test` | `localhost:3306/squn_test` | `localhost:1433/squn_test` | `:memory:` |
-| production | **throws if missing** | **throws if missing** | **throws if missing** | **throws if missing** |
+| Env         | PostgreSQL                 | MySQL                      | MSSQL                      | SQLite                |
+| ----------- | -------------------------- | -------------------------- | -------------------------- | --------------------- |
+| development | `localhost:5432/squn_dev`  | `localhost:3306/squn_dev`  | `localhost:1433/squn_dev`  | `./squn_dev.db`       |
+| test        | `localhost:5432/squn_test` | `localhost:3306/squn_test` | `localhost:1433/squn_test` | `:memory:`            |
+| production  | **throws if missing**      | **throws if missing**      | **throws if missing**      | **throws if missing** |
 
 ### 18.4 Production guard
 
 `validateProductionConfig()` is called synchronously inside `createDb()`. If any required connection field is missing it throws a `SqunConfigError` with a human-readable message listing all missing fields and the exact environment variables to set. The app never starts in an invalid state.
 
 Production additionally throws if:
+
 - SQLite `file` is set to `":memory:"`
 - Connection URL is malformed
 - Auth config is missing entirely
 
 Production warns (does not throw) if:
+
 - Host is `localhost` / `127.0.0.1`
 - SSL is disabled
 - Connecting as `root`, `sa`, or `postgres` superuser
@@ -2244,13 +2295,15 @@ Production → throws if still missing
 PostgreSQL's TVP strategy upgrades automatically from `unnest()` to the `COPY` protocol when the row count exceeds a threshold. `COPY` is significantly faster for large batches — it streams rows to the server rather than encoding them as SQL values — but has slightly more overhead for small batches where `unnest()` is more efficient. The threshold is configurable per adapter instance.
 
 ```typescript
-const db = createDb(new PostgresAdapter({
-  url:              process.env.SQUN_PG_URL,
-  tvpCopyThreshold: 500,              // rows — use COPY above this, unnest() below
-                                      // default: 1000
-                                      // set to 0 to always use COPY
-                                      // set to Number.MAX_SAFE_INTEGER to always use unnest()
-}));
+const db = createDb(
+  new PostgresAdapter({
+    url: process.env.SQUN_PG_URL,
+    tvpCopyThreshold: 500, // rows — use COPY above this, unnest() below
+    // default: 1000
+    // set to 0 to always use COPY
+    // set to Number.MAX_SAFE_INTEGER to always use unnest()
+  }),
+);
 ```
 
 > **Note — avoid `Infinity` in config files.** `Infinity` is a valid TypeScript literal but becomes `null` when serialised to JSON, silently changing the behaviour. Use `Number.MAX_SAFE_INTEGER` instead when you want to always use `unnest()`. This matters if your config is ever serialised by a build tool, deployment pipeline, or config validator.
@@ -2275,17 +2328,25 @@ When a project requires more than one database connection — replicas, separate
 // All connections declared at startup — validated together
 const db = createConnections({
   connections: {
-    primary:   new PostgresAdapter({ url: process.env.SQUN_CONN_PRIMARY_URL }),
-    replica:   new PostgresAdapter({ url: process.env.SQUN_CONN_REPLICA_URL, readonly: true }),
-    analytics: new PostgresAdapter({ url: process.env.SQUN_CONN_ANALYTICS_URL, readonly: true }),
-    billing:   new PostgresAdapter({ url: process.env.SQUN_CONN_BILLING_URL }),
+    primary: new PostgresAdapter({ url: process.env.SQUN_CONN_PRIMARY_URL }),
+    replica: new PostgresAdapter({
+      url: process.env.SQUN_CONN_REPLICA_URL,
+      readonly: true,
+    }),
+    analytics: new PostgresAdapter({
+      url: process.env.SQUN_CONN_ANALYTICS_URL,
+      readonly: true,
+    }),
+    billing: new PostgresAdapter({ url: process.env.SQUN_CONN_BILLING_URL }),
   },
   default: "primary",
 });
 
 // Named access — fully typed
-const users  = await db.use("replica").query<User>(sql`SELECT * FROM users`);
-const report = await db.use("analytics").query<Report>(sql`SELECT * FROM reports`);
+const users = await db.use("replica").query<User>(sql`SELECT * FROM users`);
+const report = await db
+  .use("analytics")
+  .query<Report>(sql`SELECT * FROM reports`);
 ```
 
 The env var naming convention for multiple connections follows `SQUN_CONN_{NAME}_{FIELD}` — for example `SQUN_CONN_PRIMARY_URL`, `SQUN_CONN_REPLICA_HOST`. A `squn.config.ts` file is also supported as a structured alternative to environment variables for projects with many connections.
@@ -2315,7 +2376,7 @@ const db = createDb(new PostgresAdapter(config), {
     // How long a compiled query entry remains valid after its last use (ms).
     // A query that has not been called within this window is evicted on next access.
     // Set to null to disable TTL eviction — entries live until LRU evicts them.
-    ttlMs: 3_600_000,   // 1 hour
+    ttlMs: 3_600_000, // 1 hour
 
     // How long a compiled query entry remains valid after it was first created,
     // regardless of how recently it was used (ms).
@@ -2326,8 +2387,8 @@ const db = createDb(new PostgresAdapter(config), {
     // Check interval for background TTL reaping (ms).
     // The reaper runs on a timer and removes expired entries.
     // Set to null to disable background reaping — entries are evicted lazily on access.
-    reaperIntervalMs: 60_000,   // 1 minute
-  }
+    reaperIntervalMs: 60_000, // 1 minute
+  },
 });
 ```
 
@@ -2335,12 +2396,12 @@ const db = createDb(new PostgresAdapter(config), {
 
 An entry is evicted in one of four ways:
 
-| Trigger | When |
-|---|---|
-| LRU eviction | `maxSize` is reached and a new entry is inserted — oldest unused entry is dropped |
-| TTL expiry (lazy) | The entry is accessed and `ttlMs` has passed since last use |
-| Max-age expiry (lazy) | The entry is accessed and `maxAgeMs` has passed since creation |
-| Background reaper | Runs every `reaperIntervalMs` and removes all expired entries proactively |
+| Trigger               | When                                                                              |
+| --------------------- | --------------------------------------------------------------------------------- |
+| LRU eviction          | `maxSize` is reached and a new entry is inserted — oldest unused entry is dropped |
+| TTL expiry (lazy)     | The entry is accessed and `ttlMs` has passed since last use                       |
+| Max-age expiry (lazy) | The entry is accessed and `maxAgeMs` has passed since creation                    |
+| Background reaper     | Runs every `reaperIntervalMs` and removes all expired entries proactively         |
 
 Lazy eviction means a stale entry is never served — it is checked and discarded on the access attempt, then re-parsed fresh. The background reaper prevents unbounded memory growth in long-running processes where many unique queries are executed over time.
 
@@ -2365,7 +2426,7 @@ Individual queries can bypass the cache regardless of the global setting:
 // highly dynamic SQL that would pollute the cache with unique entries
 const users = await db.query<User>(
   sql`SELECT * FROM users WHERE id = ${userId}`,
-  { cache: false }
+  { cache: false },
 );
 ```
 
@@ -2375,7 +2436,9 @@ A `SqlFragment` that contains `tvpValues` (i.e. any query that interpolated a `t
 
 ```typescript
 // Cached — same SQL text on every call
-const users = await db.query<User>(sql`SELECT * FROM users WHERE id = ${userId}`);
+const users = await db.query<User>(
+  sql`SELECT * FROM users WHERE id = ${userId}`,
+);
 
 // Not cached — contains a TvpValue, always parsed fresh regardless of settings
 const result = await db.execute(sql`
@@ -2404,13 +2467,13 @@ The temp-table TVP strategy (MySQL, SQLite) uses a single multi-row `VALUES (…
 
 ### 19.6 Performance targets
 
-| Operation | Target overhead (squn only, excl. DB IO) |
-|---|---|
-| Cache hit query | < 0.1ms |
-| Cache miss (first parse) | < 1ms |
-| Row mapping (per 1000 rows) | < 2ms |
-| TVP validation (per 1000 rows) | < 3ms |
-| Param binding | < 0.05ms |
+| Operation                      | Target overhead (squn only, excl. DB IO) |
+| ------------------------------ | ---------------------------------------- |
+| Cache hit query                | < 0.1ms                                  |
+| Cache miss (first parse)       | < 1ms                                    |
+| Row mapping (per 1000 rows)    | < 2ms                                    |
+| TVP validation (per 1000 rows) | < 3ms                                    |
+| Param binding                  | < 0.05ms                                 |
 
 ---
 
@@ -2841,9 +2904,9 @@ expect(() => sqlIdentifier("")).toThrow();
 expect(() => sqlIdentifier("")).toThrow(SecurityError);
 expect(() => sqlIdentifier("")).toThrow(
   expect.objectContaining({
-    code:    ErrorCode.INVALID_IDENTIFIER,
+    code: ErrorCode.INVALID_IDENTIFIER,
     message: expect.stringContaining("empty string"),
-  })
+  }),
 );
 
 // For structured context assertions, use the custom helper
@@ -2852,9 +2915,9 @@ assertSqunError(
   SecurityError,
   ErrorCode.INVALID_IDENTIFIER,
   {
-    invalidChars:  expect.arrayContaining([";", " "]),
-    hint:          expect.stringContaining("letters, digits, and underscores"),
-  }
+    invalidChars: expect.arrayContaining([";", " "]),
+    hint: expect.stringContaining("letters, digits, and underscores"),
+  },
 );
 ```
 
@@ -2866,8 +2929,8 @@ expect(result.text).toBe("SELECT * FROM users");
 
 // Correct — full shape asserted
 expect(result).toEqual({
-  text:    "SELECT * FROM users WHERE id = $1",
-  params:  [42],
+  text: "SELECT * FROM users WHERE id = $1",
+  params: [42],
   __isSql: true,
 });
 ```
@@ -2880,8 +2943,8 @@ Unit tests never touch a real database. The `MockAdapter` in `tests/fixtures/moc
 // tests/fixtures/mock-adapter.ts
 export class MockAdapter implements IDbAdapter {
   readonly type = "sqlite" as const;
-  readonly log:  QueryLogEntry[]  = [];
-  private queue: MockResponse[]   = [];
+  readonly log: QueryLogEntry[] = [];
+  private queue: MockResponse[] = [];
 
   // Configure what the adapter will return for the next N calls
   willReturn(rows: Row[]): this {
@@ -2906,10 +2969,10 @@ export class MockAdapter implements IDbAdapter {
 
   // Convenience — assert what SQL was sent without caring about params
   assertQueried(pattern: string | RegExp): void {
-    const match = this.log.some(e =>
+    const match = this.log.some((e) =>
       typeof pattern === "string"
         ? e.sql.includes(pattern)
-        : pattern.test(e.sql)
+        : pattern.test(e.sql),
     );
     expect(match).toBe(true);
   }
@@ -2928,24 +2991,36 @@ The `MockLogger` records all log entries and exposes assertion helpers so tests 
 export class MockLogger implements ILogger {
   readonly entries: LogEntry[] = [];
 
-  debug(e: LogEntry) { this.entries.push(e); }
-  info (e: LogEntry) { this.entries.push(e); }
-  warn (e: LogEntry) { this.entries.push(e); }
-  error(e: LogEntry) { this.entries.push(e); }
-  fatal(e: LogEntry) { this.entries.push(e); }
+  debug(e: LogEntry) {
+    this.entries.push(e);
+  }
+  info(e: LogEntry) {
+    this.entries.push(e);
+  }
+  warn(e: LogEntry) {
+    this.entries.push(e);
+  }
+  error(e: LogEntry) {
+    this.entries.push(e);
+  }
+  fatal(e: LogEntry) {
+    this.entries.push(e);
+  }
 
   assertLogged(level: LogLevel, code: ErrorCode): void {
-    const found = this.entries.find(e => e.level === level && e.code === code);
+    const found = this.entries.find(
+      (e) => e.level === level && e.code === code,
+    );
     expect(found).toBeDefined();
   }
 
   assertNotLogged(level: LogLevel): void {
-    const found = this.entries.find(e => e.level === level);
+    const found = this.entries.find((e) => e.level === level);
     expect(found).toBeUndefined();
   }
 
   assertLogCount(level: LogLevel, count: number): void {
-    const found = this.entries.filter(e => e.level === level);
+    const found = this.entries.filter((e) => e.level === level);
     expect(found).toHaveLength(count);
   }
 }
@@ -2999,7 +3074,9 @@ describe("SQUN_REGEX.STACKED_STATEMENTS", () => {
 ```typescript
 describe("sql/injection-detector — detectInjection()", () => {
   describe("null byte injection", () => {
-    it("detects a null byte in the middle of a string with severity 'critical'");
+    it(
+      "detects a null byte in the middle of a string with severity 'critical'",
+    );
     it("detects a null byte at the start of a string");
     it("does not flag clean input with no null bytes");
   });
@@ -3065,8 +3142,12 @@ describe("sql/injection-detector — detectInjection()", () => {
 ```typescript
 describe("sql — tagged template literal", () => {
   describe("interpolation — scalar values (path 1)", () => {
-    it("replaces a single interpolated value with a placeholder and captures the value in params");
-    it("replaces multiple interpolated values with sequential placeholders in order");
+    it(
+      "replaces a single interpolated value with a placeholder and captures the value in params",
+    );
+    it(
+      "replaces multiple interpolated values with sequential placeholders in order",
+    );
     it("handles a string value correctly");
     it("handles a number value correctly");
     it("handles a boolean value correctly");
@@ -3077,27 +3158,41 @@ describe("sql — tagged template literal", () => {
 
   describe("interpolation — nested SqlFragment (path 2)", () => {
     it("merges a nested fragment's text inline at the interpolation site");
-    it("appends a nested fragment's params to the outer params array in correct order");
+    it(
+      "appends a nested fragment's params to the outer params array in correct order",
+    );
     it("handles three levels of nesting without losing params");
     it("does not insert an extra placeholder when merging a nested fragment");
   });
 
   describe("interpolation — TvpValue (path 3)", () => {
-    it("places a __TVP_0__ sentinel in the text when a TvpValue is interpolated");
+    it(
+      "places a __TVP_0__ sentinel in the text when a TvpValue is interpolated",
+    );
     it("does not add the TvpValue to the params array");
     it("places the TvpValue in the tvpValues array at the correct index");
-    it("increments the sentinel index for each additional TVP in the same template");
-    it("handles a template with both scalar params and a TVP — sentinel index matches tvpValues index");
+    it(
+      "increments the sentinel index for each additional TVP in the same template",
+    );
+    it(
+      "handles a template with both scalar params and a TVP — sentinel index matches tvpValues index",
+    );
   });
 
   describe("SqlFragment brand", () => {
     it("returns an object with __isSql: true");
-    it("returns an object with a tvpValues array — empty when no TVP was interpolated");
+    it(
+      "returns an object with a tvpValues array — empty when no TVP was interpolated",
+    );
   });
 
   describe("whitespace normalisation", () => {
-    it("preserves SQL structure — does not collapse intentional newlines in text");
-    it("the formatter normalises whitespace for cache keys separately from the raw text");
+    it(
+      "preserves SQL structure — does not collapse intentional newlines in text",
+    );
+    it(
+      "the formatter normalises whitespace for cache keys separately from the raw text",
+    );
   });
 });
 ```
@@ -3110,15 +3205,21 @@ describe("sql — tagged template literal", () => {
 describe("config/validate-production — validateProductionConfig()", () => {
   describe("PostgreSQL adapter in production", () => {
     it("throws SqunConfigError when no config is provided at all");
-    it("throws SqunConfigError listing the missing host field when only password is set");
-    it("throws SqunConfigError listing the missing password field when only host is set");
+    it(
+      "throws SqunConfigError listing the missing host field when only password is set",
+    );
+    it(
+      "throws SqunConfigError listing the missing password field when only host is set",
+    );
     it("throws SqunConfigError when a full URL is provided but is malformed");
     it("does not throw when a valid full URL is provided");
     it("does not throw when all individual fields are provided");
     it("logs a warning when host is localhost but does not throw");
     it("logs a warning when SSL is disabled but does not throw");
     it("logs a warning when user is 'postgres' but does not throw");
-    it("the error message includes the exact SQUN_PG_URL env var name as a quick fix hint");
+    it(
+      "the error message includes the exact SQUN_PG_URL env var name as a quick fix hint",
+    );
   });
 
   describe("SQLite adapter in production", () => {
@@ -3165,7 +3266,9 @@ describe("transaction/atomic — db.atomically()", () => {
   });
 
   describe("retry on transient errors", () => {
-    it("retries the entire callback when retryOnError is true and a ConnectionError is thrown");
+    it(
+      "retries the entire callback when retryOnError is true and a ConnectionError is thrown",
+    );
     it("retries up to maxRetries times before giving up");
     it("does not retry on QueryError even when retryOnError is true");
     it("does not retry on MappingError even when retryOnError is true");
@@ -3174,7 +3277,9 @@ describe("transaction/atomic — db.atomically()", () => {
   });
 
   describe("nesting prohibition", () => {
-    it("throws AtomicNestingError when db.atomically() is called inside another atomically()");
+    it(
+      "throws AtomicNestingError when db.atomically() is called inside another atomically()",
+    );
     it("the AtomicExecutor interface does not expose a transaction() method");
     it("the AtomicExecutor interface does not expose a savepoint() method");
     it("the AtomicExecutor interface does not expose a stream() method");
@@ -3183,14 +3288,20 @@ describe("transaction/atomic — db.atomically()", () => {
   describe("timeout", () => {
     it("throws TimeoutError when the callback exceeds the per-call timeoutMs");
     it("rolls back before throwing the TimeoutError");
-    it("falls back to the global transaction timeout when no per-call timeout is set");
+    it(
+      "falls back to the global transaction timeout when no per-call timeout is set",
+    );
   });
 
   describe("logging", () => {
     it("logs 'atomic block started' at debug level with a traceId");
     it("logs 'atomic block committed' at info level after successful commit");
-    it("logs 'atomic block rolled back' at warn level with the cause after rollback");
-    it("logs 'atomic block rollback failed' at fatal level if ROLLBACK itself throws");
+    it(
+      "logs 'atomic block rolled back' at warn level with the cause after rollback",
+    );
+    it(
+      "logs 'atomic block rollback failed' at fatal level if ROLLBACK itself throws",
+    );
     it("all log entries for a single atomically() call share the same traceId");
   });
 });
@@ -3211,16 +3322,24 @@ describe("transaction/transaction — Transaction state machine", () => {
   });
 
   describe("invalid state transitions", () => {
-    it("throws TX_ALREADY_CLOSED when execute() is called on a COMMITTED transaction");
-    it("throws TX_ALREADY_CLOSED when query() is called on a ROLLED_BACK transaction");
+    it(
+      "throws TX_ALREADY_CLOSED when execute() is called on a COMMITTED transaction",
+    );
+    it(
+      "throws TX_ALREADY_CLOSED when query() is called on a ROLLED_BACK transaction",
+    );
     it("throws TX_ALREADY_CLOSED when commit() is called twice");
-    it("throws TX_ALREADY_CLOSED when rollback() is called on a COMMITTED transaction");
+    it(
+      "throws TX_ALREADY_CLOSED when rollback() is called on a COMMITTED transaction",
+    );
   });
 
   describe("savepoints", () => {
     it("generates a savepoint name in the format squn_sp_{txId}_{depth}");
     it("increments depth for each nested savepoint");
-    it("rolling back a savepoint does not affect operations before the savepoint");
+    it(
+      "rolling back a savepoint does not affect operations before the savepoint",
+    );
     it("releasing a savepoint removes it from the stack");
   });
 });
@@ -3237,21 +3356,31 @@ describe("async/timeout — resolveTimeout()", () => {
     it("uses the global timeout when the call-site timeoutMs is longer");
     it("uses the call-site timeoutMs when no global is set");
     it("uses null when neither call-site nor global is set");
-    it("honours an explicit null call-site option to disable timeout even when global is set");
+    it(
+      "honours an explicit null call-site option to disable timeout even when global is set",
+    );
   });
 
   describe("precedence — transaction budget", () => {
     it("caps the resolved timeout to the remaining transaction budget");
     it("uses the remaining budget when no call-site or global timeout is set");
-    it("uses the remaining budget when it is shorter than both call-site and global");
-    it("uses the call-site timeout when it is shorter than the remaining budget");
+    it(
+      "uses the remaining budget when it is shorter than both call-site and global",
+    );
+    it(
+      "uses the call-site timeout when it is shorter than the remaining budget",
+    );
   });
 
   describe("withTimeout()", () => {
     it("resolves normally when the operation completes before the deadline");
     it("throws TimeoutError when the operation exceeds the deadline");
-    it("clears the timer in the finally block whether the operation succeeds or fails");
-    it("cancels the operation via AbortController when the deadline is exceeded");
+    it(
+      "clears the timer in the finally block whether the operation succeeds or fails",
+    );
+    it(
+      "cancels the operation via AbortController when the deadline is exceeded",
+    );
   });
 });
 ```
@@ -3266,8 +3395,12 @@ describe("core/param-builder — buildParams()", () => {
     it("replaces @name with ? and extracts the value in order");
     it("handles multiple different named params in a single query");
     it("handles the same param name appearing twice — uses the value once");
-    it("throws ValidationError when a param in the SQL has no matching key in the object");
-    it("throws ValidationError when extra keys are in the object but not in the SQL");
+    it(
+      "throws ValidationError when a param in the SQL has no matching key in the object",
+    );
+    it(
+      "throws ValidationError when extra keys are in the object but not in the SQL",
+    );
   });
 
   describe("named parameter translation for PostgreSQL ($1 style)", () => {
@@ -3282,8 +3415,12 @@ describe("core/param-builder — buildParams()", () => {
   });
 
   describe("ParamBuffer reuse", () => {
-    it("reuses the internal buffer across calls without allocating a new array");
-    it("handles a param count larger than the initial buffer size by extending");
+    it(
+      "reuses the internal buffer across calls without allocating a new array",
+    );
+    it(
+      "handles a param count larger than the initial buffer size by extending",
+    );
   });
 });
 ```
@@ -3306,7 +3443,9 @@ describe("core/query-runner — queryFirst()", () => {
 
   describe("multiple rows result", () => {
     it("returns the first row when more than one row is returned");
-    it("logs a warn entry with code SQUN_QUERY_FIRST_MULTIPLE_ROWS when more than one row is returned");
+    it(
+      "logs a warn entry with code SQUN_QUERY_FIRST_MULTIPLE_ROWS when more than one row is returned",
+    );
     it("includes rowCount in the warn log context");
     it("includes the sql hash in the warn log context");
     it("does not throw even when multiple rows are returned");
@@ -3332,7 +3471,9 @@ describe("core/query-runner — querySingle()", () => {
   });
 
   describe("multiple rows", () => {
-    it("throws QueryError(MULTIPLE_ROWS_FOUND) when more than one row is returned");
+    it(
+      "throws QueryError(MULTIPLE_ROWS_FOUND) when more than one row is returned",
+    );
     it("throws MULTIPLE_ROWS_FOUND even when strict mode is false");
   });
 });
@@ -3355,17 +3496,25 @@ describe("pool/pool — ConnectionPool", () => {
   describe("acquire()", () => {
     it("returns an idle connection immediately when one is available");
     it("creates a new connection when none are idle and pool is below max");
-    it("queues the request when pool is at max and all connections are acquired");
+    it(
+      "queues the request when pool is at max and all connections are acquired",
+    );
     it("resolves the queued request when a connection is released");
-    it("throws POOL_ACQUIRE_TIMEOUT when the queue wait exceeds acquireTimeoutMs");
+    it(
+      "throws POOL_ACQUIRE_TIMEOUT when the queue wait exceeds acquireTimeoutMs",
+    );
     it("throws POOL_QUEUE_FULL when the queue reaches maxQueueSize");
     it("throws POOL_DRAINED when acquire() is called after drain()");
   });
 
   describe("release()", () => {
     it("returns the connection to the idle pool when no waiters are queued");
-    it("hands the connection directly to the first waiter when queue is non-empty");
-    it("destroys and replaces the connection when it has exceeded maxConnectionAge");
+    it(
+      "hands the connection directly to the first waiter when queue is non-empty",
+    );
+    it(
+      "destroys and replaces the connection when it has exceeded maxConnectionAge",
+    );
     it("destroys and replaces the connection when it has exceeded maxUseCount");
     it("marks the connection DEAD and destroys it when health check fails");
   });
@@ -3394,37 +3543,63 @@ describe("pool/pool — ConnectionPool", () => {
 ```typescript
 describe("connections/chaining — .use() scope and connection precedence", () => {
   describe(".use() returning a ScopedDb", () => {
-    it("returns a ScopedDb that carries the named connection for all subsequent calls");
-    it("all query methods on the ScopedDb delegate to the named connection's Db instance");
-    it("ScopedDb.use() with a different name creates a new ScopedDb — does not mutate the original");
+    it(
+      "returns a ScopedDb that carries the named connection for all subsequent calls",
+    );
+    it(
+      "all query methods on the ScopedDb delegate to the named connection's Db instance",
+    );
+    it(
+      "ScopedDb.use() with a different name creates a new ScopedDb — does not mutate the original",
+    );
   });
 
   describe(".use() propagation into atomically()", () => {
-    it("passes the scoped connection name to AtomicBlock so all queries run on it");
-    it("throws AtomicNestingError when .use() atomically() is called inside another atomically()");
-    it("the atomic block does not acquire from the default pool when a .use() scope is active");
+    it(
+      "passes the scoped connection name to AtomicBlock so all queries run on it",
+    );
+    it(
+      "throws AtomicNestingError when .use() atomically() is called inside another atomically()",
+    );
+    it(
+      "the atomic block does not acquire from the default pool when a .use() scope is active",
+    );
   });
 
   describe(".use() propagation into transaction()", () => {
-    it("the Transaction object is bound to the named connection's pool connection");
+    it(
+      "the Transaction object is bound to the named connection's pool connection",
+    );
     it("savepoints inside the transaction use the same pinned connection");
   });
 
   describe("options.connection precedence over .use() scope", () => {
-    it("routes the query to options.connection even when a .use() scope is active");
-    it("the .use() scope is not consumed — the next query without options.connection still uses it");
-    it("throws ConnectionError(SQUN_CONN_001) when options.connection is an unregistered name");
+    it(
+      "routes the query to options.connection even when a .use() scope is active",
+    );
+    it(
+      "the .use() scope is not consumed — the next query without options.connection still uses it",
+    );
+    it(
+      "throws ConnectionError(SQUN_CONN_001) when options.connection is an unregistered name",
+    );
   });
 
   describe("query builder .connection() precedence", () => {
-    it("uses the builder's connection when no .use() scope and no options.connection is set");
+    it(
+      "uses the builder's connection when no .use() scope and no options.connection is set",
+    );
     it("options.connection overrides the builder's .connection()");
-    it(".use() scope overrides the builder's .connection() when no options.connection is set");
+    it(
+      ".use() scope overrides the builder's .connection() when no options.connection is set",
+    );
     it("the default connection is used when none of the above is set");
   });
 
   describe("precedence chain — all three set simultaneously", () => {
-    it("options.connection wins over .use() scope wins over builder connection wins over default");
+    it(
+      "options.connection wins over .use() scope wins over builder connection wins over default",
+    );
   });
 });
 ```
@@ -3437,27 +3612,43 @@ describe("connections/chaining — .use() scope and connection precedence", () =
 describe("core/tvp — tvp() builder and INSERT patterns", () => {
   describe("type validation", () => {
     it("accepts a row array that matches the TableType schema exactly");
-    it("throws ValidationError(TVP_SCHEMA_MISMATCH) when a row has a field of the wrong type");
+    it(
+      "throws ValidationError(TVP_SCHEMA_MISMATCH) when a row has a field of the wrong type",
+    );
     it("throws ValidationError(TVP_EMPTY) when the rows array is empty");
-    it("throws ValidationError(TVP_SCHEMA_MISMATCH) when a required field is missing from a row");
+    it(
+      "throws ValidationError(TVP_SCHEMA_MISMATCH) when a required field is missing from a row",
+    );
     it("strips unknown fields from rows in lenient mode and logs a warning");
   });
 
   describe("INSERT via TVP — SqlFragment generation", () => {
-    it("produces a SqlFragment whose text contains FROM with the TVP placeholder");
-    it("places all row values into the params array in column-major order for unnest strategy");
-    it("produces identical SQL text regardless of row count — only params change");
+    it(
+      "produces a SqlFragment whose text contains FROM with the TVP placeholder",
+    );
+    it(
+      "places all row values into the params array in column-major order for unnest strategy",
+    );
+    it(
+      "produces identical SQL text regardless of row count — only params change",
+    );
   });
 
   describe("upsert fragment composition", () => {
     it("ON CONFLICT clause composes correctly after the TVP source");
     it("MERGE USING clause composes correctly with the TVP as source");
-    it("ON DUPLICATE KEY UPDATE clause composes correctly after the TVP source");
+    it(
+      "ON DUPLICATE KEY UPDATE clause composes correctly after the TVP source",
+    );
   });
 
   describe("INSERT with RETURNING", () => {
-    it("produces valid SQL when RETURNING * is appended after the INSERT SELECT");
-    it("produces valid SQL when OUTPUT INSERTED.* is placed after INSERT for MSSQL");
+    it(
+      "produces valid SQL when RETURNING * is appended after the INSERT SELECT",
+    );
+    it(
+      "produces valid SQL when OUTPUT INSERTED.* is placed after INSERT for MSSQL",
+    );
   });
 });
 ```
@@ -3469,9 +3660,13 @@ describe("core/tvp — tvp() builder and INSERT patterns", () => {
 ```typescript
 describe("integration/sqlite — TVP INSERT patterns on real SQLite", () => {
   describe("basic bulk INSERT via TVP", () => {
-    it("inserts all rows from the TVP into the target table in a single statement");
+    it(
+      "inserts all rows from the TVP into the target table in a single statement",
+    );
     it("the inserted row count matches the TVP row count");
-    it("rows inserted via TVP are identical to rows inserted via individual INSERTs");
+    it(
+      "rows inserted via TVP are identical to rows inserted via individual INSERTs",
+    );
   });
 
   describe("INSERT with RETURNING", () => {
@@ -3481,7 +3676,9 @@ describe("integration/sqlite — TVP INSERT patterns on real SQLite", () => {
   });
 
   describe("conditional INSERT — WHERE NOT EXISTS", () => {
-    it("inserts only rows that do not already exist based on the WHERE condition");
+    it(
+      "inserts only rows that do not already exist based on the WHERE condition",
+    );
     it("does not insert any rows when all TVP rows already exist");
     it("inserts the subset of rows that are genuinely new");
   });
@@ -3495,7 +3692,9 @@ describe("integration/sqlite — TVP INSERT patterns on real SQLite", () => {
   describe("multi-table INSERT inside atomically()", () => {
     it("commits all tables when both TVP INSERTs succeed");
     it("rolls back all tables when the second TVP INSERT fails");
-    it("temp tables are dropped after rollback — do not leak into subsequent queries");
+    it(
+      "temp tables are dropped after rollback — do not leak into subsequent queries",
+    );
   });
 
   describe("temp table cleanup", () => {
@@ -3521,9 +3720,9 @@ All tests import shared fixtures rather than defining their own schemas or data 
 
 export function buildUser(overrides: Partial<UserInsert> = {}): UserInsert {
   return {
-    name:      "Alice Test",
-    email:     "alice@test.com",
-    age:       30,
+    name: "Alice Test",
+    email: "alice@test.com",
+    age: 30,
     createdAt: new Date("2024-01-01T00:00:00Z"),
     updatedAt: new Date("2024-01-01T00:00:00Z"),
     ...overrides,
@@ -3532,9 +3731,9 @@ export function buildUser(overrides: Partial<UserInsert> = {}): UserInsert {
 
 export function buildOrder(overrides: Partial<OrderInsert> = {}): OrderInsert {
   return {
-    userId:    1,
-    total:     99.99,
-    status:    "pending",
+    userId: 1,
+    total: 99.99,
+    status: "pending",
     createdAt: new Date("2024-01-01T00:00:00Z"),
     ...overrides,
   };
@@ -3555,22 +3754,38 @@ describe("integration/sqlite — transaction lifecycle on real SQLite", () => {
     it("commits all writes when the callback returns without throwing");
     it("rolls back all writes when the callback throws a QueryError");
     it("rolls back all writes when the callback throws a plain Error");
-    it("makes committed rows visible to subsequent queries on a different connection");
+    it(
+      "makes committed rows visible to subsequent queries on a different connection",
+    );
     it("does not make rolled-back rows visible to subsequent queries");
-    it("throws TimeoutError and rolls back when the callback exceeds timeoutMs");
+    it(
+      "throws TimeoutError and rolls back when the callback exceeds timeoutMs",
+    );
   });
 
   describe("db.transaction() with savepoints", () => {
-    it("commits the outer transaction when the inner savepoint is released normally");
-    it("rolls back only to the savepoint when sp.rollback() is called inside the nested block");
-    it("commits the outer transaction even after a savepoint rollback with compensating action");
-    it("rolls back the entire outer transaction when the outer callback throws after savepoint work");
+    it(
+      "commits the outer transaction when the inner savepoint is released normally",
+    );
+    it(
+      "rolls back only to the savepoint when sp.rollback() is called inside the nested block",
+    );
+    it(
+      "commits the outer transaction even after a savepoint rollback with compensating action",
+    );
+    it(
+      "rolls back the entire outer transaction when the outer callback throws after savepoint work",
+    );
   });
 
   describe("TVP temp-table outside a transaction", () => {
-    it("creates the temp table, executes the query, and drops the table before returning");
+    it(
+      "creates the temp table, executes the query, and drops the table before returning",
+    );
     it("drops the temp table even when the query itself throws");
-    it("uses unique temp table names across concurrent calls on different connections");
+    it(
+      "uses unique temp table names across concurrent calls on different connections",
+    );
   });
 });
 ```
@@ -3582,8 +3797,12 @@ describe("integration/sqlite — transaction lifecycle on real SQLite", () => {
 ```typescript
 describe("integration/connections — .use() chaining and connection precedence", () => {
   describe(".use() propagation into atomically()", () => {
-    it("runs the entire atomic batch on the named connection's pool connection");
-    it("does not acquire a connection from the default pool when .use() is chained");
+    it(
+      "runs the entire atomic batch on the named connection's pool connection",
+    );
+    it(
+      "does not acquire a connection from the default pool when .use() is chained",
+    );
     it("rolls back on the correct named connection when the callback throws");
   });
 
@@ -3594,18 +3813,28 @@ describe("integration/connections — .use() chaining and connection precedence"
   });
 
   describe("options.connection overrides .use() scope", () => {
-    it("sends the query to options.connection even when a .use() scope is active");
-    it("the .use() scope continues to apply to the next query after the override");
+    it(
+      "sends the query to options.connection even when a .use() scope is active",
+    );
+    it(
+      "the .use() scope continues to apply to the next query after the override",
+    );
   });
 
   describe("query builder .connection() precedence", () => {
-    it("uses the builder's connection when no .use() scope or options.connection is present");
+    it(
+      "uses the builder's connection when no .use() scope or options.connection is present",
+    );
     it("options.connection overrides the builder's connection");
-    it(".use() scope overrides the builder's connection when no options.connection is present");
+    it(
+      ".use() scope overrides the builder's connection when no options.connection is present",
+    );
   });
 
   describe("unknown connection name at runtime via dynamic path", () => {
-    it("throws ConnectionError with code SQUN_CONN_001 and lists registered names in context");
+    it(
+      "throws ConnectionError with code SQUN_CONN_001 and lists registered names in context",
+    );
     it("does not execute any SQL before throwing the ConnectionError");
   });
 });
@@ -3618,20 +3847,28 @@ describe("integration/connections — .use() chaining and connection precedence"
 ```typescript
 describe("integration/connections — pool under concurrent load", () => {
   describe("when 50 concurrent queries hit a pool with max:5", () => {
-    it("all 50 queries complete successfully — 45 wait in queue and are served in order");
+    it(
+      "all 50 queries complete successfully — 45 wait in queue and are served in order",
+    );
     it("no ConnectionError is thrown when maxQueueSize is not reached");
     it("pool stats show acquired = 5 and waiting = 45 at peak load");
     it("pool stats show idle = 5 and waiting = 0 after all queries complete");
   });
 
   describe("when acquire queue reaches maxQueueSize", () => {
-    it("throws ConnectionError with code SQUN_POOL_002 for any query beyond the queue limit");
+    it(
+      "throws ConnectionError with code SQUN_POOL_002 for any query beyond the queue limit",
+    );
     it("in-flight queries are not affected — only the new arrival is rejected");
   });
 
   describe("connection recycling under load", () => {
-    it("recycles a connection that has exceeded maxUseCount without affecting in-flight queries");
-    it("the recycled connection is replaced before it would have been acquired again");
+    it(
+      "recycles a connection that has exceeded maxUseCount without affecting in-flight queries",
+    );
+    it(
+      "the recycled connection is replaced before it would have been acquired again",
+    );
   });
 });
 ```
@@ -3643,20 +3880,28 @@ describe("integration/connections — pool under concurrent load", () => {
 ```typescript
 describe("integration/connections — FailoverGroup with simulated primary failure", () => {
   describe("when the primary becomes unreachable", () => {
-    it("detects the failure within healthCheckMs + failoverTimeoutMs and promotes the standby");
+    it(
+      "detects the failure within healthCheckMs + failoverTimeoutMs and promotes the standby",
+    );
     it("calls onFailover with the from and to connection names");
     it("subsequent queries succeed against the promoted standby");
     it("logs a warn entry with the failover event details");
   });
 
   describe("in-flight transaction at the moment of primary failure", () => {
-    it("throws ConnectionError(SQUN_CONN_FAILOVER_EXHAUSTED) on the in-flight query");
+    it(
+      "throws ConnectionError(SQUN_CONN_FAILOVER_EXHAUSTED) on the in-flight query",
+    );
     it("does not commit partial transaction state to the standby");
-    it("the connection is released back to the pool after the error is surfaced");
+    it(
+      "the connection is released back to the pool after the error is surfaced",
+    );
   });
 
   describe("when the primary recovers with autoRestore: false", () => {
-    it("continues routing to the standby — primary is not automatically re-promoted");
+    it(
+      "continues routing to the standby — primary is not automatically re-promoted",
+    );
     it("does not call onRestore");
   });
 
@@ -3688,7 +3933,9 @@ describe(`adapter contract — ${adapterName}`, () => {
     it("commits all changes when the callback returns successfully");
     it("rolls back all changes when the callback throws");
     it("supports nested transactions via savepoints");
-    it("throws TransactionError when an operation is called on a committed transaction");
+    it(
+      "throws TransactionError when an operation is called on a committed transaction",
+    );
   });
 
   describe("connection pool", () => {
@@ -3701,7 +3948,9 @@ describe(`adapter contract — ${adapterName}`, () => {
   describe("error wrapping", () => {
     it("wraps a constraint violation as QueryError with the correct code");
     it("wraps a connection failure as ConnectionError");
-    it("never exposes the raw driver error object — always a SqunError subclass");
+    it(
+      "never exposes the raw driver error object — always a SqunError subclass",
+    );
   });
 
   describe("timeout", () => {
@@ -3715,19 +3964,19 @@ describe(`adapter contract — ${adapterName}`, () => {
 
 Coverage is enforced via `bun test --coverage`. The minimum thresholds are hard requirements — the CI pipeline fails if any is not met.
 
-| Scope | Line coverage | Branch coverage |
-|---|---|---|
-| `src/sql/*` | 100% | 100% |
-| `src/errors/*` | 100% | 100% |
-| `src/config/*` | 95% | 95% |
-| `src/auth/*` | 95% | 90% |
-| `src/core/*` | 95% | 90% |
-| `src/transaction/*` | 100% | 100% |
-| `src/async/*` | 95% | 90% |
-| `src/pool/*` | 90% | 85% |
-| `src/readonly/*` | 100% | 100% |
-| `src/types/*` | 100% | 100% |
-| Overall | 95% | 90% |
+| Scope               | Line coverage | Branch coverage |
+| ------------------- | ------------- | --------------- |
+| `src/sql/*`         | 100%          | 100%            |
+| `src/errors/*`      | 100%          | 100%            |
+| `src/config/*`      | 95%           | 95%             |
+| `src/auth/*`        | 95%           | 90%             |
+| `src/core/*`        | 95%           | 90%             |
+| `src/transaction/*` | 100%          | 100%            |
+| `src/async/*`       | 95%           | 90%             |
+| `src/pool/*`        | 90%           | 85%             |
+| `src/readonly/*`    | 100%          | 100%            |
+| `src/types/*`       | 100%          | 100%            |
+| Overall             | 95%           | 90%             |
 
 The `sql/` and `transaction/` packages have 100% branch requirements because they contain the library's security and correctness guarantees. A missed branch in `detectInjection()` or the transaction state machine is a potential bug in production.
 
@@ -3782,16 +4031,18 @@ A **primary + replica** setup needs writes to go to the primary and reads to go 
 
 ```typescript
 import { createConnections } from "squn";
-import { PostgresAdapter }   from "squn/adapters/postgres";
-import { MssqlAdapter }      from "squn/adapters/mssql";
+import { PostgresAdapter } from "squn/adapters/postgres";
+import { MssqlAdapter } from "squn/adapters/mssql";
 
 const db = createConnections({
   // ── Named connections ───────────────────────────────────────────
   connections: {
-    primary:   new PostgresAdapter({ url: process.env.SQUN_CONN_PRIMARY_URL }),
-    replica:   new PostgresAdapter({ url: process.env.SQUN_CONN_REPLICA_URL }),
-    analytics: new PostgresAdapter({ url: process.env.SQUN_CONN_ANALYTICS_URL }),
-    billing:   new MssqlAdapter  ({ url: process.env.SQUN_CONN_BILLING_URL }),
+    primary: new PostgresAdapter({ url: process.env.SQUN_CONN_PRIMARY_URL }),
+    replica: new PostgresAdapter({ url: process.env.SQUN_CONN_REPLICA_URL }),
+    analytics: new PostgresAdapter({
+      url: process.env.SQUN_CONN_ANALYTICS_URL,
+    }),
+    billing: new MssqlAdapter({ url: process.env.SQUN_CONN_BILLING_URL }),
   },
 
   // ── Which connection db.query() uses without an explicit .use() ─
@@ -3799,7 +4050,7 @@ const db = createConnections({
 
   // ── Per-connection config overrides (pool, timeouts, readonly) ──
   overrides: {
-    replica:   { readonly: true, pool: { max: 50 } },
+    replica: { readonly: true, pool: { max: 50 } },
     analytics: { readonly: true, timeouts: { query: 120_000 } },
   },
 });
@@ -3809,18 +4060,22 @@ const db = createConnections({
 
 ```typescript
 // Uses the default connection ("primary")
-const user = await db.queryFirst<User>(sql`SELECT * FROM users WHERE id = ${id}`);
+const user = await db.queryFirst<User>(
+  sql`SELECT * FROM users WHERE id = ${id}`,
+);
 
 // Explicitly picks "replica" for this query
 const users = await db.use("replica").query<User>(sql`SELECT * FROM users`);
 
 // Picks "analytics" — longer timeout applies automatically
-const report = await db.use("analytics").query<Report>(sql`SELECT * FROM big_report`);
+const report = await db
+  .use("analytics")
+  .query<Report>(sql`SELECT * FROM big_report`);
 
 // Picks "billing" — MSSQL, separate domain
-const invoice = await db.use("billing").querySingle<Invoice>(
-  sql`SELECT * FROM invoices WHERE id = ${invoiceId}`
-);
+const invoice = await db
+  .use("billing")
+  .querySingle<Invoice>(sql`SELECT * FROM invoices WHERE id = ${invoiceId}`);
 ```
 
 TypeScript knows the connection names at compile time. Passing an unknown name is a type error — no runtime surprises.
@@ -3840,18 +4095,22 @@ import { createConnections, group } from "squn";
 
 const db = createConnections({
   connections: {
-    primary:   new PostgresAdapter({ url: process.env.SQUN_CONN_PRIMARY_URL }),
-    replica_1: new PostgresAdapter({ url: process.env.SQUN_CONN_REPLICA_1_URL }),
-    replica_2: new PostgresAdapter({ url: process.env.SQUN_CONN_REPLICA_2_URL }),
+    primary: new PostgresAdapter({ url: process.env.SQUN_CONN_PRIMARY_URL }),
+    replica_1: new PostgresAdapter({
+      url: process.env.SQUN_CONN_REPLICA_1_URL,
+    }),
+    replica_2: new PostgresAdapter({
+      url: process.env.SQUN_CONN_REPLICA_2_URL,
+    }),
   },
   default: "primary",
 
   // ── Group: "pg" routes reads to replicas, writes to primary ────
   groups: {
     pg: group({
-      write:     "primary",
-      read:      ["replica_1", "replica_2"],  // round-robin by default
-      readMode:  "round-robin",               // "round-robin" | "least-load" | "random"
+      write: "primary",
+      read: ["replica_1", "replica_2"], // round-robin by default
+      readMode: "round-robin", // "round-robin" | "least-load" | "random"
     }),
   },
 });
@@ -3860,7 +4119,9 @@ const db = createConnections({
 const users = await db.use("pg").query<User>(sql`SELECT * FROM users`);
 
 // Write — always goes to primary
-await db.use("pg").execute(sql`UPDATE users SET active = ${false} WHERE id = ${id}`);
+await db
+  .use("pg")
+  .execute(sql`UPDATE users SET active = ${false} WHERE id = ${id}`);
 
 // Transactions — always pinned to primary regardless of readMode
 await db.use("pg").transaction(async (tx) => {
@@ -3880,19 +4141,20 @@ import { createConnections, failover } from "squn";
 
 const db = createConnections({
   connections: {
-    primary:  new PostgresAdapter({ url: process.env.SQUN_CONN_PRIMARY_URL }),
-    standby:  new PostgresAdapter({ url: process.env.SQUN_CONN_STANDBY_URL }),
+    primary: new PostgresAdapter({ url: process.env.SQUN_CONN_PRIMARY_URL }),
+    standby: new PostgresAdapter({ url: process.env.SQUN_CONN_STANDBY_URL }),
   },
   default: "primary",
   groups: {
     ha: failover({
-      primary:           "primary",
-      standbys:          ["standby"],
-      healthCheckMs:     5_000,
+      primary: "primary",
+      standbys: ["standby"],
+      healthCheckMs: 5_000,
       failoverTimeoutMs: 10_000,
-      autoRestore:       false,
-      onFailover: (from, to) => logger.warn({ message: `Failover: ${from} → ${to}` }),
-      onRestore:  (conn)     => logger.info({ message: `Restored: ${conn}` }),
+      autoRestore: false,
+      onFailover: (from, to) =>
+        logger.warn({ message: `Failover: ${from} → ${to}` }),
+      onRestore: (conn) => logger.info({ message: `Restored: ${conn}` }),
     }),
   },
 });
@@ -3924,9 +4186,15 @@ import { createConnections, withTenant } from "squn";
 // Each tenant has its own database — connection names are tenant IDs
 const db = createConnections({
   connections: {
-    tenant_abc: new PostgresAdapter({ url: process.env.SQUN_CONN_TENANT_ABC_URL }),
-    tenant_xyz: new PostgresAdapter({ url: process.env.SQUN_CONN_TENANT_XYZ_URL }),
-    tenant_mno: new PostgresAdapter({ url: process.env.SQUN_CONN_TENANT_MNO_URL }),
+    tenant_abc: new PostgresAdapter({
+      url: process.env.SQUN_CONN_TENANT_ABC_URL,
+    }),
+    tenant_xyz: new PostgresAdapter({
+      url: process.env.SQUN_CONN_TENANT_XYZ_URL,
+    }),
+    tenant_mno: new PostgresAdapter({
+      url: process.env.SQUN_CONN_TENANT_MNO_URL,
+    }),
   },
   default: "tenant_abc",
 
@@ -3935,11 +4203,11 @@ const db = createConnections({
 
 // Resolve via context — no .use() needed in business logic
 const tenantDb = db.forTenant(tenantId);
-const users    = await tenantDb.query<User>(sql`SELECT * FROM users`);
+const users = await tenantDb.query<User>(sql`SELECT * FROM users`);
 
 // Or use withTenant() to create a scoped db for the duration of a request
 await withTenant(db, tenantId, async (tenantDb) => {
-  const users  = await tenantDb.query<User>(sql`SELECT * FROM users`);
+  const users = await tenantDb.query<User>(sql`SELECT * FROM users`);
   const orders = await tenantDb.query<Order>(sql`SELECT * FROM orders`);
   // all queries within this scope use the tenant's connection
 });
@@ -3960,32 +4228,32 @@ const config: SqunConfig = {
   // ── Named connections ─────────────────────────────────────────────────────
   connections: {
     primary: {
-      adapter:  "postgres",
-      url:      process.env.DB_PRIMARY_URL ?? throwMissing("DB_PRIMARY_URL"),
-      pool:     { min: 2, max: 20 },
+      adapter: "postgres",
+      url: process.env.DB_PRIMARY_URL ?? throwMissing("DB_PRIMARY_URL"),
+      pool: { min: 2, max: 20 },
     },
 
     replica: {
-      adapter:   "postgres",
-      url:       process.env.DB_REPLICA_URL ?? throwMissing("DB_REPLICA_URL"),
-      readonly:  true,
-      pool:      { min: 5, max: 50 },
+      adapter: "postgres",
+      url: process.env.DB_REPLICA_URL ?? throwMissing("DB_REPLICA_URL"),
+      readonly: true,
+      pool: { min: 5, max: 50 },
     },
 
     analytics: {
-      adapter:   "postgres",
-      url:       process.env.DB_ANALYTICS_URL ?? throwMissing("DB_ANALYTICS_URL"),
-      readonly:  true,
-      timeouts:  { query: 120_000 },
+      adapter: "postgres",
+      url: process.env.DB_ANALYTICS_URL ?? throwMissing("DB_ANALYTICS_URL"),
+      readonly: true,
+      timeouts: { query: 120_000 },
     },
 
     billing: {
-      adapter:   "mssql",
-      host:      process.env.DB_BILLING_HOST ?? throwMissing("DB_BILLING_HOST"),
-      database:  "billing",
+      adapter: "mssql",
+      host: process.env.DB_BILLING_HOST ?? throwMissing("DB_BILLING_HOST"),
+      database: "billing",
       auth: {
-        type:     "windows",
-        domain:   "CORP",
+        type: "windows",
+        domain: "CORP",
         username: "billing_svc",
       },
     },
@@ -3994,9 +4262,9 @@ const config: SqunConfig = {
   // ── Groups ────────────────────────────────────────────────────────────────
   groups: {
     pg: {
-      type:     "replica-set",
-      write:    "primary",
-      read:     ["replica"],
+      type: "replica-set",
+      write: "primary",
+      read: ["replica"],
       readMode: "round-robin",
     },
   },
@@ -4006,11 +4274,11 @@ const config: SqunConfig = {
 
   // ── Shared settings applied to all connections unless overridden ──────────
   shared: {
-    env:     "production",
-    logger:  "json",
+    env: "production",
+    logger: "json",
     security: {
       detectInjection: true,
-      strictRaw:       true,
+      strictRaw: true,
     },
   },
 };
@@ -4031,7 +4299,7 @@ const db = createConnections();
 
 // Explicit arguments override the config file
 const db = createConnections({
-  default: "replica",   // overrides the "primary" default in squn.config.ts
+  default: "replica", // overrides the "primary" default in squn.config.ts
 });
 ```
 
@@ -4150,13 +4418,13 @@ enum ErrorCode {
   // ... existing
 
   // Multiple connections
-  CONN_UNKNOWN             = "SQUN_CONN_001",  // .use("name") with unregistered name
-  CONN_MULTI_INVALID       = "SQUN_CONN_002",  // multiple connections failed validation at startup
-  CONN_GROUP_NO_WRITE      = "SQUN_CONN_003",  // write attempted on a read-only group
-  CONN_FAILOVER_EXHAUSTED  = "SQUN_CONN_004",  // all standbys unreachable
-  CONN_TENANT_NOT_FOUND    = "SQUN_CONN_005",  // tenant ID resolved to unregistered connection
-  CONN_CONFIG_FILE_INVALID = "SQUN_CONN_006",  // squn.config.ts failed to parse or validate
-  CONN_DEFAULT_MISSING     = "SQUN_CONN_007",  // default connection name not in registry
+  CONN_UNKNOWN = "SQUN_CONN_001", // .use("name") with unregistered name
+  CONN_MULTI_INVALID = "SQUN_CONN_002", // multiple connections failed validation at startup
+  CONN_GROUP_NO_WRITE = "SQUN_CONN_003", // write attempted on a read-only group
+  CONN_FAILOVER_EXHAUSTED = "SQUN_CONN_004", // all standbys unreachable
+  CONN_TENANT_NOT_FOUND = "SQUN_CONN_005", // tenant ID resolved to unregistered connection
+  CONN_CONFIG_FILE_INVALID = "SQUN_CONN_006", // squn.config.ts failed to parse or validate
+  CONN_DEFAULT_MISSING = "SQUN_CONN_007", // default connection name not in registry
 }
 ```
 
@@ -4204,18 +4472,15 @@ When you register connections named `"primary"`, `"replica"`, and `"analytics"`,
 // The correct signature — Names is derived from the return type, not a default parameter.
 // TypeScript infers Config from the call-site argument, then computes the return type.
 function createConnections<Config extends MultiDbConfig>(
-  config: Config
+  config: Config,
 ): MultiDb<keyof Config["connections"] & string>;
 
 // MultiDb carries Names through to every method
 interface MultiDb<Names extends string> {
-  query<T>(
-    sql:      SqlFragment,
-    options?: QueryOptions<Names>,
-  ): Promise<T[]>;
+  query<T>(sql: SqlFragment, options?: QueryOptions<Names>): Promise<T[]>;
 
   execute(
-    sql:      SqlFragment,
+    sql: SqlFragment,
     options?: ExecuteOptions<Names>,
   ): Promise<{ rowsAffected: number }>;
 
@@ -4226,8 +4491,8 @@ interface MultiDb<Names extends string> {
 // entirely when Names is never (single-connection mode)
 interface QueryOptions<Names extends string = never> {
   connection?: [Names] extends [never] ? never : Names;
-  timeoutMs?:  number | null;
-  readonly?:   boolean;
+  timeoutMs?: number | null;
+  readonly?: boolean;
 }
 ```
 
@@ -4264,17 +4529,17 @@ At runtime, when a `connection` option is provided, the query runner looks up th
 // What the runtime lookup looks like inside the query runner
 function resolveConnection<Names extends string>(
   registry: ConnectionRegistry<Names>,
-  options:  QueryOptions<Names> | undefined,
-  multiDb:  MultiDb<Names>,
+  options: QueryOptions<Names> | undefined,
+  multiDb: MultiDb<Names>,
 ): Db {
   const name = options?.connection ?? multiDb.default;
 
   const conn = registry.get(name);
   if (!conn) {
     throw new ConnectionError(ErrorCode.CONN_UNKNOWN, {
-      operation:        "query",
-      requestedName:    name,
-      registeredNames:  registry.names(),
+      operation: "query",
+      requestedName: name,
+      registeredNames: registry.names(),
     });
   }
 
@@ -4290,7 +4555,7 @@ When connections are loaded from `squn.config.ts` rather than passed inline to `
 // squn.config.ts
 export default {
   connections: {
-    primary:   { adapter: "postgres", url: "..." },
+    primary: { adapter: "postgres", url: "..." },
     analytics: { adapter: "postgres", url: "..." },
   },
   default: "primary",
@@ -4309,4 +4574,4 @@ The compile-time behaviour is verified with `tsc --noEmit` in CI — TypeScript 
 
 ---
 
-*End of document — Squn v2.4.2 PRD*
+_End of document — Squn v2.4.2 PRD_

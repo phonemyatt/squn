@@ -45,7 +45,9 @@ await db.execute(
 pass("CREATE TABLE executed");
 
 // Step 5 — Insert
-await db.execute(sql`INSERT INTO users (name, email, age) VALUES (${"Alice"}, ${"alice@test.com"}, ${30})`);
+await db.execute(
+  sql`INSERT INTO users (name, email, age) VALUES (${"Alice"}, ${"alice@test.com"}, ${30})`,
+);
 pass("INSERT via sql template");
 
 // Step 6 — Query all
@@ -56,12 +58,16 @@ assert(allUsers[0]?.name === "Alice", "name matches");
 pass("query<User>() returns correct rows");
 
 // Step 7 — queryFirst existing
-const first = await db.queryFirst<User>(sql`SELECT * FROM users WHERE name = ${"Alice"}`);
+const first = await db.queryFirst<User>(
+  sql`SELECT * FROM users WHERE name = ${"Alice"}`,
+);
 assert(first !== null, "queryFirst returns non-null for existing row");
 pass("queryFirst() returns existing row");
 
 // Step 8 — queryFirst non-existent
-const missing = await db.queryFirst<User>(sql`SELECT * FROM users WHERE name = ${"Nobody"}`);
+const missing = await db.queryFirst<User>(
+  sql`SELECT * FROM users WHERE name = ${"Nobody"}`,
+);
 assert(missing === null, "queryFirst returns null for missing row");
 pass("queryFirst() returns null for non-existent row");
 
@@ -71,13 +77,19 @@ try {
   throw new Error("should have thrown");
 } catch (err) {
   assert(err instanceof QueryError, "error is QueryError");
-  assert((err as QueryError).code === ErrorCode.NO_ROWS_FOUND, "code is QUERY_003");
+  assert(
+    (err as QueryError).code === ErrorCode.NO_ROWS_FOUND,
+    "code is QUERY_003",
+  );
 }
 pass("querySingle() throws QueryError(NO_ROWS_FOUND)");
 
 // Step 10 — atomically commit
 const inserted = await db.atomically(async (q) => {
-  await q.execute("INSERT INTO users (name, email, age) VALUES ('Bob', 'bob@test.com', 25)", []);
+  await q.execute(
+    "INSERT INTO users (name, email, age) VALUES ('Bob', 'bob@test.com', 25)",
+    [],
+  );
   const rows = await q.query("SELECT * FROM users WHERE name = 'Bob'", []);
   return rows[0] as User;
 });
@@ -87,13 +99,18 @@ pass("atomically() commit — row visible");
 // Step 11 — atomically rollback
 try {
   await db.atomically(async (q) => {
-    await q.execute("INSERT INTO users (name, email, age) VALUES ('Ghost', 'ghost@test.com', 99)", []);
+    await q.execute(
+      "INSERT INTO users (name, email, age) VALUES ('Ghost', 'ghost@test.com', 99)",
+      [],
+    );
     throw new Error("intentional failure");
   });
 } catch {
   // expected
 }
-const ghost = await db.queryFirst<User>(sql`SELECT * FROM users WHERE name = ${"Ghost"}`);
+const ghost = await db.queryFirst<User>(
+  sql`SELECT * FROM users WHERE name = ${"Ghost"}`,
+);
 assert(ghost === null, "rolled-back row is not present");
 pass("atomically() rollback — row not visible");
 
@@ -103,7 +120,10 @@ const findByName = db.prepare<User, { name: string }>(
   ["name"],
 );
 const alice = await findByName.first({ name: "Alice" });
-assert(alice !== null && alice.name === "Alice", "prepared first returns Alice");
+assert(
+  alice !== null && alice.name === "Alice",
+  "prepared first returns Alice",
+);
 pass("prepare().first() returns correct row");
 
 // Step 13 — prepare scalar
@@ -123,7 +143,10 @@ const batchRows = Array.from({ length: 100 }, (_, i) => ({
   age: i,
 }));
 const batchResult = await db.executeBatch(batchFragment, batchRows);
-assert(batchResult.rowsAffected === 100, `executeBatch affected 100, got ${batchResult.rowsAffected}`);
+assert(
+  batchResult.rowsAffected === 100,
+  `executeBatch affected 100, got ${batchResult.rowsAffected}`,
+);
 pass("executeBatch() with 100 rows");
 
 // Step 15 — stream
@@ -131,20 +154,33 @@ const streamed: User[] = [];
 for await (const row of db.stream<User>(sql`SELECT * FROM users ORDER BY id`)) {
   streamed.push(row);
 }
-assert(streamed.length === 102, `stream yielded 102 rows, got ${streamed.length}`);
+assert(
+  streamed.length === 102,
+  `stream yielded 102 rows, got ${streamed.length}`,
+);
 assert(streamed[0]?.name === "Alice", "first streamed row is Alice");
 pass("stream() yields all rows in order");
 
 // Step 16 — transaction with savepoint
 await db.transaction(async (tx) => {
-  await tx.execute("INSERT INTO users (name, email, age) VALUES ('PreSP', 'presp@test.com', 1)", []);
+  await tx.execute(
+    "INSERT INTO users (name, email, age) VALUES ('PreSP', 'presp@test.com', 1)",
+    [],
+  );
   const sp = await tx.savepoint();
-  await tx.execute("INSERT INTO users (name, email, age) VALUES ('PostSP', 'postsp@test.com', 2)", []);
+  await tx.execute(
+    "INSERT INTO users (name, email, age) VALUES ('PostSP', 'postsp@test.com', 2)",
+    [],
+  );
   await sp.rollback();
   // Only PreSP should survive after commit
 });
-const preSp = await db.queryFirst<User>(sql`SELECT * FROM users WHERE name = ${"PreSP"}`);
-const postSp = await db.queryFirst<User>(sql`SELECT * FROM users WHERE name = ${"PostSP"}`);
+const preSp = await db.queryFirst<User>(
+  sql`SELECT * FROM users WHERE name = ${"PreSP"}`,
+);
+const postSp = await db.queryFirst<User>(
+  sql`SELECT * FROM users WHERE name = ${"PostSP"}`,
+);
 assert(preSp !== null, "pre-savepoint row is visible");
 assert(postSp === null, "post-savepoint row was rolled back");
 pass("transaction() with savepoint — partial rollback");

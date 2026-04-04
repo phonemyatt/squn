@@ -59,7 +59,10 @@ export class PooledConnection {
   }
 
   /** Whether this connection should be recycled based on age or use count. */
-  shouldRecycle(maxAgeMs: number | undefined, maxUseCount: number | undefined): boolean {
+  shouldRecycle(
+    maxAgeMs: number | undefined,
+    maxUseCount: number | undefined,
+  ): boolean {
     if (maxAgeMs !== undefined && maxAgeMs > 0) {
       if (Date.now() - this._createdAt >= maxAgeMs) return true;
     }

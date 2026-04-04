@@ -3,7 +3,7 @@
 **Edition:** 1.1.1  
 **Runtime:** Bun ≥ 1.2  
 **Language:** TypeScript ≥ 5.9 (strict mode, always)  
-**Status:** Canonical — all projects under this guide must conform  
+**Status:** Canonical — all projects under this guide must conform
 
 ---
 
@@ -59,7 +59,7 @@ A module, class, or function should have exactly one reason to change. In practi
 // Reason to change: (1) how we fetch users, (2) how we format them
 async function fetchAndFormatUsers(): Promise<string[]> {
   const rows = await db.query<User>(sql`SELECT * FROM users`);
-  return rows.map(u => `${u.name} <${u.email}>`);
+  return rows.map((u) => `${u.name} <${u.email}>`);
 }
 
 // RIGHT — one responsibility each
@@ -85,7 +85,7 @@ A module should be open for extension but closed for modification. In TypeScript
 // WRONG — adding a new adapter requires modifying this function
 function buildConnectionString(adapter: string, config: Config): string {
   if (adapter === "postgres") return `postgresql://${config.host}`;
-  if (adapter === "mysql")    return `mysql://${config.host}`;
+  if (adapter === "mysql") return `mysql://${config.host}`;
   // Adding MSSQL means editing this function → violates OCP
 }
 
@@ -116,7 +116,7 @@ Any place that accepts an interface must work correctly with any implementation 
 // WRONG — tests against a specific class break LSP
 function processAdapter(adapter: PostgresAdapter) {
   // Only works for PostgreSQL — MySQLAdapter would fail here
-  adapter.copyBulk(rows);   // method that only PostgresAdapter has
+  adapter.copyBulk(rows); // method that only PostgresAdapter has
 }
 
 // RIGHT — accept the interface, work with any conforming implementation
@@ -172,11 +172,11 @@ High-level modules should not depend on low-level modules. Both should depend on
 
 ```typescript
 // WRONG — high-level code directly depends on a concrete low-level module
-import { PostgresAdapter } from "./adapters/postgres";  // hard dependency
+import { PostgresAdapter } from "./adapters/postgres"; // hard dependency
 
 class UserRepository {
-  private adapter = new PostgresAdapter(config);  // cannot be tested or swapped
-  
+  private adapter = new PostgresAdapter(config); // cannot be tested or swapped
+
   async findById(id: number): Promise<User> {
     return this.adapter.querySingle(sql`SELECT * FROM users WHERE id = ${id}`);
   }
@@ -285,7 +285,7 @@ const configObject = resolveConfig(env);
 const resultData = await runQuery(adapter, sql);
 
 // RIGHT — descriptive name, type is in the type annotation
-const users  = await db.query<User>(sql`SELECT * FROM users`);
+const users = await db.query<User>(sql`SELECT * FROM users`);
 const config = resolveConfig(env);
 const result = await runQuery(adapter, sql);
 ```
@@ -393,30 +393,30 @@ Every project under this guide starts from this `tsconfig.json`. Settings are ne
 // bun build handles actual compilation; see tsconfig.build.json for emit settings
 {
   "compilerOptions": {
-    "target":                 "ESNext",
-    "module":                 "ESNext",
-    "moduleDetection":        "force",
-    "moduleResolution":       "bundler",
-    "lib":                    ["ESNext"],
-    "rootDir":                "./src",
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleDetection": "force",
+    "moduleResolution": "bundler",
+    "lib": ["ESNext"],
+    "rootDir": "./src",
 
-    "strict":                 true,
+    "strict": true,
     "exactOptionalPropertyTypes": true,
-    "noUncheckedIndexedAccess":   true,
-    "noImplicitOverride":         true,
-    "noImplicitReturns":          true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-    "noUnusedLocals":             true,
-    "noUnusedParameters":         true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
     "forceConsistentCasingInFileNames": true,
 
     "allowImportingTsExtensions": true,
-    "noEmit":                 true,
+    "noEmit": true,
 
-    "isolatedModules":        true,
-    "verbatimModuleSyntax":   true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
 
-    "skipLibCheck":           false
+    "skipLibCheck": false
   },
   "include": ["src/**/*", "tests/**/*"],
   "exclude": ["node_modules", "dist", "scripts"]
@@ -430,9 +430,9 @@ For library projects that publish type declarations, a separate `tsconfig.build.
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "noEmit":        false,
-    "outDir":        "./dist",
-    "declaration":   true,
+    "noEmit": false,
+    "outDir": "./dist",
+    "declaration": true,
     "declarationMap": true,
     "emitDeclarationOnly": true
   },
@@ -475,10 +475,10 @@ export async function findUser(id: number): Promise<User | null> {
 }
 
 // Acceptable — local variable type inferred when type is obvious
-const users = await db.query<User>(sql`SELECT * FROM users`);  // User[]
+const users = await db.query<User>(sql`SELECT * FROM users`); // User[]
 
 // Required — explicit when inference would be too broad
-const state: ConnectionState = ConnectionState.IDLE;  // not just "string"
+const state: ConnectionState = ConnectionState.IDLE; // not just "string"
 ```
 
 ### 6.2 `type` vs `interface`
@@ -516,9 +516,12 @@ function isUser(value: unknown): value is User {
   return (
     typeof value === "object" &&
     value !== null &&
-    "id"    in value && typeof (value as Record<string, unknown>).id    === "number" &&
-    "name"  in value && typeof (value as Record<string, unknown>).name  === "string" &&
-    "email" in value && typeof (value as Record<string, unknown>).email === "string"
+    "id" in value &&
+    typeof (value as Record<string, unknown>).id === "number" &&
+    "name" in value &&
+    typeof (value as Record<string, unknown>).name === "string" &&
+    "email" in value &&
+    typeof (value as Record<string, unknown>).email === "string"
   );
 }
 ```
@@ -530,32 +533,38 @@ Discriminated unions are preferred over nullable fields and optional properties 
 ```typescript
 // WRONG — nullable fields make every consumer check every field
 interface QueryResult {
-  rows?:         Row[];
+  rows?: Row[];
   rowsAffected?: number;
-  error?:        Error;
+  error?: Error;
 }
 
 // RIGHT — discriminated union, each variant is fully typed
 type QueryResult =
   | { status: "success"; rows: Row[] }
   | { status: "mutated"; rowsAffected: number }
-  | { status: "error";   error: SqunError };
+  | { status: "error"; error: SqunError };
 
 // assertNever — place in src/lib/assert-never.ts and import wherever needed.
 // Never and never are both intentional: the parameter type forces TypeScript to
 // prove the switch is exhaustive at compile time. If a new variant is added to
 // QueryResult and this switch is not updated, tsc reports an error here.
 function assertNever(value: never): never {
-  throw new Error(`Unhandled discriminated union case: ${JSON.stringify(value)}`);
+  throw new Error(
+    `Unhandled discriminated union case: ${JSON.stringify(value)}`,
+  );
 }
 
 // TypeScript exhaustively narrows — tsc enforces that every case is handled
 function handleResult(result: QueryResult): Row[] | number {
   switch (result.status) {
-    case "success": return result.rows;          // rows: Row[]
-    case "mutated": return result.rowsAffected;  // rowsAffected: number
-    case "error":   throw result.error;          // error: SqunError
-    default:        return assertNever(result);  // compile error if a case is missing
+    case "success":
+      return result.rows; // rows: Row[]
+    case "mutated":
+      return result.rowsAffected; // rowsAffected: number
+    case "error":
+      throw result.error; // error: SqunError
+    default:
+      return assertNever(result); // compile error if a case is missing
   }
 }
 ```
@@ -573,11 +582,11 @@ Every `async` function has an explicit `Promise<T>` return type. Floating promis
 ```typescript
 // WRONG — floating promise swallows errors silently
 function startServer(): void {
-  Bun.serve({ fetch: handler });   // this returns a promise — it is floating
+  Bun.serve({ fetch: handler }); // this returns a promise — it is floating
 }
 
 // WRONG — .then() with no error handler
-loadConfig().then(config => startApp(config));
+loadConfig().then((config) => startApp(config));
 
 // RIGHT — await, or explicitly handle the promise
 async function startServer(): Promise<void> {
@@ -586,9 +595,9 @@ async function startServer(): Promise<void> {
 }
 
 // RIGHT — if a floating promise is intentional, attach an error handler
-backgroundReaper.start().catch(err =>
-  logger.fatal({ message: "Background reaper failed", err })
-);
+backgroundReaper
+  .start()
+  .catch((err) => logger.fatal({ message: "Background reaper failed", err }));
 // The void keyword alone only discards the return value — it does not handle
 // a rejection. An unhandled rejection from a fire-and-forget is still a
 // swallowed error, which this guide forbids. Always attach .catch().
@@ -607,9 +616,11 @@ const [users, roles, settings] = await Promise.all([
 ]);
 
 // Collect all results even if some fail — Promise.allSettled
-const results = await Promise.allSettled(items.map(item => processItem(item)));
-const succeeded = results.filter(r => r.status === "fulfilled");
-const failed     = results.filter(r => r.status === "rejected");
+const results = await Promise.allSettled(
+  items.map((item) => processItem(item)),
+);
+const succeeded = results.filter((r) => r.status === "fulfilled");
+const failed = results.filter((r) => r.status === "rejected");
 
 // First replica to respond wins — Promise.any
 // Safe here because read replicas have no side effects; the others are abandoned.
@@ -647,7 +658,7 @@ async function* streamUsers(db: IQueryable): AsyncIterableIterator<User> {
       batch = await cursor.fetch(100);
     }
   } finally {
-    await cursor.close();   // always runs — even if consumer breaks early
+    await cursor.close(); // always runs — even if consumer breaks early
   }
 }
 
@@ -669,18 +680,18 @@ Every project defines its own error hierarchy. Errors are never plain `Error` ob
 // src/errors/base.ts
 
 export abstract class BaseError extends Error {
-  readonly traceId:   string;
+  readonly traceId: string;
   readonly timestamp: Date;
 
   constructor(
-    readonly code:    string,
+    readonly code: string,
     readonly context: Record<string, unknown>,
-    message:          string,
-    readonly cause?:  unknown,
+    message: string,
+    readonly cause?: unknown,
   ) {
     super(message);
-    this.name      = new.target.name;
-    this.traceId   = generateTraceId();
+    this.name = new.target.name;
+    this.traceId = generateTraceId();
     this.timestamp = new Date();
 
     // Maintains correct prototype chain in transpiled code
@@ -689,13 +700,13 @@ export abstract class BaseError extends Error {
 
   toJSON(): Record<string, unknown> {
     return {
-      name:      this.name,
-      code:      this.code,
-      message:   this.message,
-      traceId:   this.traceId,
+      name: this.name,
+      code: this.code,
+      message: this.message,
+      traceId: this.traceId,
       timestamp: this.timestamp.toISOString(),
-      context:   this.context,
-      stack:     this.stack,
+      context: this.context,
+      stack: this.stack,
     };
   }
 }
@@ -719,13 +730,17 @@ try {
 
 // WRONG — returning a default instead of failing
 function getPort(config: Config): number {
-  return config.port ?? 5432;  // silent fallback hides missing config
+  return config.port ?? 5432; // silent fallback hides missing config
 }
 
 // RIGHT — fail explicitly, let the caller decide
 function getPort(config: Config): number {
   if (config.port === undefined) {
-    throw new ConfigError("PORT_MISSING", {}, "config.port is required but was not provided");
+    throw new ConfigError(
+      "PORT_MISSING",
+      {},
+      "config.port is required but was not provided",
+    );
   }
   return config.port;
 }
@@ -738,7 +753,7 @@ try {
     "QUERY_FAILED",
     { sql: sanitize(sql), adapter: "postgres" },
     "PostgreSQL query failed",
-    raw,   // original error attached as cause
+    raw, // original error attached as cause
   );
 }
 ```
@@ -750,7 +765,7 @@ For operations where failure is a normal, expected outcome (not an exceptional c
 ```typescript
 // src/types/result.ts
 export type Result<Value, Err = BaseError> =
-  | { ok: true;  value: Value }
+  | { ok: true; value: Value }
   | { ok: false; error: Err };
 
 export function ok<Value>(value: Value): Result<Value, never> {
@@ -762,9 +777,13 @@ export function err<Err>(error: Err): Result<never, Err> {
 }
 
 // Usage — the return type makes the contract explicit
-async function validateConnection(config: ConnectionConfig): Promise<Result<void, ConfigError>> {
-  if (!config.host) return err(new ConfigError("HOST_MISSING", {}, "host is required"));
-  if (!config.port) return err(new ConfigError("PORT_MISSING", {}, "port is required"));
+async function validateConnection(
+  config: ConnectionConfig,
+): Promise<Result<void, ConfigError>> {
+  if (!config.host)
+    return err(new ConfigError("HOST_MISSING", {}, "host is required"));
+  if (!config.port)
+    return err(new ConfigError("PORT_MISSING", {}, "port is required"));
   return ok(undefined);
 }
 
@@ -773,7 +792,7 @@ async function validateConnection(config: ConnectionConfig): Promise<Result<void
 // Only the composition root (main.ts) may call process.exit().
 const result = await validateConnection(config);
 if (!result.ok) {
-  throw result.error;   // propagates to the entry point — never call process.exit() here
+  throw result.error; // propagates to the entry point — never call process.exit() here
 }
 
 // In main.ts (the composition root), catching and exiting is acceptable:
@@ -815,7 +834,7 @@ import { config } from "../config/resolve";
 
 export class UserRepository {
   async findById(id: number): Promise<User | null> {
-    logger.debug({ message: `Finding user ${id}` });   // hard dependency
+    logger.debug({ message: `Finding user ${id}` }); // hard dependency
     return db.queryFirst<User>(sql`SELECT * FROM users WHERE id = ${id}`);
   }
 }
@@ -823,7 +842,7 @@ export class UserRepository {
 // RIGHT — dependencies are explicit, injected from outside
 export class UserRepository {
   constructor(
-    private readonly db:     IQueryable,
+    private readonly db: IQueryable,
     private readonly logger: ILogger,
   ) {}
 
@@ -841,18 +860,18 @@ The composition root is the single place in the application where all dependenci
 ```typescript
 // src/main.ts — the composition root
 
-import { createDb }          from "./db";
-import { PostgresAdapter }   from "./adapters/postgres";
-import { jsonLogger }        from "./logging/json-logger";
-import { resolveConfig }     from "./config/resolve";
-import { UserRepository }    from "./repositories/user-repository";
-import { OrderService }      from "./services/order-service";
+import { createDb } from "./db";
+import { PostgresAdapter } from "./adapters/postgres";
+import { jsonLogger } from "./logging/json-logger";
+import { resolveConfig } from "./config/resolve";
+import { UserRepository } from "./repositories/user-repository";
+import { OrderService } from "./services/order-service";
 
 // Wire everything together in one place
-const config     = resolveConfig(process.env);
-const db         = createDb(new PostgresAdapter(config.db), { logger: jsonLogger });
-const userRepo   = new UserRepository(db, jsonLogger);
-const orderSvc   = new OrderService(db, userRepo, jsonLogger);
+const config = resolveConfig(process.env);
+const db = createDb(new PostgresAdapter(config.db), { logger: jsonLogger });
+const userRepo = new UserRepository(db, jsonLogger);
+const orderSvc = new OrderService(db, userRepo, jsonLogger);
 
 // Start the application
 await orderSvc.start();
@@ -874,9 +893,9 @@ Every source file has a corresponding test file. The test file lives in `tests/u
 // tests/unit/core/param-builder.test.ts
 
 import { describe, it, expect } from "bun:test";
-import { buildParams }          from "../../src/core/param-builder";
-import { ValidationError }      from "../../src/errors/types";
-import { ErrorCode }            from "../../src/errors/codes";
+import { buildParams } from "../../src/core/param-builder";
+import { ValidationError } from "../../src/errors/types";
+import { ErrorCode } from "../../src/errors/codes";
 
 describe("core/param-builder — buildParams()", () => {
   describe("when translating named params for the PostgreSQL adapter", () => {
@@ -906,12 +925,12 @@ describe("core/param-builder — buildParams()", () => {
   describe("when a named param in the query has no matching key in the params object", () => {
     it("throws a ValidationError with code PARAM_MISSING and names the missing param in context", () => {
       expect(() =>
-        buildParams("SELECT * FROM users WHERE id = @id", {}, "postgres")
+        buildParams("SELECT * FROM users WHERE id = @id", {}, "postgres"),
       ).toThrow(
         expect.objectContaining({
-          code:    ErrorCode.PARAM_MISSING,
+          code: ErrorCode.PARAM_MISSING,
           context: expect.objectContaining({ missingParam: "@id" }),
-        })
+        }),
       );
     });
   });
@@ -933,14 +952,14 @@ expect(result.text).toContain("$1");
 expect(() => doThing()).toThrow(
   expect.objectContaining({
     constructor: ValidationError,
-    code:        ErrorCode.PARAM_MISSING,
-    context:     expect.objectContaining({ missingParam: "@userId" }),
-  })
+    code: ErrorCode.PARAM_MISSING,
+    context: expect.objectContaining({ missingParam: "@userId" }),
+  }),
 );
 
 // RIGHT — full output is asserted
 expect(result).toEqual({
-  text:   "SELECT * FROM users WHERE id = $1",
+  text: "SELECT * FROM users WHERE id = $1",
   params: [42],
 });
 ```
@@ -954,7 +973,7 @@ Every test creates all the state it needs and cleans up after itself. `beforeAll
 const adapter = new MockAdapter();
 
 it("queries users", async () => {
-  adapter.willReturn([testUser]);         // mutates shared state
+  adapter.willReturn([testUser]); // mutates shared state
   const users = await repo.findAll();
   expect(users).toHaveLength(1);
 });
@@ -968,9 +987,9 @@ it("finds a user by id", async () => {
 
 // RIGHT — fresh adapter per test
 it("queries users", async () => {
-  const adapter = new MockAdapter().willReturn([testUser]);  // fresh, local
-  const repo    = new UserRepository(adapter);
-  const users   = await repo.findAll();
+  const adapter = new MockAdapter().willReturn([testUser]); // fresh, local
+  const repo = new UserRepository(adapter);
+  const users = await repo.findAll();
   expect(users).toHaveLength(1);
 });
 ```
@@ -985,21 +1004,21 @@ Before reaching for an npm package, check if Bun provides a native equivalent. B
 
 ```typescript
 // File I/O
-const file    = Bun.file("./data.json");
+const file = Bun.file("./data.json");
 const content = await file.text();
-const json    = await file.json();
+const json = await file.json();
 await Bun.write("./output.json", JSON.stringify(data, null, 2));
 
 // Hashing — for cache keys, ETags, deduplication
-const key = Bun.hash(sqlText).toString(36);      // much faster than crypto.createHash
+const key = Bun.hash(sqlText).toString(36); // much faster than crypto.createHash
 
 // Sleeping in tests and retry loops — cleaner than setTimeout
-await Bun.sleep(retryDelay);                     // returns a Promise, awaitable
+await Bun.sleep(retryDelay); // returns a Promise, awaitable
 
 // SQLite — always bun:sqlite, never better-sqlite3
 import { Database } from "bun:sqlite";
-const db     = new Database(":memory:");
-const stmt   = db.prepare("SELECT * FROM users WHERE id = ?");
+const db = new Database(":memory:");
+const stmt = db.prepare("SELECT * FROM users WHERE id = ?");
 const result = stmt.get(1);
 
 // Environment variables — always available, no dotenv needed in Bun
@@ -1018,13 +1037,13 @@ Bun exposes clean lifecycle hooks. Use them for graceful shutdown instead of bar
 // src/main.ts
 
 const server = Bun.serve({ port: 3000, fetch: handler });
-const db     = createDb(adapter);
+const db = createDb(adapter);
 
 // Graceful shutdown — runs on SIGTERM and SIGINT
 process.on("SIGTERM", async () => {
   logger.info({ message: "SIGTERM received — shutting down gracefully" });
-  server.stop(true);             // stop accepting new connections
-  await db.pool.drain();         // wait for in-flight queries
+  server.stop(true); // stop accepting new connections
+  await db.pool.drain(); // wait for in-flight queries
   process.exit(0);
 });
 
@@ -1049,7 +1068,9 @@ await $`bun run build`;
 
 const { stdout } = await $`git status --porcelain`.quiet();
 if (stdout.trim()) {
-  console.error("Working tree is dirty — commit generated files before releasing");
+  console.error(
+    "Working tree is dirty — commit generated files before releasing",
+  );
   process.exit(1);
 }
 ```
@@ -1066,7 +1087,7 @@ Every value entering the application from an external source — HTTP requests, 
 // src/api/handlers/create-user.ts
 
 export async function handleCreateUser(req: Request): Promise<Response> {
-  const body: unknown = await req.json();    // unknown at the boundary
+  const body: unknown = await req.json(); // unknown at the boundary
 
   // Validate before trusting
   if (!isCreateUserBody(body)) {
@@ -1086,7 +1107,7 @@ Environment variables are never accessed with `process.env.X` scattered througho
 ```typescript
 // WRONG — direct process.env access in business logic
 async function connectToDatabase() {
-  const url = process.env.DATABASE_URL;   // undefined risk, type is string | undefined
+  const url = process.env.DATABASE_URL; // undefined risk, type is string | undefined
   await pg.connect(url);
 }
 
@@ -1094,13 +1115,14 @@ async function connectToDatabase() {
 // src/config/env.ts
 export function loadEnv(): AppEnv {
   const url = process.env.DATABASE_URL;
-  if (!url) throw new ConfigError("ENV_MISSING", {}, "DATABASE_URL is required");
+  if (!url)
+    throw new ConfigError("ENV_MISSING", {}, "DATABASE_URL is required");
   return { databaseUrl: url };
 }
 
 // Business logic receives the validated config object
 async function connectToDatabase(config: AppEnv): Promise<void> {
-  await pg.connect(config.databaseUrl);  // always a string — never undefined
+  await pg.connect(config.databaseUrl); // always a string — never undefined
 }
 ```
 
@@ -1137,7 +1159,7 @@ In code that runs on every request or every row — query parsing, param binding
 ```typescript
 // WRONG — allocates a new array on every query call
 function bindParams(sql: string, params: Record<string, unknown>): unknown[] {
-  return Object.entries(params).map(([, v]) => v);  // new array every time
+  return Object.entries(params).map(([, v]) => v); // new array every time
 }
 
 // RIGHT — pre-allocated buffer, filled in-place
@@ -1160,7 +1182,7 @@ Use `Bun.hash()` for all in-process cache key generation. It is significantly fa
 ```typescript
 // Cache key for compiled query
 const cacheKey = Bun.hash(normalizedSql).toString(36);
-const cached   = queryCache.get(cacheKey);
+const cached = queryCache.get(cacheKey);
 if (cached) return cached;
 ```
 
@@ -1197,7 +1219,7 @@ Inline comments explain why, never what. If a comment restates what the code cle
 
 ```typescript
 // WRONG — comment restates the code
-const retryDelay = baseDelay * attempt;  // multiply base delay by attempt number
+const retryDelay = baseDelay * attempt; // multiply base delay by attempt number
 
 // WRONG — comment explains what the code does instead of the code doing it
 // Get the remaining connections
@@ -1266,30 +1288,30 @@ my-library/
   "name": "my-library",
   "version": "0.1.0",
   "type": "module",
-  "main":    "./dist/index.js",
-  "module":  "./dist/index.js",
-  "types":   "./dist/index.d.ts",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "import": "./dist/index.js",
-      "types":  "./dist/index.d.ts"
+      "types": "./dist/index.d.ts"
     }
   },
   "files": ["dist"],
   "scripts": {
-    "build":      "bun run scripts/build.ts",
-    "test":       "bun test",
+    "build": "bun run scripts/build.ts",
+    "test": "bun test",
     "test:watch": "bun test --watch",
-    "test:cov":   "bun test --coverage",
-    "typecheck":  "tsc --noEmit",
-    "lint":       "biome ci src tests",
-    "lint:fix":   "biome check --write src tests",
-    "ci":         "bun run typecheck && bun run lint && bun run test:cov"
+    "test:cov": "bun test --coverage",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome ci src tests",
+    "lint:fix": "biome check --write src tests",
+    "ci": "bun run typecheck && bun run lint && bun run test:cov"
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.8",
-    "typescript":     "^5.9.0",
-    "bun-types":      "latest"
+    "typescript": "^5.9.0",
+    "bun-types": "latest"
   }
 }
 ```
@@ -1333,32 +1355,32 @@ exact = true                # pin all versions in package.json
       },
       "suspicious": {
         "noExplicitAny": "error",
-        "noConsole":     "warn"
+        "noConsole": "warn"
       },
       "style": {
-        "useConst":           "error",
-        "noVar":              "error",
-        "useTemplate":        "error",
+        "useConst": "error",
+        "noVar": "error",
+        "useTemplate": "error",
         "noNonNullAssertion": "warn"
       },
       "complexity": {
-        "noForEach":      "warn",
+        "noForEach": "warn",
         "useLiteralKeys": "error"
       }
     }
   },
   "formatter": {
-    "enabled":     true,
+    "enabled": true,
     "indentStyle": "space",
     "indentWidth": 2,
-    "lineWidth":   100,
-    "lineEnding":  "lf"
+    "lineWidth": 100,
+    "lineEnding": "lf"
   },
   "javascript": {
     "formatter": {
-      "quoteStyle":     "double",
+      "quoteStyle": "double",
       "trailingCommas": "all",
-      "semicolons":     "always"
+      "semicolons": "always"
     }
   }
 }
@@ -1422,21 +1444,21 @@ my-api/
 **`src/main.ts` template:**
 
 ```typescript
-import { jsonLogger }        from "./logging/json-logger";
-import { loadEnv }           from "./config/env";
-import { createDb }          from "./db";
-import { PostgresAdapter }   from "./db/adapters/postgres";
-import { UserRepository }    from "./repositories/user-repository";
-import { UserService }       from "./services/user-service";
-import { createRouter }      from "./router";
+import { jsonLogger } from "./logging/json-logger";
+import { loadEnv } from "./config/env";
+import { createDb } from "./db";
+import { PostgresAdapter } from "./db/adapters/postgres";
+import { UserRepository } from "./repositories/user-repository";
+import { UserService } from "./services/user-service";
+import { createRouter } from "./router";
 import { requestIdMiddleware } from "./middleware/request-id";
-import { errorHandler }      from "./middleware/error-handler";
+import { errorHandler } from "./middleware/error-handler";
 
 // ── Composition root ────────────────────────────────────────────────────────
 
-const env    = loadEnv();
+const env = loadEnv();
 const logger = jsonLogger;
-const db     = createDb(new PostgresAdapter(env.databaseUrl), { logger });
+const db = createDb(new PostgresAdapter(env.databaseUrl), { logger });
 
 // Repositories — know about the database
 const userRepo = new UserRepository(db, logger);
@@ -1506,19 +1528,19 @@ my-cli/
 
 ```json
 {
-  "name":    "my-cli",
+  "name": "my-cli",
   "version": "0.1.0",
-  "type":    "module",
+  "type": "module",
   "bin": {
     "my-cli": "./dist/index.js"
   },
   "scripts": {
-    "start":     "bun run src/index.ts",
-    "build":     "bun build src/index.ts --outfile dist/index.js --target bun",
-    "test":      "bun test",
+    "start": "bun run src/index.ts",
+    "build": "bun build src/index.ts --outfile dist/index.js --target bun",
+    "test": "bun test",
     "typecheck": "tsc --noEmit",
-    "lint":      "biome ci src",
-    "ci":        "bun run typecheck && bun run lint && bun run test"
+    "lint": "biome ci src",
+    "ci": "bun run typecheck && bun run lint && bun run test"
   }
 }
 ```
@@ -1528,19 +1550,19 @@ my-cli/
 ```typescript
 #!/usr/bin/env bun
 
-import { parseArgs }   from "util";
-import { generate }    from "./commands/generate";
-import { migrate }     from "./commands/migrate";
-import { CliError }    from "./errors/cli-error";
-import { printer }     from "./output/printer";
+import { parseArgs } from "util";
+import { generate } from "./commands/generate";
+import { migrate } from "./commands/migrate";
+import { CliError } from "./errors/cli-error";
+import { printer } from "./output/printer";
 
 const { positionals, values } = parseArgs({
-  args:           Bun.argv.slice(2),
+  args: Bun.argv.slice(2),
   allowPositionals: true,
   options: {
-    help:    { type: "boolean", short: "h" },
+    help: { type: "boolean", short: "h" },
     verbose: { type: "boolean", short: "v" },
-    config:  { type: "string",  short: "c" },
+    config: { type: "string", short: "c" },
   },
 });
 
@@ -1553,8 +1575,12 @@ if (values.help || !command) {
 
 try {
   switch (command) {
-    case "generate": await generate(args, values); break;
-    case "migrate":  await migrate(args, values);  break;
+    case "generate":
+      await generate(args, values);
+      break;
+    case "migrate":
+      await migrate(args, values);
+      break;
     default:
       throw new CliError(`Unknown command: ${command}`, 1);
   }
@@ -1635,19 +1661,19 @@ jobs:
         with: { bun-version: latest }
 
       - name: Install dependencies
-        run:  bun install --frozen-lockfile
+        run: bun install --frozen-lockfile
 
       - name: Type check
-        run:  bun run typecheck
+        run: bun run typecheck
 
       - name: Lint
-        run:  bun run lint
+        run: bun run lint
 
       - name: Test with coverage
-        run:  bun run test:cov
+        run: bun run test:cov
 
       - name: Build
-        run:  bun run build
+        run: bun run build
 ```
 
 ---
@@ -1725,4 +1751,4 @@ These patterns are banned across all projects under this guide. Code review will
 
 ---
 
-*End of document — Bun TypeScript Style Guide v1.1.1*
+_End of document — Bun TypeScript Style Guide v1.1.1_

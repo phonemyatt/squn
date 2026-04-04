@@ -49,7 +49,12 @@ const _nullAge: Insert = { name: "Alice", email: "a@b.com", age: null };
 use(_validInsert, _nullAge);
 
 // @ts-expect-error — id is readonly (primaryKey), must not appear in Insert
-const _insertWithId: Insert = { id: 1, name: "Alice", email: "a@b.com", age: 30 };
+const _insertWithId: Insert = {
+  id: 1,
+  name: "Alice",
+  email: "a@b.com",
+  age: 30,
+};
 
 // @ts-expect-error — name is required (notNull), cannot be omitted
 const _insertMissingName: Insert = { email: "a@b.com", age: 30 };
@@ -80,7 +85,12 @@ const _userNullName: User = { id: 1, name: null, email: "a@b.com", age: null };
 const _userMissingAge: User = { id: 1, name: "Alice", email: "a@b.com" };
 
 // @ts-expect-error — id must be number, not string
-const _userStringId: User = { id: "abc", name: "Alice", email: "a@b.com", age: null };
+const _userStringId: User = {
+  id: "abc",
+  name: "Alice",
+  email: "a@b.com",
+  age: null,
+};
 
 // ═══════════════════════════════════════════════════════════════════════════
 // InferUpdate — readonly excluded, all fields optional
@@ -167,7 +177,11 @@ use(_jm);
 const _jmBad: JsonModel = { id: 1, metadata: "not json", tags: [] };
 
 // @ts-expect-error — tags must be string[], not number[]
-const _jmBadTags: JsonModel = { id: 1, metadata: { street: "", city: "" }, tags: [1, 2] };
+const _jmBadTags: JsonModel = {
+  id: 1,
+  metadata: { street: "", city: "" },
+  tags: [1, 2],
+};
 
 // ═══════════════════════════════════════════════════════════════════════════
 // createDb — Db interface shape

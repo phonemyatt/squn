@@ -19,8 +19,14 @@ describe("integration/sqlite — SqliteAdapter", () => {
 
   describe("basic SELECT", () => {
     it("returns correctly typed rows from a SELECT", async () => {
-      await adapter.execute("INSERT INTO users (name, age) VALUES (?, ?)", ["Alice", 30]);
-      await adapter.execute("INSERT INTO users (name, age) VALUES (?, ?)", ["Bob", 25]);
+      await adapter.execute("INSERT INTO users (name, age) VALUES (?, ?)", [
+        "Alice",
+        30,
+      ]);
+      await adapter.execute("INSERT INTO users (name, age) VALUES (?, ?)", [
+        "Bob",
+        25,
+      ]);
 
       const rows = await adapter.query("SELECT * FROM users ORDER BY id", []);
       expect(rows).toHaveLength(2);
@@ -29,23 +35,32 @@ describe("integration/sqlite — SqliteAdapter", () => {
     });
 
     it("returns an empty array when no rows match", async () => {
-      const rows = await adapter.query("SELECT * FROM users WHERE id = ?", [999]);
+      const rows = await adapter.query(
+        "SELECT * FROM users WHERE id = ?",
+        [999],
+      );
       expect(rows).toEqual([]);
     });
   });
 
   describe("parameterized INSERT", () => {
     it("returns rowsAffected for a single INSERT", async () => {
-      const result = await adapter.execute("INSERT INTO users (name, age) VALUES (?, ?)", [
-        "Charlie",
-        40,
-      ]);
+      const result = await adapter.execute(
+        "INSERT INTO users (name, age) VALUES (?, ?)",
+        ["Charlie", 40],
+      );
       expect(result.rowsAffected).toBe(1);
     });
 
     it("returns correct rowsAffected for UPDATE affecting multiple rows", async () => {
-      await adapter.execute("INSERT INTO users (name, age) VALUES (?, ?)", ["A", 10]);
-      await adapter.execute("INSERT INTO users (name, age) VALUES (?, ?)", ["B", 20]);
+      await adapter.execute("INSERT INTO users (name, age) VALUES (?, ?)", [
+        "A",
+        10,
+      ]);
+      await adapter.execute("INSERT INTO users (name, age) VALUES (?, ?)", [
+        "B",
+        20,
+      ]);
       const result = await adapter.execute("UPDATE users SET age = ?", [99]);
       expect(result.rowsAffected).toBe(2);
     });
@@ -82,19 +97,29 @@ describe("integration/sqlite — SqliteAdapter", () => {
   describe("transactions", () => {
     it("commits changes that persist after commit", async () => {
       const tx = await adapter.beginTransaction();
-      await tx.execute("INSERT INTO users (name, age) VALUES (?, ?)", ["TxUser", 50]);
+      await tx.execute("INSERT INTO users (name, age) VALUES (?, ?)", [
+        "TxUser",
+        50,
+      ]);
       await tx.commit();
 
-      const rows = await adapter.query("SELECT * FROM users WHERE name = ?", ["TxUser"]);
+      const rows = await adapter.query("SELECT * FROM users WHERE name = ?", [
+        "TxUser",
+      ]);
       expect(rows).toHaveLength(1);
     });
 
     it("rollback undoes changes", async () => {
       const tx = await adapter.beginTransaction();
-      await tx.execute("INSERT INTO users (name, age) VALUES (?, ?)", ["Gone", 99]);
+      await tx.execute("INSERT INTO users (name, age) VALUES (?, ?)", [
+        "Gone",
+        99,
+      ]);
       await tx.rollback();
 
-      const rows = await adapter.query("SELECT * FROM users WHERE name = ?", ["Gone"]);
+      const rows = await adapter.query("SELECT * FROM users WHERE name = ?", [
+        "Gone",
+      ]);
       expect(rows).toHaveLength(0);
     });
   });

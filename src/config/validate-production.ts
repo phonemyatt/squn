@@ -81,10 +81,14 @@ export function validateProductionConfig(
     }
 
     if (missing.length > 0) {
-      throw new SqunConfigError(ErrorCode.CONFIG_MISSING, formatMissingMessage(adapter, missing), {
-        operation: "validateProductionConfig",
-        adapter,
-      });
+      throw new SqunConfigError(
+        ErrorCode.CONFIG_MISSING,
+        formatMissingMessage(adapter, missing),
+        {
+          operation: "validateProductionConfig",
+          adapter,
+        },
+      );
     }
     return;
   }
@@ -110,15 +114,25 @@ export function validateProductionConfig(
   }
 
   // Auth config must be present for MSSQL
-  if (adapter === "mssql" && connection.authType === undefined && connection.url === undefined) {
-    missing.push(`auth config is required. Set ${SQUN_ENV_VARS.MSSQL_AUTH_TYPE}`);
+  if (
+    adapter === "mssql" &&
+    connection.authType === undefined &&
+    connection.url === undefined
+  ) {
+    missing.push(
+      `auth config is required. Set ${SQUN_ENV_VARS.MSSQL_AUTH_TYPE}`,
+    );
   }
 
   if (missing.length > 0) {
-    throw new SqunConfigError(ErrorCode.CONFIG_MISSING, formatMissingMessage(adapter, missing), {
-      operation: "validateProductionConfig",
-      adapter,
-    });
+    throw new SqunConfigError(
+      ErrorCode.CONFIG_MISSING,
+      formatMissingMessage(adapter, missing),
+      {
+        operation: "validateProductionConfig",
+        adapter,
+      },
+    );
   }
 
   // Warnings — do not throw
@@ -132,7 +146,11 @@ export function validateProductionConfig(
   }
 
   if (connection.ssl === false || connection.ssl === undefined) {
-    warnEntry(logger, `Production ${adapter} has SSL disabled. Consider enabling SSL.`, adapter);
+    warnEntry(
+      logger,
+      `Production ${adapter} has SSL disabled. Consider enabling SSL.`,
+      adapter,
+    );
   }
 
   const user = connection.user;
@@ -145,7 +163,10 @@ export function validateProductionConfig(
   }
 }
 
-function formatMissingMessage(adapter: string, missing: readonly string[]): string {
+function formatMissingMessage(
+  adapter: string,
+  missing: readonly string[],
+): string {
   const lines = missing.map((m) => `  ✗  ${m}`).join("\n");
   return `Production ${adapter} config is incomplete:\n${lines}`;
 }

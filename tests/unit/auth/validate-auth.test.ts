@@ -7,7 +7,11 @@ import { AuthError } from "../../../src/errors/types.ts";
 describe("auth/validate-auth — validateAuth()", () => {
   describe("userpass auth type", () => {
     it("accepts a valid username and password", () => {
-      const config: AuthConfig = { type: "userpass", username: "app_user", password: "s3cret" };
+      const config: AuthConfig = {
+        type: "userpass",
+        username: "app_user",
+        password: "s3cret",
+      };
       expect(() => validateAuth(config)).not.toThrow();
     });
 
@@ -21,7 +25,11 @@ describe("auth/validate-auth — validateAuth()", () => {
     });
 
     it("throws AUTH_INVALID_CREDENTIALS when username contains a space", () => {
-      const config: AuthConfig = { type: "userpass", username: "bad user", password: "pass" };
+      const config: AuthConfig = {
+        type: "userpass",
+        username: "bad user",
+        password: "pass",
+      };
       try {
         validateAuth(config);
         expect.unreachable("should have thrown");
@@ -33,12 +41,20 @@ describe("auth/validate-auth — validateAuth()", () => {
     });
 
     it("throws AUTH_INVALID_CREDENTIALS when username contains a semicolon", () => {
-      const config: AuthConfig = { type: "userpass", username: "user;drop", password: "pass" };
+      const config: AuthConfig = {
+        type: "userpass",
+        username: "user;drop",
+        password: "pass",
+      };
       expect(() => validateAuth(config)).toThrow(AuthError);
     });
 
     it("throws AUTH_INVALID_CREDENTIALS when password contains a semicolon", () => {
-      const config: AuthConfig = { type: "userpass", username: "user", password: "pass;word" };
+      const config: AuthConfig = {
+        type: "userpass",
+        username: "user",
+        password: "pass;word",
+      };
       try {
         validateAuth(config);
         expect.unreachable("should have thrown");
@@ -50,17 +66,29 @@ describe("auth/validate-auth — validateAuth()", () => {
     });
 
     it("throws AUTH_INVALID_CREDENTIALS when password contains curly braces", () => {
-      const config: AuthConfig = { type: "userpass", username: "user", password: "pa{ss}" };
+      const config: AuthConfig = {
+        type: "userpass",
+        username: "user",
+        password: "pa{ss}",
+      };
       expect(() => validateAuth(config)).toThrow(AuthError);
     });
 
     it("throws AUTH_INVALID_CREDENTIALS when password contains quotes", () => {
-      const config: AuthConfig = { type: "userpass", username: "user", password: 'pa"ss' };
+      const config: AuthConfig = {
+        type: "userpass",
+        username: "user",
+        password: 'pa"ss',
+      };
       expect(() => validateAuth(config)).toThrow(AuthError);
     });
 
     it("throws AUTH_INVALID_CREDENTIALS when password contains single quotes", () => {
-      const config: AuthConfig = { type: "userpass", username: "user", password: "pa'ss" };
+      const config: AuthConfig = {
+        type: "userpass",
+        username: "user",
+        password: "pa'ss",
+      };
       expect(() => validateAuth(config)).toThrow(AuthError);
     });
   });
@@ -72,24 +100,40 @@ describe("auth/validate-auth — validateAuth()", () => {
     });
 
     it("accepts a valid DOMAIN\\username", () => {
-      const config: AuthConfig = { type: "windows", domain: "CORP", username: "admin" };
+      const config: AuthConfig = {
+        type: "windows",
+        domain: "CORP",
+        username: "admin",
+      };
       expect(() => validateAuth(config)).not.toThrow();
     });
 
     it("accepts a domain with hyphens and dots", () => {
-      const config: AuthConfig = { type: "windows", domain: "my-corp.local", username: "svc_user" };
+      const config: AuthConfig = {
+        type: "windows",
+        domain: "my-corp.local",
+        username: "svc_user",
+      };
       expect(() => validateAuth(config)).not.toThrow();
     });
 
     it("throws AUTH_INVALID_CREDENTIALS for invalid domain characters", () => {
-      const config: AuthConfig = { type: "windows", domain: "BAD DOMAIN", username: "user" };
+      const config: AuthConfig = {
+        type: "windows",
+        domain: "BAD DOMAIN",
+        username: "user",
+      };
       expect(() => validateAuth(config)).toThrow(AuthError);
     });
   });
 
   describe("windows-upn auth type", () => {
     it("accepts a valid UPN and password", () => {
-      const config: AuthConfig = { type: "windows-upn", upn: "user@domain.com", password: "pass" };
+      const config: AuthConfig = {
+        type: "windows-upn",
+        upn: "user@domain.com",
+        password: "pass",
+      };
       expect(() => validateAuth(config)).not.toThrow();
     });
 
@@ -103,7 +147,11 @@ describe("auth/validate-auth — validateAuth()", () => {
     });
 
     it("throws AUTH_INVALID_CREDENTIALS for a UPN without @", () => {
-      const config: AuthConfig = { type: "windows-upn", upn: "not-an-email", password: "pass" };
+      const config: AuthConfig = {
+        type: "windows-upn",
+        upn: "not-an-email",
+        password: "pass",
+      };
       try {
         validateAuth(config);
         expect.unreachable("should have thrown");
@@ -115,12 +163,20 @@ describe("auth/validate-auth — validateAuth()", () => {
     });
 
     it("throws AUTH_INVALID_CREDENTIALS for a UPN with a single-char TLD", () => {
-      const config: AuthConfig = { type: "windows-upn", upn: "user@domain.c", password: "pass" };
+      const config: AuthConfig = {
+        type: "windows-upn",
+        upn: "user@domain.c",
+        password: "pass",
+      };
       expect(() => validateAuth(config)).toThrow(AuthError);
     });
 
     it("also validates the password for forbidden characters", () => {
-      const config: AuthConfig = { type: "windows-upn", upn: "user@domain.com", password: "p;ss" };
+      const config: AuthConfig = {
+        type: "windows-upn",
+        upn: "user@domain.com",
+        password: "p;ss",
+      };
       expect(() => validateAuth(config)).toThrow(AuthError);
     });
   });

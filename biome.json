@@ -17,31 +17,31 @@
       },
       "suspicious": {
         "noExplicitAny": "error",
-        "noConsole":     "warn"
+        "noConsole": "warn"
       },
       "style": {
-        "useConst":           "error",
-        "useTemplate":        "error",
+        "useConst": "error",
+        "useTemplate": "error",
         "noNonNullAssertion": "warn"
       },
       "complexity": {
-        "noForEach":      "warn",
+        "noForEach": "warn",
         "useLiteralKeys": "error"
       }
     }
   },
   "formatter": {
-    "enabled":     true,
+    "enabled": true,
     "indentStyle": "space",
     "indentWidth": 2,
-    "lineWidth":   100,
-    "lineEnding":  "lf"
+    "lineWidth": 100,
+    "lineEnding": "lf"
   },
   "javascript": {
     "formatter": {
-      "quoteStyle":     "double",
+      "quoteStyle": "double",
       "trailingCommas": "all",
-      "semicolons":     "always"
+      "semicolons": "always"
     }
   }
 }

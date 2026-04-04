@@ -27,7 +27,10 @@ export function splitAndMap(
     if (parent === undefined) {
       // Map the first segment (primary entity)
       const primaryRow = extractSegment(row, segments[0] as string[]);
-      parent = (mappers[0] as MapperFn<unknown>)(primaryRow) as Record<string, unknown>;
+      parent = (mappers[0] as MapperFn<unknown>)(primaryRow) as Record<
+        string,
+        unknown
+      >;
       resultMap.set(pkValue, parent);
       resultOrder.push(pkValue);
     }

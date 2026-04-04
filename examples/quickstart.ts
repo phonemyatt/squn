@@ -1,4 +1,10 @@
-import { createDb, sql, SqliteAdapter, col, defineTable } from "../src/index.ts";
+import {
+  createDb,
+  sql,
+  SqliteAdapter,
+  col,
+  defineTable,
+} from "../src/index.ts";
 
 // 1. Define schema
 const Users = defineTable("users", {

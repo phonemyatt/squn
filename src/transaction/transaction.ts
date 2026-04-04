@@ -5,7 +5,12 @@ import { TransactionError } from "../errors/types.ts";
 import type { Row } from "../types/primitives.ts";
 import { Savepoint } from "./savepoint.ts";
 
-export type TransactionState = "ACTIVE" | "COMMITTED" | "ROLLED_BACK" | "TIMED_OUT" | "FAILED";
+export type TransactionState =
+  | "ACTIVE"
+  | "COMMITTED"
+  | "ROLLED_BACK"
+  | "TIMED_OUT"
+  | "FAILED";
 
 /**
  * Transaction with state machine: ACTIVE → COMMITTED | ROLLED_BACK | TIMED_OUT | FAILED.
@@ -34,7 +39,10 @@ export class Transaction {
     return this.tx.query(sql, params);
   }
 
-  async execute(sql: string, params: unknown[]): Promise<{ rowsAffected: number }> {
+  async execute(
+    sql: string,
+    params: unknown[],
+  ): Promise<{ rowsAffected: number }> {
     this.assertActive("execute");
     return this.tx.execute(sql, params);
   }

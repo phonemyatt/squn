@@ -66,23 +66,29 @@ describe.skipIf(!url)("integration/mssql — MssqlAdapter", () => {
   describe("basic SELECT", () => {
     it("returns correctly typed rows from a SELECT", async () => {
       await adapter.execute("DELETE FROM squn_test_users", []);
-      await adapter.execute("INSERT INTO squn_test_users (name, age) VALUES (@p0, @p1)", [
-        "Alice",
-        30,
-      ]);
-      await adapter.execute("INSERT INTO squn_test_users (name, age) VALUES (@p0, @p1)", [
-        "Bob",
-        25,
-      ]);
+      await adapter.execute(
+        "INSERT INTO squn_test_users (name, age) VALUES (@p0, @p1)",
+        ["Alice", 30],
+      );
+      await adapter.execute(
+        "INSERT INTO squn_test_users (name, age) VALUES (@p0, @p1)",
+        ["Bob", 25],
+      );
 
-      const rows = await adapter.query("SELECT name, age FROM squn_test_users ORDER BY name", []);
+      const rows = await adapter.query(
+        "SELECT name, age FROM squn_test_users ORDER BY name",
+        [],
+      );
       expect(rows).toHaveLength(2);
       expect(rows[0]).toEqual({ name: "Alice", age: 30 });
       expect(rows[1]).toEqual({ name: "Bob", age: 25 });
     });
 
     it("returns an empty array when no rows match", async () => {
-      const rows = await adapter.query("SELECT * FROM squn_test_users WHERE id = @p0", [999999]);
+      const rows = await adapter.query(
+        "SELECT * FROM squn_test_users WHERE id = @p0",
+        [999999],
+      );
       expect(rows).toEqual([]);
     });
   });
@@ -98,9 +104,18 @@ describe.skipIf(!url)("integration/mssql — MssqlAdapter", () => {
 
     it("returns correct rowsAffected for UPDATE affecting multiple rows", async () => {
       await adapter.execute("DELETE FROM squn_test_users", []);
-      await adapter.execute("INSERT INTO squn_test_users (name, age) VALUES (@p0, @p1)", ["A", 10]);
-      await adapter.execute("INSERT INTO squn_test_users (name, age) VALUES (@p0, @p1)", ["B", 20]);
-      const result = await adapter.execute("UPDATE squn_test_users SET age = @p0", [99]);
+      await adapter.execute(
+        "INSERT INTO squn_test_users (name, age) VALUES (@p0, @p1)",
+        ["A", 10],
+      );
+      await adapter.execute(
+        "INSERT INTO squn_test_users (name, age) VALUES (@p0, @p1)",
+        ["B", 20],
+      );
+      const result = await adapter.execute(
+        "UPDATE squn_test_users SET age = @p0",
+        [99],
+      );
       expect(result.rowsAffected).toBe(2);
     });
   });
@@ -123,12 +138,16 @@ describe.skipIf(!url)("integration/mssql — MssqlAdapter", () => {
       await adapter.execute("DELETE FROM squn_test_users", []);
 
       const tx = await adapter.beginTransaction();
-      await tx.execute("INSERT INTO squn_test_users (name, age) VALUES (@p0, @p1)", ["TxUser", 50]);
+      await tx.execute(
+        "INSERT INTO squn_test_users (name, age) VALUES (@p0, @p1)",
+        ["TxUser", 50],
+      );
       await tx.commit();
 
-      const rows = await adapter.query("SELECT * FROM squn_test_users WHERE name = @p0", [
-        "TxUser",
-      ]);
+      const rows = await adapter.query(
+        "SELECT * FROM squn_test_users WHERE name = @p0",
+        ["TxUser"],
+      );
       expect(rows).toHaveLength(1);
     });
 
@@ -136,10 +155,16 @@ describe.skipIf(!url)("integration/mssql — MssqlAdapter", () => {
       await adapter.execute("DELETE FROM squn_test_users", []);
 
       const tx = await adapter.beginTransaction();
-      await tx.execute("INSERT INTO squn_test_users (name, age) VALUES (@p0, @p1)", ["Gone", 99]);
+      await tx.execute(
+        "INSERT INTO squn_test_users (name, age) VALUES (@p0, @p1)",
+        ["Gone", 99],
+      );
       await tx.rollback();
 
-      const rows = await adapter.query("SELECT * FROM squn_test_users WHERE name = @p0", ["Gone"]);
+      const rows = await adapter.query(
+        "SELECT * FROM squn_test_users WHERE name = @p0",
+        ["Gone"],
+      );
       expect(rows).toHaveLength(0);
     });
   });
@@ -147,14 +172,15 @@ describe.skipIf(!url)("integration/mssql — MssqlAdapter", () => {
   describe("NULL handling", () => {
     it("inserts and retrieves NULL values correctly", async () => {
       await adapter.execute("DELETE FROM squn_test_users", []);
-      await adapter.execute("INSERT INTO squn_test_users (name, age) VALUES (@p0, @p1)", [
-        "NoAge",
-        null,
-      ]);
+      await adapter.execute(
+        "INSERT INTO squn_test_users (name, age) VALUES (@p0, @p1)",
+        ["NoAge", null],
+      );
 
-      const rows = await adapter.query("SELECT name, age FROM squn_test_users WHERE name = @p0", [
-        "NoAge",
-      ]);
+      const rows = await adapter.query(
+        "SELECT name, age FROM squn_test_users WHERE name = @p0",
+        ["NoAge"],
+      );
       expect(rows).toHaveLength(1);
       expect(rows[0]).toEqual({ name: "NoAge", age: null });
     });
