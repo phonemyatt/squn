@@ -7,11 +7,16 @@
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
     }
   },
-  "files": ["dist"],
+  "sideEffects": false,
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "bun run scripts/build.ts",
     "test": "bun test",

@@ -1,0 +1,16 @@
+node_modules/
+dist/
+build/
+.git/
+*.lock
+*.min.js
+coverage/
+__pycache__/
+.next/
+*.d.ts.map
+*.js.map
+*.tsbuildinfo
+
+# Build + bench scripts are infrastructure, not library source.
+# Read them explicitly when working on the build pipeline.
+scripts/

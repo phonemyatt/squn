@@ -1,43 +1,59 @@
-Create a file called CLAUDE.md in the project root with exactly this content:
+# Project Prompt Contract
+# TypeScript 5.9 → 6.0 patterns | Updated April 2026
+# Keep this file under 60 lines — detailed rules live in .claude/commands/
 
-# Squn — Project Memory
+## Stack (source of truth)
+- TypeScript: 5.9 (strict; TS 6.0 patterns enforced — see Hard Rules)
+- Runtime: Bun 1.x (ESM only)
+- Target: ESNext (tsconfig: moduleResolution bundler, allowImportingTsExtensions)
 
-## What this project is
-A TypeScript-native SQL query library for Bun. Spec: PRD.md. Style: BUN_TYPESCRIPT_STYLE_GUIDE.md.
-Always read the relevant PRD section before writing any file.
+## Build & Test (must work on first try — always)
+- Install:     bun install
+- Type check:  bun run typecheck
+- Test:        bun test
+- Lint:        bun run lint  (fix: bun run lint:fix)
+- Full CI:     bun run ci
+- Release:     bunx changelogen --release   (conventional commits required)
 
-## Runtime
-Bun >= 1.2. PostgreSQL and MySQL use Bun.SQL (native — no postgres.js, no mysql2).
-SQLite uses bun:sqlite (native). MSSQL uses the mssql npm package.
+## Hard Rules — Tier 1 (block PR if violated)
+- No `any` — use `unknown` + narrowing
+- No non-null assertion `!` — use ?? or guard
+- No `as X` casts outside validated boundary functions
+- No TypeScript enums — EXCEPTIONS: ErrorCode, EventCode, IsolationLevel only
+- No `require()` or `module.exports`
+- No `import ... assert {}` — use `import ... with {}`
+- Relative imports must include `.ts` extension (moduleResolution: bundler)
+- `import type` for all type-only imports (verbatimModuleSyntax)
+- All array/record access guarded (noUncheckedIndexedAccess)
+- No `console.log` in src/ — use the `SqunLogger` interface
+- `"sideEffects": false` must stay set in package.json
 
-## Commands
-bun test                          — run all tests
-bun test <path>                   — run one test file
-bun test --coverage               — run with coverage
-bun run typecheck                 — tsc --noEmit
-bun run lint                      — biome ci src tests
-bun run lint:fix                  — biome check --write src tests
-bun run ci                        — typecheck + lint + test:cov
+## Soft Rules — Tier 2 (warn in review)
+- Prefer `satisfies` over explicit type annotation
+- Use `using` / `await using` for disposable resources
+- Use `Temporal` API instead of `new Date()` in business logic
+- Branded types for all domain ID primitives
+- Discriminated unions for all state modeling
+- Tag new public exports `@public`; tag exported-but-internal items `@internal`
 
-## Hard rules — never break these
-- No `any`. No `!` non-null assertion. No floating promises. No console.log in src/.
-- All exported functions have explicit return types.
-- Use `import type` for type-only imports (verbatimModuleSyntax is on).
-- All errors must be SqunError subclasses from src/errors/. Never throw plain Error.
-- All driver errors must be wrapped with wrapError() before leaving src/adapters/.
-- The core engine (src/core/, src/api/) never imports from src/adapters/ directly.
-- src/index.ts is re-exports only — no logic ever goes in there.
+## Scope Rules (apply to every task)
+- NEVER modify files outside the task scope without asking first
+- NEVER install new packages without listing them and asking first
+- NEVER run DB migrations automatically — print the command only
 
-## Test rules
-- describe("module/file — functionName()") format always.
-- it() labels are full English sentences describing condition and expected outcome.
-- Every error assertion must check: the class, the ErrorCode, and at least one context field.
-- No real database connections in tests/unit/. Use MockAdapter from tests/fixtures/.
-- No shared mutable state between tests. Every test is fully self-contained.
+## Compact Instructions
+Preserve: code changes, errors found, key decisions.
+Discard: tool call logs, file read confirmations, intermediate steps.
 
-## Commit format
-feat(scope): description
-fix(scope): description
-test(scope): description
-
-After creating CLAUDE.md, run: git add CLAUDE.md && git commit -m "chore: add CLAUDE.md"
+## Detailed contracts — load on demand via slash commands:
+- /new-module        → create a new internal module (types + impl + lib)
+- /new-feature       → add a new library capability
+- /new-entity        → define a table + mapper + inferred types
+- /new-endpoint      → add a method to the Db interface
+- /new-export        → safely add or remove a public export
+- /new-type          → add branded IDs, discriminated unions, Result types
+- /new-util          → add a pure utility function to an existing module
+- /review-code       → audit a file or folder for TS compliance
+- /review-public-api → audit src/index.ts for accidental internals
+- /plan              → plan without coding (always run this first)
+- /audit-project     → one-time codebase scan to regenerate contracts
