@@ -30,6 +30,7 @@ function mockAdapter(tag: string): IDbAdapter & { calls: string[] } {
     },
     async queryMultiple(_s, _p) { return []; },
     async beginTransaction() { return tx; },
+    hasCursorSupport() { return false; },
     async ping() {},
     async close() {},
     async materializeTvp(_t: TvpValue, _i: number): Promise<TvpMaterialised> {

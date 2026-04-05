@@ -1,4 +1,5 @@
 import type { IDbAdapter } from "../adapters/base.ts";
+import { Cursor } from "../async/cursor.ts";
 import { ErrorCode } from "../errors/codes.ts";
 import { QueryError } from "../errors/types.ts";
 import type { SqlFragment } from "../sql/fragment.ts";
@@ -100,12 +101,12 @@ export async function* stream<T>(
   fragment: SqlFragment,
   batchSize: number = 100,
 ): AsyncIterableIterator<T> {
-  // For adapters without native cursor support, fetch all and yield in batches
-  const rows = await adapter.query(fragment.text, fragment.params);
-  for (let i = 0; i < rows.length; i += batchSize) {
-    const batch = rows.slice(i, i + batchSize);
-    for (const row of batch) {
-      yield row as T;
+  const cursor = new Cursor<T>(adapter, fragment, batchSize);
+  try {
+    for await (const row of cursor) {
+      yield row;
     }
+  } finally {
+    await cursor.close();
   }
 }

@@ -34,6 +34,8 @@ export interface IDbAdapter {
   query(sql: string, params: readonly unknown[]): Promise<Row[]>;
   queryMultiple(sql: string, params: readonly unknown[]): Promise<Row[][]>;
   beginTransaction(): Promise<IDbTransaction>;
+  /** Returns true if the adapter supports server-side cursors for streaming. */
+  hasCursorSupport(): boolean;
   ping(): Promise<void>;
   close(): Promise<void>;
   materializeTvp(tvp: TvpValue, index: number): Promise<TvpMaterialised>;

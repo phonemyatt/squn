@@ -56,6 +56,7 @@ function mockAdapter(opts?: {
       log.push("begin");
       return tx;
     },
+    hasCursorSupport() { return false; },
     async ping() {},
     async close() {},
     async materializeTvp(_t: TvpValue, _i: number): Promise<TvpMaterialised> {

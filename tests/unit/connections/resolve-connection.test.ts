@@ -24,6 +24,7 @@ function stub(): IDbAdapter {
     async beginTransaction(): Promise<IDbTransaction> {
       throw new Error("not impl");
     },
+    hasCursorSupport() { return false; },
     async ping() {},
     async close() {},
     async materializeTvp(_t: TvpValue, _i: number): Promise<TvpMaterialised> {

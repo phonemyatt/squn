@@ -274,6 +274,8 @@ export class MssqlAdapter implements IDbAdapter {
     return tx;
   }
 
+  hasCursorSupport(): boolean { return false; }
+
   async ping(): Promise<void> {
     try {
       const pool = await this.getPool();

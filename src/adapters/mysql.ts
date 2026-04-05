@@ -229,6 +229,8 @@ export class MysqlAdapter implements IDbAdapter {
     return tx;
   }
 
+  hasCursorSupport(): boolean { return false; }
+
   async ping(): Promise<void> {
     try {
       await this.sql.unsafe("SELECT 1");

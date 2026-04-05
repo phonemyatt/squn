@@ -225,6 +225,8 @@ export class SqliteAdapter implements IDbAdapter {
     return Promise.resolve(tx);
   }
 
+  hasCursorSupport(): boolean { return false; }
+
   ping(): Promise<void> {
     try {
       this.db.query("SELECT 1").get();

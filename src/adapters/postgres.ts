@@ -236,6 +236,8 @@ export class PostgresAdapter implements IDbAdapter {
     return tx;
   }
 
+  hasCursorSupport(): boolean { return true; }
+
   async ping(): Promise<void> {
     try {
       await this.sql.unsafe("SELECT 1");
