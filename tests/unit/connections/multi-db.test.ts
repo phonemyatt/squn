@@ -30,6 +30,7 @@ function mockAdapter(tag: string): IDbAdapter & { calls: string[] } {
     },
     async queryMultiple(_s, _p) { return []; },
     async beginTransaction() { return tx; },
+    async executeBatch(_s: string, _rows: readonly Record<string, unknown>[], _p: readonly string[]) { return { rowsAffected: 0 }; },
     hasCursorSupport() { return false; },
     async ping() {},
     async close() {},

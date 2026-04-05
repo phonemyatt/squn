@@ -61,6 +61,7 @@ export interface ScopedDb<Names extends string = never> {
   executeBatch(
     fragment: SqlFragment,
     rows: readonly Record<string, unknown>[],
+    options?: { strategy?: "prepared-loop" | "copy" | "bulk-load" },
   ): Promise<{ rowsAffected: number }>;
   stream<T>(fragment: SqlFragment, batchSize?: number): AsyncIterableIterator<T>;
   atomically<T>(

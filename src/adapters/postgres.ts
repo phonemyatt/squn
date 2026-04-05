@@ -236,6 +236,30 @@ export class PostgresAdapter implements IDbAdapter {
     return tx;
   }
 
+  async executeBatch(
+    sql: string,
+    rows: readonly Record<string, unknown>[],
+    paramNames: readonly string[],
+    _strategy?: "prepared-loop" | "copy" | "bulk-load",
+  ): Promise<{ rowsAffected: number }> {
+    try {
+      let total = 0;
+      for (const row of rows) {
+        const params = paramNames.map((name) => row[name]) as (string | number | boolean | null)[];
+        const result = await this.sql.unsafe(sql, params);
+        total += result.count ?? 0;
+      }
+      return { rowsAffected: total };
+    } catch (err) {
+      throw wrapError(
+        err,
+        ErrorCode.ADAPTER_DRIVER_ERROR,
+        { operation: "executeBatch", adapter: "postgres", sql },
+        "PostgreSQL executeBatch failed",
+      );
+    }
+  }
+
   hasCursorSupport(): boolean { return true; }
 
   async ping(): Promise<void> {

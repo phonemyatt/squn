@@ -4,9 +4,10 @@ import { ValidationError } from "../errors/types.ts";
 
 const NAMED_PARAM_RE = /@([a-zA-Z_][a-zA-Z0-9_]*)/g;
 
-interface BuildResult {
+export interface BuildResult {
   readonly text: string;
   readonly params: readonly unknown[];
+  readonly paramOrder: readonly string[];
 }
 
 /**
@@ -90,5 +91,5 @@ export function buildParams(
     );
   }
 
-  return { text, params: values };
+  return { text, params: values, paramOrder };
 }

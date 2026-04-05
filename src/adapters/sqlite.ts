@@ -225,6 +225,33 @@ export class SqliteAdapter implements IDbAdapter {
     return Promise.resolve(tx);
   }
 
+  executeBatch(
+    sql: string,
+    rows: readonly Record<string, unknown>[],
+    paramNames: readonly string[],
+    _strategy?: "prepared-loop" | "copy" | "bulk-load",
+  ): Promise<{ rowsAffected: number }> {
+    try {
+      const stmt = this.db.prepare(sql);
+      let total = 0;
+      for (const row of rows) {
+        const params = paramNames.map((name) => row[name]) as SQLQueryBindings[];
+        stmt.run(...params);
+        total++;
+      }
+      return Promise.resolve({ rowsAffected: total });
+    } catch (err) {
+      return Promise.reject(
+        wrapError(
+          err,
+          ErrorCode.ADAPTER_DRIVER_ERROR,
+          { operation: "executeBatch", adapter: "sqlite", sql },
+          "SQLite executeBatch failed",
+        ),
+      );
+    }
+  }
+
   hasCursorSupport(): boolean { return false; }
 
   ping(): Promise<void> {

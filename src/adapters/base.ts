@@ -33,6 +33,16 @@ export interface IDbAdapter {
   execute(sql: string, params: readonly unknown[]): Promise<{ rowsAffected: number }>;
   query(sql: string, params: readonly unknown[]): Promise<Row[]>;
   queryMultiple(sql: string, params: readonly unknown[]): Promise<Row[][]>;
+  /**
+   * Executes the same prepared statement once per row using native batch/pipeline.
+   * paramNames maps column names to positional params in `sql`.
+   */
+  executeBatch(
+    sql: string,
+    rows: readonly Record<string, unknown>[],
+    paramNames: readonly string[],
+    strategy?: "prepared-loop" | "copy" | "bulk-load",
+  ): Promise<{ rowsAffected: number }>;
   beginTransaction(): Promise<IDbTransaction>;
   /** Returns true if the adapter supports server-side cursors for streaming. */
   hasCursorSupport(): boolean;

@@ -274,6 +274,43 @@ export class MssqlAdapter implements IDbAdapter {
     return tx;
   }
 
+  async executeBatch(
+    sql: string,
+    rows: readonly Record<string, unknown>[],
+    paramNames: readonly string[],
+    strategy?: "prepared-loop" | "copy" | "bulk-load",
+  ): Promise<{ rowsAffected: number }> {
+    if (strategy === "bulk-load") {
+      return Promise.reject(
+        wrapError(
+          new Error("bulk-load strategy not yet implemented for MSSQL"),
+          ErrorCode.ADAPTER_NOT_SUPPORTED,
+          { operation: "executeBatch", adapter: "mssql" },
+          "bulk-load strategy not yet implemented for MSSQL",
+        ),
+      );
+    }
+    try {
+      const pool = await this.getPool();
+      let total = 0;
+      for (const row of rows) {
+        const params = paramNames.map((name) => row[name]);
+        const request = pool.request();
+        bindParams(request, params);
+        const result = await request.query(sql);
+        total += result.rowsAffected.reduce((a: number, b: number) => a + b, 0);
+      }
+      return { rowsAffected: total };
+    } catch (err) {
+      throw wrapError(
+        err,
+        ErrorCode.ADAPTER_DRIVER_ERROR,
+        { operation: "executeBatch", adapter: "mssql", sql },
+        "MSSQL executeBatch failed",
+      );
+    }
+  }
+
   hasCursorSupport(): boolean { return false; }
 
   async ping(): Promise<void> {

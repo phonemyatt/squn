@@ -43,6 +43,7 @@ export interface Db {
   executeBatch(
     fragment: SqlFragment,
     rows: readonly Record<string, unknown>[],
+    options?: { strategy?: "prepared-loop" | "copy" | "bulk-load" },
   ): Promise<{ rowsAffected: number }>;
   stream<T>(
     fragment: SqlFragment,
@@ -102,8 +103,9 @@ export function createDb(
     executeBatch(
       fragment: SqlFragment,
       rows: readonly Record<string, unknown>[],
+      options?: { strategy?: "prepared-loop" | "copy" | "bulk-load" },
     ): Promise<{ rowsAffected: number }> {
-      return executeBatch(adapter, fragment, rows);
+      return executeBatch(adapter, fragment, rows, options);
     },
     stream<T>(
       fragment: SqlFragment,
@@ -156,7 +158,7 @@ export interface MultiDb<Names extends string = string> {
   executeBatch(
     fragment: SqlFragment,
     rows: readonly Record<string, unknown>[],
-    options?: ExecuteOptions<Names>,
+    options?: ExecuteOptions<Names> & { strategy?: "prepared-loop" | "copy" | "bulk-load" },
   ): Promise<{ rowsAffected: number }>;
   stream<T>(fragment: SqlFragment, options?: StreamOptions<Names>): AsyncIterableIterator<T>;
   atomically<T>(
@@ -189,8 +191,8 @@ function makeScopedDb<Names extends string>(
     querySingle: <T>(fragment: SqlFragment) => querySingle<T>(adapter, fragment),
     queryScalar: <T>(fragment: SqlFragment) => queryScalar<T>(adapter, fragment),
     execute: (fragment: SqlFragment) => execute(adapter, fragment),
-    executeBatch: (fragment: SqlFragment, rows: readonly Record<string, unknown>[]) =>
-      executeBatch(adapter, fragment, rows),
+    executeBatch: (fragment: SqlFragment, rows: readonly Record<string, unknown>[], options?: { strategy?: "prepared-loop" | "copy" | "bulk-load" }) =>
+      executeBatch(adapter, fragment, rows, options),
     stream: <T>(fragment: SqlFragment, batchSize?: number) =>
       stream<T>(adapter, fragment, batchSize),
     atomically: <T>(fn: (q: AtomicExecutor) => Promise<T>, options?: AtomicOptions) =>
@@ -255,9 +257,9 @@ export function createConnections<
     executeBatch(
       fragment: SqlFragment,
       rows: readonly Record<string, unknown>[],
-      options?: ExecuteOptions<Names>,
+      options?: ExecuteOptions<Names> & { strategy?: "prepared-loop" | "copy" | "bulk-load" },
     ): Promise<{ rowsAffected: number }> {
-      return executeBatch(registry.get(options?.connection), fragment, rows);
+      return executeBatch(registry.get(options?.connection), fragment, rows, options);
     },
     stream<T>(fragment: SqlFragment, options?: StreamOptions<Names>): AsyncIterableIterator<T> {
       return stream<T>(registry.get(options?.connection), fragment, options?.batchSize);

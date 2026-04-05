@@ -24,6 +24,7 @@ function stub(): IDbAdapter {
     async beginTransaction(): Promise<IDbTransaction> {
       throw new Error("not impl");
     },
+    async executeBatch(_s: string, _rows: readonly Record<string, unknown>[], _p: readonly string[]) { return { rowsAffected: 0 }; },
     hasCursorSupport() { return false; },
     async ping() {},
     async close() {},

@@ -10,19 +10,16 @@ export async function execute(
   return adapter.execute(fragment.text, fragment.params);
 }
 
-/** Single prepared statement executed once per row. */
-export async function executeBatch(
+/** Single prepared statement executed once per row via adapter-native batch. */
+export function executeBatch(
   adapter: IDbAdapter,
   fragment: SqlFragment,
   rows: readonly Record<string, unknown>[],
+  options?: { strategy?: "prepared-loop" | "copy" | "bulk-load" },
 ): Promise<{ rowsAffected: number }> {
-  let total = 0;
-  for (const row of rows) {
-    const built = buildParams(fragment.text, row, adapter.type);
-    const result = await adapter.execute(built.text, built.params);
-    total += result.rowsAffected;
-  }
-  return { rowsAffected: total };
+  if (rows.length === 0) return Promise.resolve({ rowsAffected: 0 });
+  const built = buildParams(fragment.text, rows[0] ?? {}, adapter.type);
+  return adapter.executeBatch(built.text, rows, built.paramOrder, options?.strategy);
 }
 
 /** Typed insert — data checked against InferInsert at the type level. */

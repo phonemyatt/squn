@@ -56,6 +56,7 @@ function mockAdapter(opts?: {
       log.push("begin");
       return tx;
     },
+    async executeBatch(_s: string, _rows: readonly Record<string, unknown>[], _p: readonly string[]) { return { rowsAffected: 0 }; },
     hasCursorSupport() { return false; },
     async ping() {},
     async close() {},
