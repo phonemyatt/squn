@@ -31,18 +31,11 @@ interface PreparedMeta {
  * For single-row: use .first() or .single().
  * For writes: use .execute().
  */
-export class PreparedQuery<
-  T,
-  P extends Record<string, unknown> = Record<string, never>,
-> {
+export class PreparedQuery<T, P extends Record<string, unknown> = Record<string, never>> {
   private readonly meta: PreparedMeta;
   private readonly adapter: IDbAdapter;
 
-  constructor(
-    adapter: IDbAdapter,
-    fragment: SqlFragment,
-    paramNames: readonly string[],
-  ) {
+  constructor(adapter: IDbAdapter, fragment: SqlFragment, paramNames: readonly string[]) {
     // All the expensive work happens here — once.
     validateSql(fragment);
 
@@ -85,14 +78,10 @@ export class PreparedQuery<
     const bound = this.bind(params);
     const rows = await this.adapter.query(this.meta.text, bound as unknown[]);
     if (rows.length === 0) {
-      throw new QueryError(
-        ErrorCode.NO_ROWS_FOUND,
-        "PreparedQuery.single() returned zero rows",
-        {
-          operation: "single",
-          sql: this.meta.text,
-        },
-      );
+      throw new QueryError(ErrorCode.NO_ROWS_FOUND, "PreparedQuery.single() returned zero rows", {
+        operation: "single",
+        sql: this.meta.text,
+      });
     }
     if (rows.length > 1) {
       throw new QueryError(
@@ -109,26 +98,18 @@ export class PreparedQuery<
     const bound = this.bind(params);
     const rows = await this.adapter.query(this.meta.text, bound as unknown[]);
     if (rows.length === 0) {
-      throw new QueryError(
-        ErrorCode.NO_ROWS_FOUND,
-        "PreparedQuery.scalar() returned zero rows",
-        {
-          operation: "scalar",
-          sql: this.meta.text,
-        },
-      );
+      throw new QueryError(ErrorCode.NO_ROWS_FOUND, "PreparedQuery.scalar() returned zero rows", {
+        operation: "scalar",
+        sql: this.meta.text,
+      });
     }
     const firstRow = rows[0] as Row;
     const firstKey = Object.keys(firstRow)[0];
     if (firstKey === undefined) {
-      throw new QueryError(
-        ErrorCode.NO_ROWS_FOUND,
-        "PreparedQuery.scalar() row has no columns",
-        {
-          operation: "scalar",
-          sql: this.meta.text,
-        },
-      );
+      throw new QueryError(ErrorCode.NO_ROWS_FOUND, "PreparedQuery.scalar() row has no columns", {
+        operation: "scalar",
+        sql: this.meta.text,
+      });
     }
     return firstRow[firstKey] as T;
   }
@@ -174,10 +155,7 @@ export class PreparedQuery<
  * const user = await findUserById.first({ id: 42 });
  * ```
  */
-export function prepare<
-  T,
-  P extends Record<string, unknown> = Record<string, never>,
->(
+export function prepare<T, P extends Record<string, unknown> = Record<string, never>>(
   adapter: IDbAdapter,
   fragment: SqlFragment,
   paramNames: readonly string[],

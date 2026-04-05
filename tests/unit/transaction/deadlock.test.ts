@@ -1,10 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import { ErrorCode } from "../../../src/errors/codes.ts";
 import { QueryError } from "../../../src/errors/types.ts";
-import {
-  isDeadlock,
-  retryWithDeadlockBackoff,
-} from "../../../src/transaction/deadlock.ts";
+import { isDeadlock, retryWithDeadlockBackoff } from "../../../src/transaction/deadlock.ts";
 
 function makeErr(cause: unknown): QueryError {
   return new QueryError(
@@ -41,12 +38,7 @@ describe("transaction/deadlock — isDeadlock()", () => {
   });
 
   it("detects SQLite busy in message", () => {
-    expect(
-      isDeadlock(
-        makeErr({ message: "database is locked SQLITE_BUSY" }),
-        "sqlite",
-      ),
-    ).toBe(true);
+    expect(isDeadlock(makeErr({ message: "database is locked SQLITE_BUSY" }), "sqlite")).toBe(true);
   });
 
   it("returns false when cause is null", () => {
@@ -59,13 +51,9 @@ describe("transaction/deadlock — isDeadlock()", () => {
 
 describe("transaction/deadlock — retryWithDeadlockBackoff()", () => {
   it("returns result on first success without retry", async () => {
-    const result = await retryWithDeadlockBackoff(
-      () => Promise.resolve(42),
-      "postgres",
-      {
-        maxRetries: 3,
-      },
-    );
+    const result = await retryWithDeadlockBackoff(() => Promise.resolve(42), "postgres", {
+      maxRetries: 3,
+    });
     expect(result).toBe(42);
   });
 
@@ -86,14 +74,10 @@ describe("transaction/deadlock — retryWithDeadlockBackoff()", () => {
 
   it("throws after exhausting retries", async () => {
     await expect(
-      retryWithDeadlockBackoff(
-        () => Promise.reject(makeErr({ code: "40P01" })),
-        "postgres",
-        {
-          maxRetries: 1,
-          baseDelayMs: 1,
-        },
-      ),
+      retryWithDeadlockBackoff(() => Promise.reject(makeErr({ code: "40P01" })), "postgres", {
+        maxRetries: 1,
+        baseDelayMs: 1,
+      }),
     ).rejects.toThrow();
   });
 

@@ -6,10 +6,7 @@ import { wrapError } from "../../../errors/wrap.ts";
  * MSSQL native TVP stub.
  * Full implementation requires mssql.Table — deferred.
  */
-export function materializeTvpNative(
-  _tvp: TvpValue,
-  _index: number,
-): Promise<TvpMaterialised> {
+export function materializeTvpNative(_tvp: TvpValue, _index: number): Promise<TvpMaterialised> {
   return Promise.reject(
     wrapError(
       new Error("Native TVP materialisation not yet implemented for MSSQL"),

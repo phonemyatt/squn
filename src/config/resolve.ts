@@ -16,8 +16,7 @@ const VALID_ENVS = new Set<string>(["development", "production", "test"]);
  * explicit arg → BUN_ENV → NODE_ENV → "development".
  */
 function detectEnv(explicit?: string): Environment {
-  const raw =
-    explicit ?? process.env.BUN_ENV ?? process.env.NODE_ENV ?? "development";
+  const raw = explicit ?? process.env.BUN_ENV ?? process.env.NODE_ENV ?? "development";
   if (VALID_ENVS.has(raw)) {
     return raw as Environment;
   }
@@ -61,10 +60,7 @@ function deepMerge(
  * Resolves the final SqunConfig by detecting the environment and deep-merging
  * the user's partial config on top of the matching preset.
  */
-export function resolveConfig(
-  userConfig: Partial<SqunConfig>,
-  env?: string,
-): SqunConfig {
+export function resolveConfig(userConfig: Partial<SqunConfig>, env?: string): SqunConfig {
   const environment = detectEnv(env ?? userConfig.env);
   const preset = PRESETS[environment];
 

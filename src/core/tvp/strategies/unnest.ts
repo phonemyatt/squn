@@ -8,16 +8,11 @@ import type { TableType } from "../table-type.ts";
  * extraParams = one array per column, containing all row values for that column.
  * Params are appended after the existing fragment params (index is the offset).
  */
-export function materializeTvpUnnest(
-  tvp: TvpValue,
-  paramOffset: number,
-): TvpMaterialised {
+export function materializeTvpUnnest(tvp: TvpValue, paramOffset: number): TvpMaterialised {
   const tableType = tvp.tableType as TableType<Record<string, string>>;
   const columns = Object.keys(tableType.schema);
 
-  const extraParams: unknown[] = columns.map((col) =>
-    tvp.rows.map((row) => row[col]),
-  );
+  const extraParams: unknown[] = columns.map((col) => tvp.rows.map((row) => row[col]));
 
   const unnestArgs = columns.map((col, i) => {
     const dbType = tableType.schema[col];

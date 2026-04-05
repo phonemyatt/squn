@@ -7,17 +7,11 @@ import type {
 } from "../../../src/adapters/base.ts";
 import { ErrorCode } from "../../../src/errors/codes.ts";
 import { ConnectionError } from "../../../src/errors/types.ts";
-import {
-  AtomicNestingError,
-  runAtomically,
-} from "../../../src/transaction/atomic.ts";
 import { sql } from "../../../src/sql/tag.ts";
+import { AtomicNestingError, runAtomically } from "../../../src/transaction/atomic.ts";
 import type { Row } from "../../../src/types/primitives.ts";
 
-function mockAdapter(opts?: {
-  queryFail?: boolean;
-  commitFail?: boolean;
-}): IDbAdapter {
+function mockAdapter(opts?: { queryFail?: boolean; commitFail?: boolean }): IDbAdapter {
   const log: string[] = [];
   const tx: IDbTransaction = {
     async execute(s: string, _p: unknown[]) {
@@ -56,8 +50,16 @@ function mockAdapter(opts?: {
       log.push("begin");
       return tx;
     },
-    async executeBatch(_s: string, _rows: readonly Record<string, unknown>[], _p: readonly string[]) { return { rowsAffected: 0 }; },
-    hasCursorSupport() { return false; },
+    async executeBatch(
+      _s: string,
+      _rows: readonly Record<string, unknown>[],
+      _p: readonly string[],
+    ) {
+      return { rowsAffected: 0 };
+    },
+    hasCursorSupport() {
+      return false;
+    },
     async ping() {},
     async close() {},
     async materializeTvp(_t: TvpValue, _i: number): Promise<TvpMaterialised> {

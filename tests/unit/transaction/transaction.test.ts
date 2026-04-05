@@ -5,10 +5,7 @@ import { TransactionError } from "../../../src/errors/types.ts";
 import { Transaction } from "../../../src/transaction/transaction.ts";
 import type { Row } from "../../../src/types/primitives.ts";
 
-function mockTx(opts?: {
-  commitFail?: boolean;
-  rollbackFail?: boolean;
-}): IDbTransaction {
+function mockTx(opts?: { commitFail?: boolean; rollbackFail?: boolean }): IDbTransaction {
   return {
     async execute(_s: string, _p: unknown[]) {
       return { rowsAffected: 1 };
@@ -97,18 +94,18 @@ describe("transaction/transaction — Transaction state machine", () => {
   });
 
   describe("savepoints", () => {
-    it("generates a savepoint name in the format squn_sp_{txId}_{depth}", async () => {
+    it("generates a savepoint name with hyphens replaced by underscores", async () => {
       const tx = new Transaction(mockTx(), "test-tx");
       const sp = await tx.savepoint();
-      expect(sp.name).toBe("squn_sp_test-tx_1");
+      expect(sp.name).toBe("squn_sp_test_tx_1");
     });
 
     it("increments depth for each nested savepoint", async () => {
       const tx = new Transaction(mockTx(), "test-tx");
       const sp1 = await tx.savepoint();
       const sp2 = await tx.savepoint();
-      expect(sp1.name).toBe("squn_sp_test-tx_1");
-      expect(sp2.name).toBe("squn_sp_test-tx_2");
+      expect(sp1.name).toBe("squn_sp_test_tx_1");
+      expect(sp2.name).toBe("squn_sp_test_tx_2");
     });
   });
 
@@ -128,9 +125,7 @@ describe("transaction/transaction — Transaction state machine", () => {
     it("throws TX_ALREADY_CLOSED after markFailed()", async () => {
       const tx = new Transaction(mockTx());
       tx.markFailed();
-      await expect(tx.execute("SELECT 1", [])).rejects.toThrow(
-        TransactionError,
-      );
+      await expect(tx.execute("SELECT 1", [])).rejects.toThrow(TransactionError);
     });
   });
 

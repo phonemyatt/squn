@@ -31,9 +31,9 @@ function mockTx(opts?: {
 }
 
 describe("transaction/savepoint — Savepoint", () => {
-  it("generates name in format squn_sp_{txId}_{depth}", () => {
+  it("generates name in format squn_sp_{txId}_{depth} with hyphens replaced", () => {
     const sp = new Savepoint(mockTx(), "tx-123", 1);
-    expect(sp.name).toBe("squn_sp_tx-123_1");
+    expect(sp.name).toBe("squn_sp_tx_123_1");
   });
 
   it("create() calls the underlying transaction savepoint", async () => {

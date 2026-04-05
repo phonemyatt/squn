@@ -16,10 +16,7 @@ const MULTI_STATEMENT_RE = /;\s*\S/;
  * Checks: placeholder/param count, unbalanced parens, unresolved TVP sentinels,
  * multiple statements, write on readonly.
  */
-export function validateSql(
-  fragment: SqlFragment,
-  options: ValidateOptions = {},
-): void {
+export function validateSql(fragment: SqlFragment, options: ValidateOptions = {}): void {
   const { text, params, tvpValues } = fragment;
 
   // Placeholder count must match param count

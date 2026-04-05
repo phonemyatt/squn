@@ -3,12 +3,7 @@ import type { AuthConfig } from "../auth/types.ts";
 import { ErrorCode } from "../errors/codes.ts";
 import { wrapError } from "../errors/wrap.ts";
 import type { Row } from "../types/primitives.ts";
-import type {
-  IDbAdapter,
-  IDbTransaction,
-  TvpMaterialised,
-  TvpValue,
-} from "./base.ts";
+import type { IDbAdapter, IDbTransaction, TvpMaterialised, TvpValue } from "./base.ts";
 
 export interface MssqlAdapterOptions {
   readonly url?: string;
@@ -87,10 +82,7 @@ export class MssqlAdapter implements IDbAdapter {
   private async getPool(): Promise<mssql.ConnectionPool> {
     if (this.pool?.connected) return this.pool;
     try {
-      if (
-        this.options.auth?.type === "connection-string" &&
-        this.options.auth.url
-      ) {
+      if (this.options.auth?.type === "connection-string" && this.options.auth.url) {
         this.pool = await mssql.connect(this.options.auth.url);
       } else {
         const config = buildConfig(this.options);
@@ -107,19 +99,13 @@ export class MssqlAdapter implements IDbAdapter {
     }
   }
 
-  async execute(
-    sql: string,
-    params: unknown[],
-  ): Promise<{ rowsAffected: number }> {
+  async execute(sql: string, params: unknown[]): Promise<{ rowsAffected: number }> {
     try {
       const pool = await this.getPool();
       const request = pool.request();
       bindParams(request, params);
       const result = await request.query(sql);
-      const affected = result.rowsAffected.reduce(
-        (a: number, b: number) => a + b,
-        0,
-      );
+      const affected = result.rowsAffected.reduce((a: number, b: number) => a + b, 0);
       return { rowsAffected: affected };
     } catch (err) {
       throw wrapError(
@@ -180,18 +166,12 @@ export class MssqlAdapter implements IDbAdapter {
     }
 
     const tx: IDbTransaction = {
-      async execute(
-        sql: string,
-        params: unknown[],
-      ): Promise<{ rowsAffected: number }> {
+      async execute(sql: string, params: unknown[]): Promise<{ rowsAffected: number }> {
         try {
           const request = new mssql.Request(transaction);
           bindParams(request, params);
           const result = await request.query(sql);
-          const affected = result.rowsAffected.reduce(
-            (a: number, b: number) => a + b,
-            0,
-          );
+          const affected = result.rowsAffected.reduce((a: number, b: number) => a + b, 0);
           return { rowsAffected: affected };
         } catch (err) {
           throw wrapError(
@@ -311,7 +291,9 @@ export class MssqlAdapter implements IDbAdapter {
     }
   }
 
-  hasCursorSupport(): boolean { return false; }
+  hasCursorSupport(): boolean {
+    return false;
+  }
 
   async ping(): Promise<void> {
     try {
@@ -343,10 +325,7 @@ export class MssqlAdapter implements IDbAdapter {
     }
   }
 
-  async materializeTvp(
-    _tvp: TvpValue,
-    _index: number,
-  ): Promise<TvpMaterialised> {
+  async materializeTvp(_tvp: TvpValue, _index: number): Promise<TvpMaterialised> {
     throw wrapError(
       new Error("TVP materialisation not yet implemented for MSSQL"),
       ErrorCode.ADAPTER_NOT_SUPPORTED,

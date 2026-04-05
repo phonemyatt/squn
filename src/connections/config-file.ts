@@ -7,9 +7,7 @@ import type { MultiDbConfig } from "./types.ts";
  * If the file uses `: SqunConfig` instead of `satisfies SqunConfig`,
  * Names widens to string — throws a clear error explaining the fix.
  */
-export async function loadConfigFile(
-  path: string,
-): Promise<MultiDbConfig | null> {
+export async function loadConfigFile(path: string): Promise<MultiDbConfig | null> {
   try {
     const mod = await import(path);
     const config = mod.default ?? mod.config;

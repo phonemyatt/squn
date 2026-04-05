@@ -6,11 +6,7 @@ import { ValidationError } from "../../../src/errors/types.ts";
 describe("core/param-builder — buildParams()", () => {
   describe("named parameter translation for SQLite and MySQL (? style)", () => {
     it("replaces @name with ? and extracts the value in order", () => {
-      const result = buildParams(
-        "SELECT * FROM users WHERE id = @id",
-        { id: 42 },
-        "sqlite",
-      );
+      const result = buildParams("SELECT * FROM users WHERE id = @id", { id: 42 }, "sqlite");
       expect(result.text).toBe("SELECT * FROM users WHERE id = ?");
       expect(result.params).toEqual([42]);
     });
@@ -21,9 +17,7 @@ describe("core/param-builder — buildParams()", () => {
         { name: "Alice", age: 18 },
         "mysql",
       );
-      expect(result.text).toBe(
-        "SELECT * FROM users WHERE name = ? AND age > ?",
-      );
+      expect(result.text).toBe("SELECT * FROM users WHERE name = ? AND age > ?");
       expect(result.params).toEqual(["Alice", 18]);
     });
 
@@ -33,9 +27,7 @@ describe("core/param-builder — buildParams()", () => {
         { name: "Bob" },
         "sqlite",
       );
-      expect(result.text).toBe(
-        "SELECT * FROM users WHERE name = ? OR alias = ?",
-      );
+      expect(result.text).toBe("SELECT * FROM users WHERE name = ? OR alias = ?");
       expect(result.params).toEqual(["Bob", "Bob"]);
     });
 
@@ -52,11 +44,7 @@ describe("core/param-builder — buildParams()", () => {
 
     it("throws ValidationError when extra keys are in the object but not in the SQL", () => {
       try {
-        buildParams(
-          "SELECT * FROM users WHERE id = @id",
-          { id: 1, unused: "value" },
-          "sqlite",
-        );
+        buildParams("SELECT * FROM users WHERE id = @id", { id: 1, unused: "value" }, "sqlite");
         expect.unreachable("should have thrown");
       } catch (e) {
         expect(e).toBeInstanceOf(ValidationError);
@@ -73,9 +61,7 @@ describe("core/param-builder — buildParams()", () => {
         { name: "Alice", age: 25 },
         "postgres",
       );
-      expect(result.text).toBe(
-        "SELECT * FROM users WHERE name = $1 AND age > $2",
-      );
+      expect(result.text).toBe("SELECT * FROM users WHERE name = $1 AND age > $2");
       expect(result.params).toEqual(["Alice", 25]);
     });
 
@@ -85,9 +71,7 @@ describe("core/param-builder — buildParams()", () => {
         { name: "Bob" },
         "postgres",
       );
-      expect(result.text).toBe(
-        "SELECT * FROM users WHERE name = $1 OR alias = $1",
-      );
+      expect(result.text).toBe("SELECT * FROM users WHERE name = $1 OR alias = $1");
       expect(result.params).toEqual(["Bob"]);
     });
   });
@@ -104,11 +88,7 @@ describe("core/param-builder — buildParams()", () => {
     });
 
     it("expands an empty array to (NULL) to avoid invalid SQL", () => {
-      const result = buildParams(
-        "SELECT * FROM users WHERE id IN @ids",
-        { ids: [] },
-        "sqlite",
-      );
+      const result = buildParams("SELECT * FROM users WHERE id IN @ids", { ids: [] }, "sqlite");
       expect(result.text).toBe("SELECT * FROM users WHERE id IN (NULL)");
       expect(result.params).toEqual([]);
     });
@@ -119,9 +99,7 @@ describe("core/param-builder — buildParams()", () => {
         { active: true, ids: [10, 20] },
         "sqlite",
       );
-      expect(result.text).toBe(
-        "SELECT * FROM users WHERE active = ? AND id IN (?, ?)",
-      );
+      expect(result.text).toBe("SELECT * FROM users WHERE active = ? AND id IN (?, ?)");
       expect(result.params).toEqual([true, 10, 20]);
     });
 

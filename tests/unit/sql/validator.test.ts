@@ -12,10 +12,7 @@ describe("sql/validator — validateSql()", () => {
 
   describe("placeholder/param count", () => {
     it("throws PLACEHOLDER_MISMATCH when placeholders exceed params", () => {
-      const f = createFragment(
-        "SELECT * FROM users WHERE id = $1 AND name = $2",
-        [42],
-      );
+      const f = createFragment("SELECT * FROM users WHERE id = $1 AND name = $2", [42]);
       try {
         validateSql(f);
         expect.unreachable("should throw");
@@ -26,18 +23,12 @@ describe("sql/validator — validateSql()", () => {
     });
 
     it("throws PLACEHOLDER_MISMATCH when params exceed placeholders", () => {
-      const f = createFragment("SELECT * FROM users WHERE id = $1", [
-        42,
-        "extra",
-      ]);
+      const f = createFragment("SELECT * FROM users WHERE id = $1", [42, "extra"]);
       expect(() => validateSql(f)).toThrow(SecurityError);
     });
 
     it("passes when placeholder count matches param count exactly", () => {
-      const f = createFragment(
-        "SELECT * FROM users WHERE id = $1 AND name = $2",
-        [1, "a"],
-      );
+      const f = createFragment("SELECT * FROM users WHERE id = $1 AND name = $2", [1, "a"]);
       expect(() => validateSql(f)).not.toThrow();
     });
   });
@@ -54,10 +45,7 @@ describe("sql/validator — validateSql()", () => {
     });
 
     it("passes for balanced parentheses", () => {
-      const f = createFragment(
-        "SELECT * FROM users WHERE (id = $1 AND (name = $2))",
-        [1, "a"],
-      );
+      const f = createFragment("SELECT * FROM users WHERE (id = $1 AND (name = $2))", [1, "a"]);
       expect(() => validateSql(f)).not.toThrow();
     });
   });
@@ -69,9 +57,7 @@ describe("sql/validator — validateSql()", () => {
         validateSql(f);
         expect.unreachable("should throw");
       } catch (e) {
-        expect((e as SecurityError).code).toBe(
-          ErrorCode.UNRESOLVED_TVP_SENTINEL,
-        );
+        expect((e as SecurityError).code).toBe(ErrorCode.UNRESOLVED_TVP_SENTINEL);
       }
     });
 
@@ -93,9 +79,7 @@ describe("sql/validator — validateSql()", () => {
         validateSql(f);
         expect.unreachable("should throw");
       } catch (e) {
-        expect((e as SecurityError).code).toBe(
-          ErrorCode.MULTI_STATEMENT_BLOCKED,
-        );
+        expect((e as SecurityError).code).toBe(ErrorCode.MULTI_STATEMENT_BLOCKED);
       }
     });
 

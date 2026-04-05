@@ -1,18 +1,11 @@
-const VALIDATION_METADATA = new WeakMap<
-  object,
-  Map<string, ValidationRule[]>
->();
+const VALIDATION_METADATA = new WeakMap<object, Map<string, ValidationRule[]>>();
 
 interface ValidationRule {
   readonly type: "notNull" | "email" | "min" | "max";
   readonly value?: number;
 }
 
-function addRule(
-  target: object,
-  propertyKey: string,
-  rule: ValidationRule,
-): void {
+function addRule(target: object, propertyKey: string, rule: ValidationRule): void {
   let classRules = VALIDATION_METADATA.get(target);
   if (classRules === undefined) {
     classRules = new Map();
@@ -27,10 +20,7 @@ function addRule(
 }
 
 /** Marks a property as required — validates that the value is not null or undefined. */
-export function NotNull(
-  _target: undefined,
-  context: ClassFieldDecoratorContext,
-): void {
+export function NotNull(_target: undefined, context: ClassFieldDecoratorContext): void {
   const name = String(context.name);
   context.addInitializer(function () {
     addRule(Object.getPrototypeOf(this as object) as object, name, {
@@ -40,10 +30,7 @@ export function NotNull(
 }
 
 /** Validates that a string property matches an email format. */
-export function Email(
-  _target: undefined,
-  context: ClassFieldDecoratorContext,
-): void {
+export function Email(_target: undefined, context: ClassFieldDecoratorContext): void {
   const name = String(context.name);
   context.addInitializer(function () {
     addRule(Object.getPrototypeOf(this as object) as object, name, {
@@ -79,11 +66,6 @@ export function Max(value: number) {
 }
 
 /** Retrieves all validation rules for a class instance's prototype. */
-export function getValidationRules(
-  target: object,
-): Map<string, ValidationRule[]> {
-  return (
-    VALIDATION_METADATA.get(Object.getPrototypeOf(target) as object) ??
-    new Map()
-  );
+export function getValidationRules(target: object): Map<string, ValidationRule[]> {
+  return VALIDATION_METADATA.get(Object.getPrototypeOf(target) as object) ?? new Map();
 }

@@ -85,13 +85,7 @@ describe("types/keys — key utility types", () => {
         .filter(([_, c]) => !c.isNullable)
         .map(([k]) => k)
         .sort();
-      expect(notNullKeys).toEqual([
-        "createdAt",
-        "email",
-        "fullName",
-        "id",
-        "name",
-      ]);
+      expect(notNullKeys).toEqual(["createdAt", "email", "fullName", "id", "name"]);
     });
   });
 

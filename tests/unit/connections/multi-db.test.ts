@@ -1,8 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it } from "bun:test";
-import type { IDbAdapter, IDbTransaction, TvpMaterialised, TvpValue } from "../../../src/adapters/base.ts";
+import type {
+  IDbAdapter,
+  IDbTransaction,
+  TvpMaterialised,
+  TvpValue,
+} from "../../../src/adapters/base.ts";
+import { createConnections } from "../../../src/db.ts";
 import { ErrorCode } from "../../../src/errors/codes.ts";
 import { ConnectionError } from "../../../src/errors/types.ts";
-import { createConnections } from "../../../src/db.ts";
 import { sql } from "../../../src/sql/tag.ts";
 import type { Row } from "../../../src/types/primitives.ts";
 
@@ -11,8 +16,12 @@ function mockAdapter(tag: string): IDbAdapter & { calls: string[] } {
   const calls: string[] = [];
 
   const tx: IDbTransaction = {
-    async execute(_s, _p) { return { rowsAffected: 0 }; },
-    async query(_s, _p) { return []; },
+    async execute(_s, _p) {
+      return { rowsAffected: 0 };
+    },
+    async query(_s, _p) {
+      return [];
+    },
     async commit() {},
     async rollback() {},
     async savepoint(_n) {},
@@ -23,15 +32,29 @@ function mockAdapter(tag: string): IDbAdapter & { calls: string[] } {
   return {
     calls,
     type: "sqlite",
-    async execute(_s, _p) { return { rowsAffected: 0 }; },
+    async execute(_s, _p) {
+      return { rowsAffected: 0 };
+    },
     async query(_s, _p) {
       calls.push(tag);
       return [{ from: tag }] as Row[];
     },
-    async queryMultiple(_s, _p) { return []; },
-    async beginTransaction() { return tx; },
-    async executeBatch(_s: string, _rows: readonly Record<string, unknown>[], _p: readonly string[]) { return { rowsAffected: 0 }; },
-    hasCursorSupport() { return false; },
+    async queryMultiple(_s, _p) {
+      return [];
+    },
+    async beginTransaction() {
+      return tx;
+    },
+    async executeBatch(
+      _s: string,
+      _rows: readonly Record<string, unknown>[],
+      _p: readonly string[],
+    ) {
+      return { rowsAffected: 0 };
+    },
+    hasCursorSupport() {
+      return false;
+    },
     async ping() {},
     async close() {},
     async materializeTvp(_t: TvpValue, _i: number): Promise<TvpMaterialised> {

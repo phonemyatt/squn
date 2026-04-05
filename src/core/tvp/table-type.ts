@@ -17,6 +17,4 @@ export class TableType<Schema extends Record<string, string>> {
  * All values are typed as unknown since the schema holds db type strings.
  */
 export type InferTableType<T extends TableType<Record<string, string>>> =
-  T extends TableType<infer S>
-    ? { [K in keyof S]: unknown }
-    : never;
+  T extends TableType<infer S> ? { [K in keyof S]: unknown } : never;

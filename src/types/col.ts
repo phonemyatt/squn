@@ -29,15 +29,11 @@ interface ColumnBuilder<T, Nullable extends boolean, Readonly extends boolean> {
   notNull(): ColumnBuilder<T, false, Readonly> & ColumnDef<T, false, Readonly>;
   readonly(): ColumnBuilder<T, Nullable, true> & ColumnDef<T, Nullable, true>;
   primaryKey(): ColumnBuilder<T, Nullable, true> & ColumnDef<T, Nullable, true>;
-  computed(
-    expr: string,
-  ): ColumnBuilder<T, Nullable, true> & ColumnDef<T, Nullable, true>;
-  unique(): ColumnBuilder<T, Nullable, Readonly> &
-    ColumnDef<T, Nullable, Readonly>;
+  computed(expr: string): ColumnBuilder<T, Nullable, true> & ColumnDef<T, Nullable, true>;
+  unique(): ColumnBuilder<T, Nullable, Readonly> & ColumnDef<T, Nullable, Readonly>;
 }
 
-type AnyCol = ColumnBuilder<unknown, boolean, boolean> &
-  ColumnDef<unknown, boolean, boolean>;
+type AnyCol = ColumnBuilder<unknown, boolean, boolean> & ColumnDef<unknown, boolean, boolean>;
 
 function makeBuilder(base: Record<string, unknown>): AnyCol {
   const obj = { ...base } as Record<string, unknown>;
@@ -45,8 +41,7 @@ function makeBuilder(base: Record<string, unknown>): AnyCol {
   obj.nullable = () => makeBuilder({ ...obj, isNullable: true });
   obj.notNull = () => makeBuilder({ ...obj, isNullable: false });
   obj.readonly = () => makeBuilder({ ...obj, isReadonly: true });
-  obj.primaryKey = () =>
-    makeBuilder({ ...obj, isPrimaryKey: true, isReadonly: true });
+  obj.primaryKey = () => makeBuilder({ ...obj, isPrimaryKey: true, isReadonly: true });
   obj.computed = (expr: string) =>
     makeBuilder({
       ...obj,
@@ -82,8 +77,7 @@ export const col = {
   bigint: () => createColumnDef<number>("bigint", null),
   smallint: () => createColumnDef<number>("smallint", null),
   float: () => createColumnDef<number>("float", null),
-  decimal: (p?: number, _s?: number) =>
-    createColumnDef<number>("decimal", p ?? null),
+  decimal: (p?: number, _s?: number) => createColumnDef<number>("decimal", p ?? null),
   boolean: () => createColumnDef<boolean>("boolean", null),
   text: () => createColumnDef<string>("text", null),
   nvarchar: (len: number | "MAX") => createColumnDef<string>("nvarchar", len),

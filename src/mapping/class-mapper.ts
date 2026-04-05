@@ -4,11 +4,7 @@ import type { MapperFn } from "./mapper-registry.ts";
 // biome-ignore lint/suspicious/noExplicitAny: constructor args are heterogeneous at runtime
 type Constructor<T> = new (...args: any[]) => T;
 
-export type ConstructionStrategy =
-  | "property"
-  | "constructor"
-  | "factory"
-  | "static";
+export type ConstructionStrategy = "property" | "constructor" | "factory" | "static";
 
 /**
  * Property injection: Object.create() then assign fields from the row.
@@ -49,8 +45,6 @@ export function factoryMapper<T>(factory: (row: Row) => T): MapperFn<T> {
 /**
  * Static fromDb(): calls Model.fromDb(row) automatically.
  */
-export function staticFromDbMapper<T>(cls: {
-  fromDb(row: Row): T;
-}): MapperFn<T> {
+export function staticFromDbMapper<T>(cls: { fromDb(row: Row): T }): MapperFn<T> {
   return (row: Row): T => cls.fromDb(row);
 }

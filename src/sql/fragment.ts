@@ -15,20 +15,12 @@ export interface SqlFragment {
 
 /** Type guard for SqlFragment. */
 export function isSqlFragment(x: unknown): x is SqlFragment {
-  return (
-    typeof x === "object" &&
-    x !== null &&
-    (x as Record<string, unknown>).__isSql === true
-  );
+  return typeof x === "object" && x !== null && (x as Record<string, unknown>).__isSql === true;
 }
 
 /** Type guard for TvpValue. */
 export function isTvpValue(x: unknown): x is TvpValue {
-  return (
-    typeof x === "object" &&
-    x !== null &&
-    (x as Record<string, unknown>).__isTvp === true
-  );
+  return typeof x === "object" && x !== null && (x as Record<string, unknown>).__isTvp === true;
 }
 
 /** Creates a SqlFragment from parts. */

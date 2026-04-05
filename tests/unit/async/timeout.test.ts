@@ -34,24 +34,14 @@ describe("async/timeout — resolveTimeout()", () => {
     });
 
     it("uses the global timeout when no call-site option is provided", () => {
-      const result = resolveTimeout(
-        undefined,
-        undefined,
-        globalConfig,
-        "query",
-      );
+      const result = resolveTimeout(undefined, undefined, globalConfig, "query");
       expect(result).toBe(30_000);
     });
   });
 
   describe("precedence — transaction budget", () => {
     it("caps the resolved timeout to the remaining transaction budget", () => {
-      const result = resolveTimeout(
-        50_000,
-        makeClock(10_000),
-        globalConfig,
-        "query",
-      );
+      const result = resolveTimeout(50_000, makeClock(10_000), globalConfig, "query");
       expect(result).toBe(10_000);
     });
 
@@ -61,32 +51,17 @@ describe("async/timeout — resolveTimeout()", () => {
     });
 
     it("uses the remaining budget when it is shorter than both call-site and global", () => {
-      const result = resolveTimeout(
-        20_000,
-        makeClock(3_000),
-        globalConfig,
-        "query",
-      );
+      const result = resolveTimeout(20_000, makeClock(3_000), globalConfig, "query");
       expect(result).toBe(3_000);
     });
 
     it("uses the call-site timeout when it is shorter than the remaining budget", () => {
-      const result = resolveTimeout(
-        2_000,
-        makeClock(10_000),
-        globalConfig,
-        "query",
-      );
+      const result = resolveTimeout(2_000, makeClock(10_000), globalConfig, "query");
       expect(result).toBe(2_000);
     });
 
     it("ignores budget when remaining returns null", () => {
-      const result = resolveTimeout(
-        5_000,
-        makeClock(null),
-        globalConfig,
-        "query",
-      );
+      const result = resolveTimeout(5_000, makeClock(null), globalConfig, "query");
       expect(result).toBe(5_000);
     });
   });

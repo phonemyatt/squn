@@ -1,14 +1,9 @@
 import { Database, type SQLQueryBindings } from "bun:sqlite";
+import { materializeTvpTempTable } from "../core/tvp/strategies/temp-table.ts";
 import { ErrorCode } from "../errors/codes.ts";
 import { wrapError } from "../errors/wrap.ts";
-import { materializeTvpTempTable } from "../core/tvp/strategies/temp-table.ts";
 import type { Row } from "../types/primitives.ts";
-import type {
-  IDbAdapter,
-  IDbTransaction,
-  TvpMaterialised,
-  TvpValue,
-} from "./base.ts";
+import type { IDbAdapter, IDbTransaction, TvpMaterialised, TvpValue } from "./base.ts";
 
 export interface SqliteAdapterOptions {
   readonly file?: string;
@@ -54,9 +49,7 @@ export class SqliteAdapter implements IDbAdapter {
 
   query(sql: string, params: unknown[]): Promise<Row[]> {
     try {
-      const rows = this.db
-        .query(sql)
-        .all(...(params as SQLQueryBindings[])) as Row[];
+      const rows = this.db.query(sql).all(...(params as SQLQueryBindings[])) as Row[];
       return Promise.resolve(rows);
     } catch (err) {
       return Promise.reject(
@@ -75,9 +68,7 @@ export class SqliteAdapter implements IDbAdapter {
       const results: Row[][] = [];
       const statements = sql.split(";").filter((s) => s.trim().length > 0);
       for (const stmt of statements) {
-        results.push(
-          this.db.query(stmt).all(...(params as SQLQueryBindings[])) as Row[],
-        );
+        results.push(this.db.query(stmt).all(...(params as SQLQueryBindings[])) as Row[]);
       }
       return Promise.resolve(results);
     } catch (err) {
@@ -109,10 +100,7 @@ export class SqliteAdapter implements IDbAdapter {
     const db = this.db;
 
     const tx: IDbTransaction = {
-      execute(
-        sql: string,
-        params: unknown[],
-      ): Promise<{ rowsAffected: number }> {
+      execute(sql: string, params: unknown[]): Promise<{ rowsAffected: number }> {
         try {
           db.prepare(sql).run(...(params as SQLQueryBindings[]));
           const result = db.query("SELECT changes() as c").get() as {
@@ -132,9 +120,7 @@ export class SqliteAdapter implements IDbAdapter {
       },
       query(sql: string, params: unknown[]): Promise<Row[]> {
         try {
-          const rows = db
-            .query(sql)
-            .all(...(params as SQLQueryBindings[])) as Row[];
+          const rows = db.query(sql).all(...(params as SQLQueryBindings[])) as Row[];
           return Promise.resolve(rows);
         } catch (err) {
           return Promise.reject(
@@ -253,7 +239,9 @@ export class SqliteAdapter implements IDbAdapter {
     }
   }
 
-  hasCursorSupport(): boolean { return false; }
+  hasCursorSupport(): boolean {
+    return false;
+  }
 
   ping(): Promise<void> {
     try {
@@ -288,8 +276,6 @@ export class SqliteAdapter implements IDbAdapter {
   }
 
   materializeTvp(tvp: TvpValue, _index: number): Promise<TvpMaterialised> {
-    return materializeTvpTempTable(tvp, (sql, params) =>
-      this.execute(sql, [...params]),
-    );
+    return materializeTvpTempTable(tvp, (sql, params) => this.execute(sql, [...params]));
   }
 }

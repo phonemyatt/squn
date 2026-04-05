@@ -6,19 +6,13 @@ import type { SqlFragment } from "../sql/fragment.ts";
 import type { Row } from "../types/primitives.ts";
 
 /** Returns T[] — zero or more rows. */
-export async function query<T>(
-  adapter: IDbAdapter,
-  fragment: SqlFragment,
-): Promise<T[]> {
+export async function query<T>(adapter: IDbAdapter, fragment: SqlFragment): Promise<T[]> {
   const rows = await adapter.query(fragment.text, fragment.params);
   return rows as T[];
 }
 
 /** Returns T | null — first row or null. */
-export async function queryFirst<T>(
-  adapter: IDbAdapter,
-  fragment: SqlFragment,
-): Promise<T | null> {
+export async function queryFirst<T>(adapter: IDbAdapter, fragment: SqlFragment): Promise<T | null> {
   const rows = await adapter.query(fragment.text, fragment.params);
   if (rows.length === 0) return null;
   return rows[0] as T;
@@ -34,14 +28,10 @@ export async function querySingle<T>(
 
   if (rows.length === 0) {
     if (!strict) return null as T;
-    throw new QueryError(
-      ErrorCode.NO_ROWS_FOUND,
-      "querySingle() returned zero rows",
-      {
-        operation: "querySingle",
-        sql: fragment.text,
-      },
-    );
+    throw new QueryError(ErrorCode.NO_ROWS_FOUND, "querySingle() returned zero rows", {
+      operation: "querySingle",
+      sql: fragment.text,
+    });
   }
 
   if (rows.length > 1) {
@@ -56,42 +46,28 @@ export async function querySingle<T>(
 }
 
 /** Returns T — first column of first row. */
-export async function queryScalar<T>(
-  adapter: IDbAdapter,
-  fragment: SqlFragment,
-): Promise<T> {
+export async function queryScalar<T>(adapter: IDbAdapter, fragment: SqlFragment): Promise<T> {
   const rows = await adapter.query(fragment.text, fragment.params);
   if (rows.length === 0) {
-    throw new QueryError(
-      ErrorCode.NO_ROWS_FOUND,
-      "queryScalar() returned zero rows",
-      {
-        operation: "queryScalar",
-        sql: fragment.text,
-      },
-    );
+    throw new QueryError(ErrorCode.NO_ROWS_FOUND, "queryScalar() returned zero rows", {
+      operation: "queryScalar",
+      sql: fragment.text,
+    });
   }
   const firstRow = rows[0] as Row;
   const keys = Object.keys(firstRow);
   const firstKey = keys[0];
   if (firstKey === undefined) {
-    throw new QueryError(
-      ErrorCode.NO_ROWS_FOUND,
-      "queryScalar() row has no columns",
-      {
-        operation: "queryScalar",
-        sql: fragment.text,
-      },
-    );
+    throw new QueryError(ErrorCode.NO_ROWS_FOUND, "queryScalar() row has no columns", {
+      operation: "queryScalar",
+      sql: fragment.text,
+    });
   }
   return firstRow[firstKey] as T;
 }
 
 /** Returns multiple result sets. */
-export async function queryMultiple(
-  adapter: IDbAdapter,
-  fragment: SqlFragment,
-): Promise<Row[][]> {
+export async function queryMultiple(adapter: IDbAdapter, fragment: SqlFragment): Promise<Row[][]> {
   return adapter.queryMultiple(fragment.text, fragment.params);
 }
 

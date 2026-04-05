@@ -75,11 +75,10 @@ export async function runAtomically<T>(
       querySingle: async <T>(fragment: SqlFragment): Promise<T> => {
         const rows = await tx.query(fragment.text, fragment.params);
         if (rows.length === 0) {
-          throw new QueryError(
-            ErrorCode.NO_ROWS_FOUND,
-            "querySingle() returned zero rows",
-            { operation: "querySingle", sql: fragment.text },
-          );
+          throw new QueryError(ErrorCode.NO_ROWS_FOUND, "querySingle() returned zero rows", {
+            operation: "querySingle",
+            sql: fragment.text,
+          });
         }
         if (rows.length > 1) {
           throw new QueryError(
@@ -88,30 +87,27 @@ export async function runAtomically<T>(
             { operation: "querySingle", sql: fragment.text },
           );
         }
-        return (rows[0] as T | undefined) as T;
+        return rows[0] as T | undefined as T;
       },
       queryScalar: async <T>(fragment: SqlFragment): Promise<T> => {
         const rows = await tx.query(fragment.text, fragment.params);
         if (rows.length === 0) {
-          throw new QueryError(
-            ErrorCode.NO_ROWS_FOUND,
-            "queryScalar() returned zero rows",
-            { operation: "queryScalar", sql: fragment.text },
-          );
+          throw new QueryError(ErrorCode.NO_ROWS_FOUND, "queryScalar() returned zero rows", {
+            operation: "queryScalar",
+            sql: fragment.text,
+          });
         }
         const firstRow = rows[0] as Row;
         const firstKey = Object.keys(firstRow)[0];
         if (firstKey === undefined) {
-          throw new QueryError(
-            ErrorCode.NO_ROWS_FOUND,
-            "queryScalar() row has no columns",
-            { operation: "queryScalar", sql: fragment.text },
-          );
+          throw new QueryError(ErrorCode.NO_ROWS_FOUND, "queryScalar() row has no columns", {
+            operation: "queryScalar",
+            sql: fragment.text,
+          });
         }
         return firstRow[firstKey] as T;
       },
-      execute: (fragment: SqlFragment) =>
-        tx.execute(fragment.text, fragment.params),
+      execute: (fragment: SqlFragment) => tx.execute(fragment.text, fragment.params),
       executeBatch: async (
         fragment: SqlFragment,
         rows: readonly Record<string, unknown>[],

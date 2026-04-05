@@ -24,9 +24,7 @@ export async function materializeTvpTempTable(
   const columns = Object.keys(tableType.schema);
 
   // Build CREATE TEMP TABLE statement
-  const columnDefs = columns
-    .map((col) => `"${col}" ${tableType.schema[col]}`)
-    .join(", ");
+  const columnDefs = columns.map((col) => `"${col}" ${tableType.schema[col]}`).join(", ");
   await execute(`CREATE TEMP TABLE "${tableName}" (${columnDefs})`, []);
 
   // Insert all rows in a single VALUES statement

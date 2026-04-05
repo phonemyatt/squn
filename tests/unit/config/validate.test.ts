@@ -22,36 +22,26 @@ describe("config/validate — validateConfig()", () => {
 
   describe("pool validation", () => {
     it("throws CONFIG_INVALID_VALUE when pool.min is negative", () => {
-      expect(() => validateConfig({ pool: { min: -1 } })).toThrow(
-        SqunConfigError,
-      );
+      expect(() => validateConfig({ pool: { min: -1 } })).toThrow(SqunConfigError);
       try {
         validateConfig({ pool: { min: -1 } });
       } catch (e) {
-        expect((e as SqunConfigError).code).toBe(
-          ErrorCode.CONFIG_INVALID_VALUE,
-        );
+        expect((e as SqunConfigError).code).toBe(ErrorCode.CONFIG_INVALID_VALUE);
       }
     });
 
     it("throws CONFIG_INVALID_VALUE when pool.max is less than 1", () => {
-      expect(() => validateConfig({ pool: { max: 0 } })).toThrow(
-        SqunConfigError,
-      );
+      expect(() => validateConfig({ pool: { max: 0 } })).toThrow(SqunConfigError);
     });
 
     it("throws CONFIG_INVALID_VALUE when pool.min exceeds pool.max", () => {
-      expect(() => validateConfig({ pool: { min: 10, max: 5 } })).toThrow(
-        SqunConfigError,
-      );
+      expect(() => validateConfig({ pool: { min: 10, max: 5 } })).toThrow(SqunConfigError);
     });
   });
 
   describe("timeout validation", () => {
     it("throws CONFIG_INVALID_VALUE when a timeout value is negative", () => {
-      expect(() => validateConfig({ timeout: { query: -1 } })).toThrow(
-        SqunConfigError,
-      );
+      expect(() => validateConfig({ timeout: { query: -1 } })).toThrow(SqunConfigError);
     });
 
     it("does not throw when timeout is zero", () => {
@@ -61,9 +51,7 @@ describe("config/validate — validateConfig()", () => {
 
   describe("tvpCopyThreshold validation", () => {
     it("throws CONFIG_INVALID_VALUE when tvpCopyThreshold is negative", () => {
-      expect(() => validateConfig({ tvpCopyThreshold: -1 })).toThrow(
-        SqunConfigError,
-      );
+      expect(() => validateConfig({ tvpCopyThreshold: -1 })).toThrow(SqunConfigError);
     });
 
     it("does not throw when tvpCopyThreshold is zero", () => {
@@ -73,17 +61,13 @@ describe("config/validate — validateConfig()", () => {
 
   describe("deadlockRetries validation", () => {
     it("throws CONFIG_INVALID_VALUE when deadlockRetries is negative", () => {
-      expect(() => validateConfig({ deadlockRetries: -1 })).toThrow(
-        SqunConfigError,
-      );
+      expect(() => validateConfig({ deadlockRetries: -1 })).toThrow(SqunConfigError);
     });
   });
 
   describe("cache validation", () => {
     it("throws CONFIG_INVALID_VALUE when cache.maxSize is negative", () => {
-      expect(() => validateConfig({ cache: { maxSize: -1 } })).toThrow(
-        SqunConfigError,
-      );
+      expect(() => validateConfig({ cache: { maxSize: -1 } })).toThrow(SqunConfigError);
     });
   });
 });

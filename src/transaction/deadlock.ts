@@ -19,9 +19,7 @@ export function isDeadlock(err: SqunError, adapterType: AdapterType): boolean {
     case "mysql":
       return errObj.errno === 1213;
     case "sqlite":
-      return String(errObj.code ?? errObj.message ?? "").includes(
-        "SQLITE_BUSY",
-      );
+      return String(errObj.code ?? errObj.message ?? "").includes("SQLITE_BUSY");
   }
 }
 
@@ -45,11 +43,7 @@ export async function retryWithDeadlockBackoff<T>(
     try {
       return await fn();
     } catch (err) {
-      if (
-        attempt >= maxRetries ||
-        !(err instanceof SqunError) ||
-        !isDeadlock(err, adapterType)
-      ) {
+      if (attempt >= maxRetries || !(err instanceof SqunError) || !isDeadlock(err, adapterType)) {
         throw err;
       }
       const delay = Math.min(baseDelayMs * 2 ** attempt, maxDelayMs);

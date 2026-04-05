@@ -12,9 +12,7 @@ describe("sql — tagged template literal", () => {
 
     it("replaces multiple interpolated values with sequential placeholders in order", () => {
       const f = sql`SELECT * FROM users WHERE active = ${true} AND age >= ${18}`;
-      expect(f.text).toBe(
-        "SELECT * FROM users WHERE active = $1 AND age >= $2",
-      );
+      expect(f.text).toBe("SELECT * FROM users WHERE active = $1 AND age >= $2");
       expect(f.params).toEqual([true, 18]);
     });
 
@@ -49,9 +47,7 @@ describe("sql — tagged template literal", () => {
     it("merges a nested fragment's text inline at the interpolation site", () => {
       const filter = sql`deleted_at IS NULL AND active = ${true}`;
       const query = sql`SELECT * FROM users WHERE ${filter}`;
-      expect(query.text).toBe(
-        "SELECT * FROM users WHERE deleted_at IS NULL AND active = $1",
-      );
+      expect(query.text).toBe("SELECT * FROM users WHERE deleted_at IS NULL AND active = $1");
     });
 
     it("appends a nested fragment's params to the outer params array in correct order", () => {

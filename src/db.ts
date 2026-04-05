@@ -2,22 +2,15 @@ import type { IDbAdapter } from "./adapters/base.ts";
 import { execute, executeBatch } from "./api/execute.ts";
 import type { PreparedQuery } from "./api/prepared.ts";
 import { prepare } from "./api/prepared.ts";
-import {
-  query,
-  queryFirst,
-  queryMultiple,
-  queryScalar,
-  querySingle,
-  stream,
-} from "./api/query.ts";
+import { query, queryFirst, queryMultiple, queryScalar, querySingle, stream } from "./api/query.ts";
 import { resolveConfig } from "./config/resolve.ts";
 import type { SqunConfig } from "./config/types.ts";
 import { validateConfig } from "./config/validate.ts";
 import { validateProductionConfig } from "./config/validate-production.ts";
 import { ConnectionRegistry } from "./connections/registry.ts";
 import type {
-  AtomicOptions as MultiAtomicOptions,
   ExecuteOptions,
+  AtomicOptions as MultiAtomicOptions,
   MultiDbConfig,
   QueryOptions,
   ScopedDb,
@@ -45,14 +38,8 @@ export interface Db {
     rows: readonly Record<string, unknown>[],
     options?: { strategy?: "prepared-loop" | "copy" | "bulk-load" },
   ): Promise<{ rowsAffected: number }>;
-  stream<T>(
-    fragment: SqlFragment,
-    batchSize?: number,
-  ): AsyncIterableIterator<T>;
-  atomically<T>(
-    fn: (q: AtomicExecutor) => Promise<T>,
-    options?: AtomicOptions,
-  ): Promise<T>;
+  stream<T>(fragment: SqlFragment, batchSize?: number): AsyncIterableIterator<T>;
+  atomically<T>(fn: (q: AtomicExecutor) => Promise<T>, options?: AtomicOptions): Promise<T>;
   transaction(fn: (tx: Transaction) => Promise<void>): Promise<void>;
   prepare<T, P extends Record<string, unknown>>(
     fragment: SqlFragment,
@@ -64,20 +51,12 @@ export interface Db {
  * Single connection entry point.
  * Calls validateProductionConfig() synchronously — app never starts in invalid state.
  */
-export function createDb(
-  adapter: IDbAdapter,
-  userConfig: Partial<SqunConfig> = {},
-): Db {
+export function createDb(adapter: IDbAdapter, userConfig: Partial<SqunConfig> = {}): Db {
   const config = resolveConfig(userConfig);
   validateConfig(config);
 
   const logger = config.log?.logger ?? noopLogger;
-  validateProductionConfig(
-    config,
-    adapter.type,
-    config.connection ?? {},
-    logger,
-  );
+  validateProductionConfig(config, adapter.type, config.connection ?? {}, logger);
 
   return {
     adapter,
@@ -107,16 +86,10 @@ export function createDb(
     ): Promise<{ rowsAffected: number }> {
       return executeBatch(adapter, fragment, rows, options);
     },
-    stream<T>(
-      fragment: SqlFragment,
-      batchSize?: number,
-    ): AsyncIterableIterator<T> {
+    stream<T>(fragment: SqlFragment, batchSize?: number): AsyncIterableIterator<T> {
       return stream<T>(adapter, fragment, batchSize);
     },
-    atomically<T>(
-      fn: (q: AtomicExecutor) => Promise<T>,
-      options?: AtomicOptions,
-    ): Promise<T> {
+    atomically<T>(fn: (q: AtomicExecutor) => Promise<T>, options?: AtomicOptions): Promise<T> {
       return runAtomically(adapter, fn, options);
     },
     async transaction(fn: (tx: Transaction) => Promise<void>): Promise<void> {
@@ -154,7 +127,10 @@ export interface MultiDb<Names extends string = string> {
   queryFirst<T>(fragment: SqlFragment, options?: QueryOptions<Names>): Promise<T | null>;
   querySingle<T>(fragment: SqlFragment, options?: QueryOptions<Names>): Promise<T>;
   queryScalar<T>(fragment: SqlFragment, options?: QueryOptions<Names>): Promise<T>;
-  execute(fragment: SqlFragment, options?: ExecuteOptions<Names>): Promise<{ rowsAffected: number }>;
+  execute(
+    fragment: SqlFragment,
+    options?: ExecuteOptions<Names>,
+  ): Promise<{ rowsAffected: number }>;
   executeBatch(
     fragment: SqlFragment,
     rows: readonly Record<string, unknown>[],
@@ -191,8 +167,11 @@ function makeScopedDb<Names extends string>(
     querySingle: <T>(fragment: SqlFragment) => querySingle<T>(adapter, fragment),
     queryScalar: <T>(fragment: SqlFragment) => queryScalar<T>(adapter, fragment),
     execute: (fragment: SqlFragment) => execute(adapter, fragment),
-    executeBatch: (fragment: SqlFragment, rows: readonly Record<string, unknown>[], options?: { strategy?: "prepared-loop" | "copy" | "bulk-load" }) =>
-      executeBatch(adapter, fragment, rows, options),
+    executeBatch: (
+      fragment: SqlFragment,
+      rows: readonly Record<string, unknown>[],
+      options?: { strategy?: "prepared-loop" | "copy" | "bulk-load" },
+    ) => executeBatch(adapter, fragment, rows, options),
     stream: <T>(fragment: SqlFragment, batchSize?: number) =>
       stream<T>(adapter, fragment, batchSize),
     atomically: <T>(fn: (q: AtomicExecutor) => Promise<T>, options?: AtomicOptions) =>
@@ -251,7 +230,10 @@ export function createConnections<
     queryScalar<T>(fragment: SqlFragment, options?: QueryOptions<Names>): Promise<T> {
       return queryScalar<T>(registry.get(options?.connection), fragment);
     },
-    execute(fragment: SqlFragment, options?: ExecuteOptions<Names>): Promise<{ rowsAffected: number }> {
+    execute(
+      fragment: SqlFragment,
+      options?: ExecuteOptions<Names>,
+    ): Promise<{ rowsAffected: number }> {
       return execute(registry.get(options?.connection), fragment);
     },
     executeBatch(

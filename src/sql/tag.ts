@@ -9,10 +9,7 @@ const PLACEHOLDER_RE = /\$(\d+)/g;
  */
 function renumberPlaceholders(text: string, offset: number): string {
   if (offset === 0) return text;
-  return text.replace(
-    PLACEHOLDER_RE,
-    (_, n: string) => `$${Number.parseInt(n, 10) + offset}`,
-  );
+  return text.replace(PLACEHOLDER_RE, (_, n: string) => `$${Number.parseInt(n, 10) + offset}`);
 }
 
 /**
@@ -22,10 +19,7 @@ function renumberPlaceholders(text: string, offset: number): string {
  * 2. Nested SqlFragment → text merged inline, params spliced in order, placeholders renumbered
  * 3. TvpValue → extracted to tvpValues[], __TVP_N__ sentinel in text
  */
-export function sql(
-  strings: TemplateStringsArray,
-  ...values: unknown[]
-): SqlFragment {
+export function sql(strings: TemplateStringsArray, ...values: unknown[]): SqlFragment {
   const textParts: string[] = [];
   const params: unknown[] = [];
   const tvpValues: TvpValue[] = [];

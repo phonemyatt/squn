@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it } from "bun:test";
-import { ErrorCode } from "../../../../src/errors/codes.ts";
-import { ValidationError } from "../../../../src/errors/types.ts";
+import { resetTempTableCounter } from "../../../../src/core/tvp/strategies/temp-table.ts";
 import { TableType } from "../../../../src/core/tvp/table-type.ts";
 import { tvp } from "../../../../src/core/tvp/tvp-builder.ts";
-import { resetTempTableCounter } from "../../../../src/core/tvp/strategies/temp-table.ts";
+import { ErrorCode } from "../../../../src/errors/codes.ts";
+import { ValidationError } from "../../../../src/errors/types.ts";
 
 const OrderType = new TableType("dbo.OrderTableType", {
   orderId: "int",
@@ -13,9 +13,7 @@ const OrderType = new TableType("dbo.OrderTableType", {
 
 describe("TVP builder — tvp()", () => {
   it("returns a TvpValue with __isTvp: true", () => {
-    const result = tvp(OrderType, [
-      { orderId: 1, amount: 99.99, note: "first" },
-    ]);
+    const result = tvp(OrderType, [{ orderId: 1, amount: 99.99, note: "first" }]);
     expect(result.__isTvp).toBe(true);
   });
 
@@ -34,13 +32,21 @@ describe("TVP builder — tvp()", () => {
   it("throws TVP_SCHEMA_MISMATCH when a column is missing", () => {
     expect(() =>
       tvp(OrderType, [
-        { orderId: 1, amount: 10 } as unknown as { orderId: unknown; amount: unknown; note: unknown },
+        { orderId: 1, amount: 10 } as unknown as {
+          orderId: unknown;
+          amount: unknown;
+          note: unknown;
+        },
       ]),
     ).toThrow(ValidationError);
 
     try {
       tvp(OrderType, [
-        { orderId: 1, amount: 10 } as unknown as { orderId: unknown; amount: unknown; note: unknown },
+        { orderId: 1, amount: 10 } as unknown as {
+          orderId: unknown;
+          amount: unknown;
+          note: unknown;
+        },
       ]);
     } catch (e) {
       expect((e as ValidationError).code).toBe(ErrorCode.TVP_SCHEMA_MISMATCH);
@@ -50,7 +56,11 @@ describe("TVP builder — tvp()", () => {
   it("throws TVP_SCHEMA_MISMATCH when extra columns are present", () => {
     try {
       tvp(OrderType, [
-        { orderId: 1, amount: 10, note: "x", extra: "bad" } as unknown as { orderId: unknown; amount: unknown; note: unknown },
+        { orderId: 1, amount: 10, note: "x", extra: "bad" } as unknown as {
+          orderId: unknown;
+          amount: unknown;
+          note: unknown;
+        },
       ]);
     } catch (e) {
       expect(e).toBeInstanceOf(ValidationError);

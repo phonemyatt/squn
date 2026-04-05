@@ -1,9 +1,7 @@
 import type { ConnectionRegistry } from "./registry.ts";
 
 /** A function that resolves a tenant ID to a connection name. */
-export type TenantResolver<Names extends string = string> = (
-  tenantId: string,
-) => Names;
+export type TenantResolver<Names extends string = string> = (tenantId: string) => Names;
 
 /**
  * Resolves a tenant ID to an adapter via the registry.

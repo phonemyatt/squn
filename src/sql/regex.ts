@@ -9,8 +9,7 @@ export const SQUN_REGEX = {
   NULL_BYTE: /\0/,
 
   /** Critical — semicolon followed by a SQL keyword (stacked statements). */
-  STACKED_STATEMENTS:
-    /;\s*(SELECT|INSERT|UPDATE|DELETE|DROP|ALTER|CREATE|EXEC|TRUNCATE|MERGE)\b/i,
+  STACKED_STATEMENTS: /;\s*(SELECT|INSERT|UPDATE|DELETE|DROP|ALTER|CREATE|EXEC|TRUNCATE|MERGE)\b/i,
 
   /** Critical — MSSQL dangerous procedures. */
   MSSQL_DANGEROUS:
@@ -29,8 +28,7 @@ export const SQUN_REGEX = {
   MYSQL_DANGEROUS: /\b(LOAD_FILE\s*\(|INTO\s+(OUT|DUMP)FILE\b)/i,
 
   /** High — PostgreSQL system functions. */
-  PG_DANGEROUS:
-    /\b(pg_read_file|pg_ls_dir|pg_stat_file|lo_import|lo_export)\s*\(/i,
+  PG_DANGEROUS: /\b(pg_read_file|pg_ls_dir|pg_stat_file|lo_import|lo_export)\s*\(/i,
 
   /** Medium — CHAR() encoding to bypass filters. */
   CHAR_ENCODING: /\bCHAR\s*\(\s*\d+/i,

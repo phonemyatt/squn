@@ -13,7 +13,8 @@ export class Savepoint {
     txId: string,
     depth: number,
   ) {
-    this.name = `squn_sp_${txId}_${depth}`;
+    // Hyphens are not valid in SQL identifiers — replace with underscores.
+    this.name = `squn_sp_${txId.replace(/-/g, "_")}_${depth}`;
   }
 
   /** Creates the savepoint on the database. */

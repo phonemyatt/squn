@@ -23,8 +23,7 @@ export function assertWritable(
 ): boolean {
   if (!connection.readonly) return true;
 
-  const isWrite =
-    sql !== undefined ? WRITE_RE.test(sql) : isWriteOperation(operation);
+  const isWrite = sql !== undefined ? WRITE_RE.test(sql) : isWriteOperation(operation);
   if (!isWrite) return true;
 
   if (connection.readonlyStrategy === "strict") {
@@ -40,7 +39,5 @@ export function assertWritable(
 }
 
 function isWriteOperation(operation: string): boolean {
-  return ["execute", "insert", "update", "delete", "executeBatch"].includes(
-    operation,
-  );
+  return ["execute", "insert", "update", "delete", "executeBatch"].includes(operation);
 }
