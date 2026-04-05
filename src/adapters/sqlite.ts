@@ -1,6 +1,7 @@
 import { Database, type SQLQueryBindings } from "bun:sqlite";
 import { ErrorCode } from "../errors/codes.ts";
 import { wrapError } from "../errors/wrap.ts";
+import { materializeTvpTempTable } from "../core/tvp/strategies/temp-table.ts";
 import type { Row } from "../types/primitives.ts";
 import type {
   IDbAdapter,
@@ -286,14 +287,9 @@ export class SqliteAdapter implements IDbAdapter {
     }
   }
 
-  materializeTvp(_tvp: TvpValue, _index: number): Promise<TvpMaterialised> {
-    return Promise.reject(
-      wrapError(
-        new Error("TVP materialisation not yet implemented for SQLite"),
-        ErrorCode.ADAPTER_NOT_SUPPORTED,
-        { operation: "materializeTvp", adapter: "sqlite" },
-        "TVP materialisation not yet implemented for SQLite",
-      ),
+  materializeTvp(tvp: TvpValue, _index: number): Promise<TvpMaterialised> {
+    return materializeTvpTempTable(tvp, (sql, params) =>
+      this.execute(sql, [...params]),
     );
   }
 }
