@@ -25,7 +25,9 @@
     "typecheck": "tsc --noEmit",
     "lint": "biome ci src tests",
     "lint:fix": "biome check --write src tests",
-    "ci": "bun run typecheck && bun run lint && bun run test:cov"
+    "ci": "bun run typecheck && bun run lint && bun run test:cov",
+    "test:integration": "bun run scripts/test-integration.ts",
+    "test:all": "bun test tests/unit/ && bun run test:integration"
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.8",

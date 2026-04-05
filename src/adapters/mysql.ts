@@ -16,8 +16,10 @@ export interface MysqlAdapterOptions {
 export class MysqlAdapter implements IDbAdapter {
   readonly type = "mysql" as const;
   private readonly sql: InstanceType<typeof SQL>;
+  private readonly options: MysqlAdapterOptions;
 
   constructor(options: MysqlAdapterOptions = {}) {
+    this.options = options;
     try {
       this.sql = new SQL({
         url: options.url,
@@ -40,7 +42,10 @@ export class MysqlAdapter implements IDbAdapter {
   async execute(sql: string, params: unknown[]): Promise<{ rowsAffected: number }> {
     try {
       const result = await this.sql.unsafe(sql, params as (string | number | boolean | null)[]);
-      return { rowsAffected: result.count ?? 0 };
+      // Bun.SQL MySQL: 'count' = rows returned (SELECT); 'affectedRows' = rows mutated (DML)
+      const affected =
+        (result as unknown as { affectedRows?: number }).affectedRows ?? result.count ?? 0;
+      return { rowsAffected: affected };
     } catch (err) {
       throw wrapError(
         err,
@@ -80,26 +85,26 @@ export class MysqlAdapter implements IDbAdapter {
   }
 
   /**
-   * Uses Bun.SQL's sql.reserve() to pin a single connection from the pool.
-   * Same issue as PostgreSQL — raw BEGIN/COMMIT via unsafe() doesn't pin a connection.
+   * Opens a dedicated single-connection SQL instance for the transaction.
+   * We cannot use sql.reserve() here: Bun.SQL MySQL leaves the pool connection
+   * in a mid-read state after any DML, causing the next query on the same pool
+   * to hang. A private SQL(max:1) instance is isolated and closed on commit/rollback.
    */
   async beginTransaction(): Promise<IDbTransaction> {
-    let reserved: Awaited<ReturnType<InstanceType<typeof SQL>["reserve"]>>;
-    try {
-      reserved = await this.sql.reserve();
-    } catch (err) {
-      throw wrapError(
-        err,
-        ErrorCode.ADAPTER_DRIVER_ERROR,
-        { operation: "beginTransaction", adapter: "mysql" },
-        "MySQL reserve connection failed",
-      );
-    }
+    const txSql = new SQL({
+      url: this.options.url,
+      hostname: this.options.host,
+      port: this.options.port,
+      database: this.options.database,
+      username: this.options.user,
+      password: this.options.password,
+      max: 1,
+    });
 
     try {
-      await reserved.unsafe("BEGIN");
+      await txSql.unsafe("BEGIN");
     } catch (err) {
-      reserved.release();
+      await txSql.close().catch(() => undefined);
       throw wrapError(
         err,
         ErrorCode.ADAPTER_DRIVER_ERROR,
@@ -111,8 +116,10 @@ export class MysqlAdapter implements IDbAdapter {
     const tx: IDbTransaction = {
       async execute(sql: string, params: unknown[]): Promise<{ rowsAffected: number }> {
         try {
-          const result = await reserved.unsafe(sql, params as (string | number | boolean | null)[]);
-          return { rowsAffected: result.count ?? 0 };
+          const result = await txSql.unsafe(sql, params as (string | number | boolean | null)[]);
+          const affected =
+            (result as unknown as { affectedRows?: number }).affectedRows ?? result.count ?? 0;
+          return { rowsAffected: affected };
         } catch (err) {
           throw wrapError(
             err,
@@ -124,7 +131,7 @@ export class MysqlAdapter implements IDbAdapter {
       },
       async query(sql: string, params: unknown[]): Promise<Row[]> {
         try {
-          const result = await reserved.unsafe(sql, params as (string | number | boolean | null)[]);
+          const result = await txSql.unsafe(sql, params as (string | number | boolean | null)[]);
           return [...result] as Row[];
         } catch (err) {
           throw wrapError(
@@ -137,7 +144,7 @@ export class MysqlAdapter implements IDbAdapter {
       },
       async commit(): Promise<void> {
         try {
-          await reserved.unsafe("COMMIT");
+          await txSql.unsafe("COMMIT");
         } catch (err) {
           throw wrapError(
             err,
@@ -146,12 +153,12 @@ export class MysqlAdapter implements IDbAdapter {
             "MySQL COMMIT failed",
           );
         } finally {
-          reserved.release();
+          await txSql.close().catch(() => undefined);
         }
       },
       async rollback(): Promise<void> {
         try {
-          await reserved.unsafe("ROLLBACK");
+          await txSql.unsafe("ROLLBACK");
         } catch (err) {
           throw wrapError(
             err,
@@ -160,12 +167,12 @@ export class MysqlAdapter implements IDbAdapter {
             "MySQL ROLLBACK failed",
           );
         } finally {
-          reserved.release();
+          await txSql.close().catch(() => undefined);
         }
       },
       async savepoint(name: string): Promise<void> {
         try {
-          await reserved.unsafe(`SAVEPOINT ${name}`);
+          await txSql.unsafe(`SAVEPOINT ${name}`);
         } catch (err) {
           throw wrapError(
             err,
@@ -177,7 +184,7 @@ export class MysqlAdapter implements IDbAdapter {
       },
       async releaseSavepoint(name: string): Promise<void> {
         try {
-          await reserved.unsafe(`RELEASE SAVEPOINT ${name}`);
+          await txSql.unsafe(`RELEASE SAVEPOINT ${name}`);
         } catch (err) {
           throw wrapError(
             err,
@@ -189,7 +196,7 @@ export class MysqlAdapter implements IDbAdapter {
       },
       async rollbackToSavepoint(name: string): Promise<void> {
         try {
-          await reserved.unsafe(`ROLLBACK TO SAVEPOINT ${name}`);
+          await txSql.unsafe(`ROLLBACK TO SAVEPOINT ${name}`);
         } catch (err) {
           throw wrapError(
             err,
@@ -214,7 +221,7 @@ export class MysqlAdapter implements IDbAdapter {
       for (const row of rows) {
         const params = paramNames.map((name) => row[name]) as (string | number | boolean | null)[];
         const result = await this.sql.unsafe(sql, params);
-        total += result.count ?? 0;
+        total += (result as unknown as { affectedRows?: number }).affectedRows ?? result.count ?? 0;
       }
       return { rowsAffected: total };
     } catch (err) {
