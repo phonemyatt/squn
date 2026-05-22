@@ -1,0 +1,193 @@
+name: Publish to npm
+
+# Triggers on version tags (e.g. v0.2.0) or manual dispatch.
+# Run `git tag v0.2.0 && git push origin v0.2.0` to kick off a release.
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+
+jobs:
+  # ── 1. Unit tests ────────────────────────────────────────────────────────────
+  unit:
+    name: Typecheck + Lint + Unit Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - run: bun install
+
+      - name: Typecheck
+        run: bun run typecheck
+
+      - name: Lint
+        run: bun run lint
+
+      - name: Unit tests
+        run: bun test --coverage
+
+  # ── 2. Multi-adapter showcase ────────────────────────────────────────────────
+  # Requires a sibling repo `squn-test-app` to exist. Skipped if it is absent
+  # so a missing test-app repo never blocks a release. Set up the repo once and
+  # this job becomes a hard gate automatically.
+  showcase:
+    name: Multi-Adapter Showcase (Postgres + MySQL + MSSQL)
+    runs-on: ubuntu-latest
+    needs: unit
+    continue-on-error: true
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: squn_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 2s
+          --health-timeout 5s
+          --health-retries 15
+
+      mysql:
+        image: mysql:8-oracle
+        env:
+          MYSQL_ROOT_PASSWORD: password
+          MYSQL_DATABASE: squn_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd "mysqladmin ping -h localhost -ppassword"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+          --health-start-period 30s
+
+      mssql:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: "Y"
+          SA_PASSWORD: "Password123!"
+          MSSQL_PID: Developer
+        ports:
+          - 1433:1433
+        options: >-
+          --health-cmd "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'Password123!' -Q 'SELECT 1' -C -b"
+          --health-interval 10s
+          --health-timeout 10s
+          --health-retries 30
+          --health-start-period 60s
+
+    steps:
+      # Check out squn into ./squn so tsconfig paths in squn-test-app resolve correctly
+      - uses: actions/checkout@v4
+        with:
+          path: squn
+
+      # Check out squn-test-app into ./squn-test-app (sibling of squn)
+      # IMPORTANT: update this to your actual GitHub username/org before pushing
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/squn-test-app
+          path: squn-test-app
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install squn dependencies
+        run: bun install
+        working-directory: squn
+
+      - name: Install squn-test-app dependencies
+        run: bun install
+        working-directory: squn-test-app
+
+      - name: Run multi-adapter showcase
+        run: bun run showcase-all.ts
+        working-directory: squn-test-app
+        env:
+          SKIP_DOCKER: "1"
+          PG_URL: postgresql://postgres:password@localhost:5432/squn_test
+          MYSQL_URL: mysql://root:password@localhost:3306/squn_test
+          MSSQL_URL: mssql://sa:Password123!@localhost:1433/master
+
+  # ── 3. Build dist ────────────────────────────────────────────────────────────
+  build:
+    name: Build dist
+    runs-on: ubuntu-latest
+    needs: unit
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - run: bun install
+
+      - name: Build
+        run: bun run build
+
+      - name: Verify dist
+        run: ls -la dist/index.js dist/index.d.ts
+
+      - name: Upload dist artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: |
+            dist/
+            package.json
+          retention-days: 1
+
+  # ── 4. Publish to npm ────────────────────────────────────────────────────────
+  publish:
+    name: Publish to npm
+    runs-on: ubuntu-latest
+    needs: build
+
+    permissions:
+      contents: read
+      id-token: write   # required for --provenance
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - run: bun install
+
+      - name: Build
+        run: bun run build
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+
+      # Ensure package.json version matches the pushed tag
+      - name: Assert version matches tag
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          PKG_VERSION=$(node -p "require('./package.json').version")
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          if [ "$PKG_VERSION" != "$TAG_VERSION" ]; then
+            echo "Version mismatch: package.json=$PKG_VERSION, tag=$TAG_VERSION"
+            exit 1
+          fi
+
+      - name: Publish
+        run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
