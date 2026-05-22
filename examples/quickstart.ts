@@ -1,5 +1,5 @@
 import {
-  createDb,
+  createConnection,
   sql,
   SqliteAdapter,
   col,
@@ -15,7 +15,7 @@ const Users = defineTable("users", {
 });
 
 // 2. Create database
-const { adapter } = createDb(new SqliteAdapter({ file: ":memory:" }));
+const { adapter } = createConnection(new SqliteAdapter({ file: ":memory:" }));
 
 // 3. Create table
 await adapter.execute(

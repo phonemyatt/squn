@@ -860,7 +860,7 @@ The composition root is the single place in the application where all dependenci
 ```typescript
 // src/main.ts — the composition root
 
-import { createDb } from "./db";
+import { createConnection } from "./db";
 import { PostgresAdapter } from "./adapters/postgres";
 import { jsonLogger } from "./logging/json-logger";
 import { resolveConfig } from "./config/resolve";
@@ -869,7 +869,7 @@ import { OrderService } from "./services/order-service";
 
 // Wire everything together in one place
 const config = resolveConfig(process.env);
-const db = createDb(new PostgresAdapter(config.db), { logger: jsonLogger });
+const db = createConnection(new PostgresAdapter(config.db), { logger: jsonLogger });
 const userRepo = new UserRepository(db, jsonLogger);
 const orderSvc = new OrderService(db, userRepo, jsonLogger);
 
@@ -1037,7 +1037,7 @@ Bun exposes clean lifecycle hooks. Use them for graceful shutdown instead of bar
 // src/main.ts
 
 const server = Bun.serve({ port: 3000, fetch: handler });
-const db = createDb(adapter);
+const db = createConnection(adapter);
 
 // Graceful shutdown — runs on SIGTERM and SIGINT
 process.on("SIGTERM", async () => {
@@ -1426,7 +1426,7 @@ my-api/
 │   │   ├── user-repository.ts   # DB queries for users
 │   │   └── order-repository.ts
 │   └── db/
-│       ├── index.ts             # createDb() wiring
+│       ├── index.ts             # createConnection() wiring
 │       └── schemas/
 │           ├── users.ts         # defineTable(Users, ...)
 │           └── orders.ts
@@ -1446,7 +1446,7 @@ my-api/
 ```typescript
 import { jsonLogger } from "./logging/json-logger";
 import { loadEnv } from "./config/env";
-import { createDb } from "./db";
+import { createConnection } from "./db";
 import { PostgresAdapter } from "./db/adapters/postgres";
 import { UserRepository } from "./repositories/user-repository";
 import { UserService } from "./services/user-service";
@@ -1458,7 +1458,7 @@ import { errorHandler } from "./middleware/error-handler";
 
 const env = loadEnv();
 const logger = jsonLogger;
-const db = createDb(new PostgresAdapter(env.databaseUrl), { logger });
+const db = createConnection(new PostgresAdapter(env.databaseUrl), { logger });
 
 // Repositories — know about the database
 const userRepo = new UserRepository(db, logger);

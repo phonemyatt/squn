@@ -37,7 +37,7 @@ Squn uses Bun's native drivers for SQLite, PostgreSQL, and MySQL. No additional 
 ## 2. Quick Start
 
 ```typescript
-import { createDb, sql, col, defineTable } from "squn";
+import { createConnection, sql, col, defineTable } from "squn";
 import { SqliteAdapter } from "squn/adapters/sqlite";
 
 // Define your schema
@@ -49,7 +49,7 @@ const Users = defineTable("users", {
 });
 
 // Create a database connection
-const db = createDb(new SqliteAdapter({ file: "./app.db" }));
+const db = createConnection(new SqliteAdapter({ file: "./app.db" }));
 
 // Query with full type safety
 const users = await db.query<User>(sql`SELECT * FROM users WHERE age >= ${18}`);
@@ -314,7 +314,7 @@ Explicit env arg → BUN_ENV → NODE_ENV → "development"
 ### Custom Config
 
 ```typescript
-const db = createDb(new PostgresAdapter({ url: "..." }), {
+const db = createConnection(new PostgresAdapter({ url: "..." }), {
   pool: { max: 50 },
   timeout: { query: 10_000 },
   cache: { maxSize: 5_000 },
@@ -422,15 +422,15 @@ try {
 import { consoleLogger, jsonLogger, noopLogger } from "squn";
 
 // Development — colorized pretty output
-const db = createDb(adapter, {
+const db = createConnection(adapter, {
   log: { logger: consoleLogger, level: "debug" },
 });
 
 // Production — structured JSON (pino-compatible)
-const db = createDb(adapter, { log: { logger: jsonLogger, level: "warn" } });
+const db = createConnection(adapter, { log: { logger: jsonLogger, level: "warn" } });
 
 // Tests — silent
-const db = createDb(adapter, { log: { logger: noopLogger } });
+const db = createConnection(adapter, { log: { logger: noopLogger } });
 ```
 
 ## 12. Multiple Connections
@@ -506,7 +506,7 @@ class FrozenUser {
 }
 
 // Connection-level readonly
-const replica = createDb(adapter, { readonly: true });
+const replica = createConnection(adapter, { readonly: true });
 // Write operations throw ReadonlyViolationError
 ```
 

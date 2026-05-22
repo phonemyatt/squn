@@ -12,7 +12,7 @@ It must integrate cleanly with the existing `Db` interface and adapter layer.
 - src/$ARGUMENTS/types.ts               → types, interfaces, branded IDs
 - src/$ARGUMENTS/index.ts               → core implementation
 - src/$ARGUMENTS/<supporting>.ts        → helpers, strategies, sub-modules as needed
-- src/db.ts                             → extend `Db` interface if adding public methods
+- src/db.ts                             → extend `Database` interface if adding public methods
 - src/index.ts                          → add public exports
 
 ---
@@ -20,7 +20,7 @@ It must integrate cleanly with the existing `Db` interface and adapter layer.
 
 - This is a library — no HTTP, no Zod schemas, no controllers, no route files
 - Integrate through `IDbAdapter` — never call driver APIs directly from feature code
-- If adding public methods to `Db`, write the interface signature first, implement second
+- If adding public methods to `Database`, write the interface signature first, implement second
 - All errors extend `SqunError` with a meaningful `ErrorCode` in src/errors/codes.ts
 - Log notable lifecycle events via the `SqunLogger` interface — never `console.log`
 - Any stateful resource must implement `Symbol.asyncDispose`
@@ -36,6 +36,6 @@ It must integrate cleanly with the existing `Db` interface and adapter layer.
 ## After generating
 1. List all files created or modified with one-line summaries
 2. Note any new `ErrorCode` values added to src/errors/codes.ts
-3. Show the updated `Db` interface block (method signatures only, if changed)
+3. Show the updated `Database` interface block (method signatures only, if changed)
 4. Print any bun commands to verify the feature — never auto-run
 5. Flag assumptions and ambiguities

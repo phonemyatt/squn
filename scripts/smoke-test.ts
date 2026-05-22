@@ -1,5 +1,5 @@
 import { SqliteAdapter } from "../src/adapters/sqlite.ts";
-import { createConnections, createDb } from "../src/db.ts";
+import { createConnections, createConnection } from "../src/db.ts";
 import { splitAndMap } from "../src/mapping/nested-mapper.ts";
 import {
   col,
@@ -38,8 +38,8 @@ type User = InferModel<typeof Users>;
 pass("Users table defined with col builder");
 
 // Step 3 — Create db
-const db = createDb(new SqliteAdapter({ file: ":memory:" }));
-pass("createDb() with SqliteAdapter :memory:");
+const db = createConnection(new SqliteAdapter({ file: ":memory:" }));
+pass("createConnection() with SqliteAdapter :memory:");
 
 // Step 4 — DDL
 await db.execute(
@@ -152,9 +152,9 @@ pass("executeBatch() with 100 rows — rowsAffected === 100");
 // Step 12 — createConnections() — .use("replica").query() routes correctly
 const primary = new SqliteAdapter({ file: ":memory:" });
 const replica = new SqliteAdapter({ file: ":memory:" });
-await createDb(primary).execute(sql`CREATE TABLE pings (id INTEGER PRIMARY KEY)`);
-await createDb(replica).execute(sql`CREATE TABLE pings (id INTEGER PRIMARY KEY)`);
-await createDb(primary).execute(sql`INSERT INTO pings VALUES (1)`);
+await createConnection(primary).execute(sql`CREATE TABLE pings (id INTEGER PRIMARY KEY)`);
+await createConnection(replica).execute(sql`CREATE TABLE pings (id INTEGER PRIMARY KEY)`);
+await createConnection(primary).execute(sql`INSERT INTO pings VALUES (1)`);
 // replica has no rows
 
 const multi = createConnections({ connections: { primary, replica }, default: "primary" });
