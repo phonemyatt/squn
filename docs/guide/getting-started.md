@@ -19,11 +19,11 @@ bun add mssql
 No server needed — great for local dev and testing.
 
 ```typescript
-import { createDb, SqliteAdapter, sql } from "@phonemyatt/squn";
+import { createConnection, SqliteAdapter, sql } from "@phonemyatt/squn";
 
-const db = createDb(new SqliteAdapter({ filename: "app.db" }));
+const db = createConnection(new SqliteAdapter({ filename: "app.db" }));
 // or in-memory:
-const db = createDb(new SqliteAdapter({ filename: ":memory:" }));
+const db = createConnection(new SqliteAdapter({ filename: ":memory:" }));
 
 interface User {
   id: number;
@@ -78,15 +78,15 @@ await db.atomically(async (q) => {
 ### PostgreSQL
 
 ```typescript
-import { createDb, PostgresAdapter, sql } from "@phonemyatt/squn";
+import { createConnection, PostgresAdapter, sql } from "@phonemyatt/squn";
 
 // Connection string
-const db = createDb(new PostgresAdapter({
+const db = createConnection(new PostgresAdapter({
   url: "postgresql://user:password@localhost:5432/mydb",
 }));
 
 // Individual fields
-const db = createDb(new PostgresAdapter({
+const db = createConnection(new PostgresAdapter({
   host:     "localhost",
   port:     5432,
   database: "mydb",
@@ -158,15 +158,15 @@ await db.executeBatch(
 ### MySQL
 
 ```typescript
-import { createDb, MysqlAdapter, sql } from "@phonemyatt/squn";
+import { createConnection, MysqlAdapter, sql } from "@phonemyatt/squn";
 
 // Connection string
-const db = createDb(new MysqlAdapter({
+const db = createConnection(new MysqlAdapter({
   url: "mysql://user:password@localhost:3306/mydb",
 }));
 
 // Individual fields
-const db = createDb(new MysqlAdapter({
+const db = createConnection(new MysqlAdapter({
   host:     "localhost",
   port:     3306,
   database: "mydb",
@@ -236,15 +236,15 @@ await db.executeBatch(
 ### MSSQL
 
 ```typescript
-import { createDb, MssqlAdapter, sql } from "@phonemyatt/squn";
+import { createConnection, MssqlAdapter, sql } from "@phonemyatt/squn";
 
 // Connection string
-const db = createDb(new MssqlAdapter({
+const db = createConnection(new MssqlAdapter({
   url: "mssql://sa:Password123!@localhost:1433/mydb",
 }));
 
 // Individual fields
-const db = createDb(new MssqlAdapter({
+const db = createConnection(new MssqlAdapter({
   host:                   "localhost",
   port:                   1433,
   database:               "mydb",
@@ -320,7 +320,7 @@ const [results] = await db.queryMultiple(
 #### Azure SQL
 
 ```typescript
-const db = createDb(new MssqlAdapter({
+const db = createConnection(new MssqlAdapter({
   host:     "myserver.database.windows.net",
   database: "mydb",
   auth: {
@@ -337,14 +337,14 @@ const db = createDb(new MssqlAdapter({
 
 ## How it works
 
-`createDb` takes an adapter and returns a `Db` object. Every method on `Db` accepts a `SqlFragment` produced by the `sql` tag (or `sqlRaw` for literal SQL you control).
+`createConnection` takes an adapter and returns a `Database` object. Every method on `Database` accepts a `SqlFragment` produced by the `sql` tag (or `sqlRaw` for literal SQL you control).
 
 Values interpolated into `sql` become bound parameters — never concatenated into the SQL text. SQL injection is structurally impossible.
 
 ## Using environment variables
 
 ```typescript
-const db = createDb(new PostgresAdapter({
+const db = createConnection(new PostgresAdapter({
   url: process.env.DATABASE_URL,
 }));
 ```

@@ -24,7 +24,7 @@ import { Transaction } from "./transaction/transaction.ts";
 import type { Row } from "./types/primitives.ts";
 
 /** @public */
-export interface Db {
+export interface Database {
   readonly adapter: IDbAdapter;
   readonly config: SqunConfig;
 
@@ -53,7 +53,10 @@ export interface Db {
  * Calls validateProductionConfig() synchronously — app never starts in invalid state.
  * @public
  */
-export function createDb(adapter: IDbAdapter, userConfig: Partial<SqunConfig> = {}): Db {
+export function createConnection(
+  adapter: IDbAdapter,
+  userConfig: Partial<SqunConfig> = {},
+): Database {
   const config = resolveConfig(userConfig);
   validateConfig(config);
 
@@ -119,7 +122,7 @@ export function createDb(adapter: IDbAdapter, userConfig: Partial<SqunConfig> = 
 }
 
 /** @public */
-export interface MultiDb<Names extends string = string> {
+export interface MultiDatabase<Names extends string = string> {
   readonly registry: ConnectionRegistry<Names>;
   readonly config: SqunConfig;
 
@@ -206,7 +209,7 @@ function makeScopedDb<Names extends string>(
 export function createConnections<
   Config extends MultiDbConfig,
   Names extends string = keyof Config["connections"] & string,
->(multiConfig: Config): MultiDb<Names> {
+>(multiConfig: Config): MultiDatabase<Names> {
   const config = resolveConfig({});
 
   const connections = multiConfig.connections as Record<Names, IDbAdapter>;

@@ -8,8 +8,8 @@
  */
 
 import { SqliteAdapter } from "../../src/adapters/sqlite.ts";
-import type { Db } from "../../src/db.ts";
-import { createConnections, createDb } from "../../src/db.ts";
+import type { Database } from "../../src/db.ts";
+import { createConnection, createConnections } from "../../src/db.ts";
 import type { SqlFragment } from "../../src/sql/fragment.ts";
 import { sql } from "../../src/sql/tag.ts";
 import { col } from "../../src/types/col.ts";
@@ -170,21 +170,21 @@ const _jmBad: JsonModel = { id: 1, metadata: "not json", tags: [] };
 const _jmBadTags: JsonModel = { id: 1, metadata: { street: "", city: "" }, tags: [1, 2] };
 
 // ═══════════════════════════════════════════════════════════════════════════
-// createDb — Db interface shape
+// createConnection — Database interface shape
 // ═══════════════════════════════════════════════════════════════════════════
 
-const db: Db = createDb(new SqliteAdapter());
+const db: Database = createConnection(new SqliteAdapter());
 
 // Valid: adapter and config are accessible
 const _adapter = db.adapter;
 const _config = db.config;
 use(_adapter, _config);
 
-// Db now has .query(), .execute(), .atomically() — verify they exist
+// Database now has .query(), .execute(), .atomically() — verify they exist
 use(db.query, db.execute, db.atomically);
 
 // ═══════════════════════════════════════════════════════════════════════════
-// createConnections — MultiDb<Names> type inference
+// createConnections — MultiDatabase<Names> type inference
 // ═══════════════════════════════════════════════════════════════════════════
 
 const multi = createConnections({

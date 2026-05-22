@@ -70,7 +70,7 @@ Automatically falls over to the next connection on `ConnectionError`:
 import { FailoverGroup } from "@phonemyatt/squn";
 
 const failover = new FailoverGroup([primary, fallback1, fallback2]);
-const db = createDb(failover);
+const db = createConnection(failover);
 // On ConnectionError, automatically retries with the next adapter
 ```
 

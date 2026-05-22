@@ -33,11 +33,11 @@ bun add mssql
 ### SQLite
 
 ```typescript
-import { createDb, SqliteAdapter, sql } from "@phonemyatt/squn";
+import { createConnection, SqliteAdapter, sql } from "@phonemyatt/squn";
 
-const db = createDb(new SqliteAdapter({ filename: "app.db" }));
+const db = createConnection(new SqliteAdapter({ filename: "app.db" }));
 // or in-memory:
-const db = createDb(new SqliteAdapter({ filename: ":memory:" }));
+const db = createConnection(new SqliteAdapter({ filename: ":memory:" }));
 
 interface User { id: number; name: string; email: string; age: number | null; }
 
@@ -84,9 +84,9 @@ await db.executeBatch(
 ### PostgreSQL
 
 ```typescript
-import { createDb, PostgresAdapter, sql } from "@phonemyatt/squn";
+import { createConnection, PostgresAdapter, sql } from "@phonemyatt/squn";
 
-const db = createDb(new PostgresAdapter({
+const db = createConnection(new PostgresAdapter({
   url: "postgresql://user:password@localhost:5432/mydb",
 }));
 
@@ -138,9 +138,9 @@ await db.executeBatch(
 ### MySQL
 
 ```typescript
-import { createDb, MysqlAdapter, sql } from "@phonemyatt/squn";
+import { createConnection, MysqlAdapter, sql } from "@phonemyatt/squn";
 
-const db = createDb(new MysqlAdapter({
+const db = createConnection(new MysqlAdapter({
   url: "mysql://user:password@localhost:3306/mydb",
 }));
 
@@ -188,16 +188,16 @@ await db.executeBatch(
 ### MSSQL
 
 ```typescript
-import { createDb, MssqlAdapter, sql, sqlRaw } from "@phonemyatt/squn";
+import { createConnection, MssqlAdapter, sql, sqlRaw } from "@phonemyatt/squn";
 
-const db = createDb(new MssqlAdapter({
+const db = createConnection(new MssqlAdapter({
   host: "localhost", port: 1433, database: "mydb",
   user: "sa", password: "Password123!",
   encrypt: false, trustServerCertificate: true,
 }));
 
 // Azure SQL
-const db = createDb(new MssqlAdapter({
+const db = createConnection(new MssqlAdapter({
   host: "myserver.database.windows.net", database: "mydb",
   auth: { type: "azure-ad", tenantId: "...", clientId: "...", clientSecret: "..." },
   encrypt: true,
@@ -376,9 +376,9 @@ Error types: `QueryError`, `TransactionError`, `ConnectionError`, `ValidationErr
 ## Logging
 
 ```typescript
-import { createDb, SqliteAdapter, consoleLogger } from "@phonemyatt/squn";
+import { createConnection, SqliteAdapter, consoleLogger } from "@phonemyatt/squn";
 
-const db = createDb(adapter, { log: { logger: consoleLogger } });
+const db = createConnection(adapter, { log: { logger: consoleLogger } });
 ```
 
 ## Development

@@ -3,8 +3,8 @@
 ## Example: "queryPaged(fragment, page, pageSize) → PagedResult<T> — paginated SELECT"
 
 Add ONLY:
-- Method signature to the `Db` interface in src/db.ts
-- Implementation in the object literal returned by `createDb()`
+- Method signature to the `Database` interface in src/db.ts
+- Implementation in the object literal returned by `createConnection()`
 - Delegate to a new (or existing) pure function in src/api/
 - Named export from src/index.ts if the helper is public
 - Unit test in tests/unit/api/
@@ -12,7 +12,7 @@ Add ONLY:
 ---
 ## Rules
 
-- `Db` interface is the contract — write the signature first, implement second
+- `Database` interface is the contract — write the signature first, implement second
 - Implementation in db.ts must delegate to a function in src/api/ — no logic in db.ts itself
 - Match existing method signatures:
   - Query:   `(fragment: SqlFragment, options?: XOptions) => Promise<T[]>`
@@ -23,7 +23,7 @@ Add ONLY:
 - `import type` for all type-only imports
 
 ## After generating
-- Show the updated `Db` interface block (new signature in context)
+- Show the updated `Database` interface block (new signature in context)
 - List the new/modified file(s) in src/api/ with one-line summaries
 - Flag any adapter that may not support this operation natively
 - Show the minimal bun test command to run the new test — never auto-run

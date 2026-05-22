@@ -54,10 +54,10 @@ Notice: `id` and `createdAt` are `.readonly()` — they won't appear in `TaskIns
 Create `src/db.ts`:
 
 ```typescript
-import { createDb, sql } from "squn";
+import { createConnection, sql } from "squn";
 import { SqliteAdapter } from "squn/adapters/sqlite";
 
-export const db = createDb(new SqliteAdapter({ file: "./tasks.db" }));
+export const db = createConnection(new SqliteAdapter({ file: "./tasks.db" }));
 
 export async function initDatabase(): Promise<void> {
   await db.execute(sql`
@@ -342,10 +342,10 @@ Done: [ "Learn Squn" ]
 The same code works with PostgreSQL — just change the adapter:
 
 ```typescript
-import { createDb } from "squn";
+import { createConnection } from "squn";
 import { PostgresAdapter } from "squn/adapters/postgres";
 
-export const db = createDb(
+export const db = createConnection(
   new PostgresAdapter({ url: "postgresql://user:pass@localhost:5432/tasks" }),
 );
 ```

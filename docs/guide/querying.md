@@ -1,6 +1,6 @@
 # Querying
 
-All query methods are on the `Db` object returned by `createDb`.
+All query methods are on the `Database` object returned by `createConnection`.
 
 ## `query<T>` — zero or more rows
 

@@ -49,7 +49,7 @@ What Squn does not do is generate SQL from method chains or manage your database
 - **Async-first, always.** Every database operation returns a `Promise`. No sync variants exist.
 - **Bun-native.** Uses `bun:sqlite`, `Bun.SQL` (native PostgreSQL and MySQL client, Bun ≥ 1.2), `Bun.hash()`, `Bun.sleep()`, and native `fetch` where applicable.
 - **Parameterized everywhere.** SQL injection is structurally impossible through the `sql` tagged template. Raw SQL requires an explicit escape hatch that is always audited.
-- **Fail loud in production.** Missing production config throws at `createDb()` — never lazily on first query.
+- **Fail loud in production.** Missing production config throws at `createConnection()` — never lazily on first query.
 - **Zero silent failures.** Every error is wrapped, logged, and rethrown as a typed `SqunError`.
 - **Honest APIs.** Dangerous features are documented as dangerous. Silent failure modes do not exist.
 - **Logic belongs in the database.** If an operation touches more than one query, it belongs in a stored procedure, view, or database function — not scattered across application code. The database is the right place to enforce multi-step data integrity, not the application layer.
@@ -140,7 +140,7 @@ MSSQL      Squn ConnectionPool
 ### 4.1 Layer overview
 
 ```
-Public API (createDb, queryBuilder, tvp, transaction)
+Public API (createConnection, queryBuilder, tvp, transaction)
         ↓
 Core engine (query runner, multi-mapper, TVP handler)
         ↓
@@ -407,7 +407,7 @@ const data = await db.query<Report>(sql`SELECT * FROM reports`, {
 });
 ```
 
-When `createDb()` is used (single connection), the `connection` option is not present at all — TypeScript completely omits it from the options type. You only see it when you used `createConnections()`.
+When `createConnection()` is used (single connection), the `connection` option is not present at all — TypeScript completely omits it from the options type. You only see it when you used `createConnections()`.
 
 ### 7.2 Parameters — inside SqlFragment, with one documented exception
 
@@ -457,7 +457,7 @@ await db.executeBatch(
 
 Squn supports two forms of chaining. Understanding the difference matters because they have different semantics.
 
-**Form 1 — `.use()` scoped chaining.** `.use("name")` returns a fully-featured `ScopedDb` instance. Every method available on `db` is available on the result. The connection name is fixed for the life of the scoped instance — it propagates through all operations including transactions and atomic blocks.
+**Form 1 — `.use()` scoped chaining.** `.use("name")` returns a fully-featured `ScopedDatabase` instance. Every method available on `db` is available on the result. The connection name is fixed for the life of the scoped instance — it propagates through all operations including transactions and atomic blocks.
 
 ```typescript
 // Single call — chain directly
@@ -544,7 +544,7 @@ queryBuilder.connection() ← baked into the query description
         ↓
 forTenant() / withTenant  ← tenant context
         ↓
-multiDb default           ← config-level — lowest priority
+multiDatabase default     ← config-level — lowest priority
 ```
 
 ```typescript
@@ -974,7 +974,7 @@ const result = await db.queryProc<User>("sp_; DROP TABLE users--", {});
 
 ### 7.7 Options types — how `connection` is typed
 
-The generic parameter `Names` is the union of registered connection names. When you have no named connections (single `createDb()` call), `Names` is `never` and the `connection` field disappears from the type entirely. This means single-connection code is not cluttered with options that do not apply to it.
+The generic parameter `Names` is the union of registered connection names. When you have no named connections (single `createConnection()` call), `Names` is `never` and the `connection` field disappears from the type entirely. This means single-connection code is not cluttered with options that do not apply to it.
 
 ```typescript
 // Base options shared by all query methods
@@ -1028,7 +1028,7 @@ interface StreamOptions<
 interface AtomicOptions<Names extends string = never> {
   // Which connection to open the BEGIN ... COMMIT block on.
   // Typed as the exact union of your registered connection names.
-  // Absent entirely when using createDb() (single connection).
+  // Absent entirely when using createConnection() (single connection).
   connection?: [Names] extends [never] ? never : Names;
 
   // Overrides the global transaction timeout for this block.
@@ -1059,7 +1059,7 @@ The mechanism relies on deriving the connection names from the config's return t
 
 function createConnections<Config extends MultiDbConfig>(
   config: Config
-): MultiDb<keyof Config["connections"] & string> {
+): MultiDatabase<keyof Config["connections"] & string> {
   // ...
 }
 
@@ -1076,14 +1076,14 @@ const db = createConnections({
 // TypeScript infers:
 // Config["connections"] = { primary: ..., replica: ..., analytics: ... }
 // keyof Config["connections"] & string = "primary" | "replica" | "analytics"
-// return type: MultiDb<"primary" | "replica" | "analytics">
+// return type: MultiDatabase<"primary" | "replica" | "analytics">
 
 // Every query method on db carries the inferred Names:
 // db.query<T>(sql, options?: QueryOptions<"primary" | "replica" | "analytics">)
 // So options.connection autocompletes to exactly those three values.
 
 // ❌ Why a default type parameter does NOT work:
-// function createConnections<Config extends MultiDbConfig,
+// function createConnections<Config extends MultiDatabaseConfig,
 //   Names extends string = keyof Config["connections"] & string>
 // TypeScript does not infer Names from Config when Names has a default —
 // it uses the default as a fallback, widening Names to `string`.
@@ -1235,7 +1235,7 @@ Squn supports this model fully. `db.query()`, `db.queryFirst()`, `db.querySingle
 // This application follows least-privilege — the connection only has
 // SELECT and EXECUTE. All writes go through stored procedures.
 
-const db = createDb(
+const db = createConnection(
   new PostgresAdapter({
     url: process.env.SQUN_PG_URL,
     user: "app_user", // SELECT + EXECUTE only — no INSERT/UPDATE/DELETE
@@ -1333,7 +1333,7 @@ const users = await db.queryAs(UserModel, sql`SELECT * FROM users`);
 | Property injection | `Object.create()` then assign fields    | `@Entity` decorator (default) or `defineMapper()` |
 | Constructor        | `new Model(...args)` in declared order  | `defineMapper()` with `strategy: "constructor"`   |
 | Factory function   | `factory(row)` — full control           | `defineMapper()` with a factory function          |
-| Static `fromDb()`  | Calls `Model.fromDb(row)` automatically | `defineMapper()` with `strategy: "static"`        |
+| Static `fromDatabase()`  | Calls `Model.fromDatabase(row)` automatically | `defineMapper()` with `strategy: "static"`        |
 
 ### 8.4 Nested class mapping
 
@@ -1341,7 +1341,7 @@ JOIN results are split and mapped into nested class instances via `splitOn` and 
 
 ### 8.5 Serialization
 
-Classes may implement `toJSON()` for API serialization and `toDb()` for write operations. Squn calls `toDb()` automatically on `insert()` and `update()`.
+Classes may implement `toJSON()` for API serialization and `toDatabase()` for write operations. Squn calls `toDatabase()` automatically on `insert()` and `update()`.
 
 ---
 
@@ -1681,7 +1681,7 @@ Options available on `db.atomically()`:
 
 ```typescript
 // Names is the union of registered connection names from createConnections().
-// When using createDb() (single connection), Names is never and connection is absent.
+// When using createConnection() (single connection), Names is never and connection is absent.
 interface AtomicOptions<Names extends string = never> {
   // Which connection to open the BEGIN ... COMMIT block on.
   // Typed as the exact union of your registered connection names.
@@ -1895,13 +1895,13 @@ All timeouts are implemented via `AbortController`. Timers are always cleared in
 | `InferReadonlyModel<T>`      | All fields `readonly`             | —                       | Type utility           |
 | `@Readonly()` class          | Returns `Readonly<T>`             | `Object.freeze()`       | Decorator              |
 | Query `{ readonly: true }`   | Returns `Readonly<T>[]`           | —                       | Per-call option        |
-| Connection `readonly: true`  | —                                 | Throws before any write | `createDb` config      |
+| Connection `readonly: true`  | —                                 | Throws before any write | `createConnection` config      |
 | Transaction `readonly: true` | —                                 | Throws before any write | Per-transaction option |
 
 ### 13.2 Readonly connection
 
 ```typescript
-const replica = createDb(new PostgresAdapter(config), {
+const replica = createConnection(new PostgresAdapter(config), {
   readonly: true,
   readonlyStrategy: "strict", // "strict" | "warn"
   // "strict" — throws ReadonlyViolationError before any write SQL is sent (default)
@@ -1921,8 +1921,8 @@ Write operations throw `ReadonlyViolationError(SQUN_READONLY_001)` before any SQ
 ```typescript
 // Convenience wrapper — one writer, one reader
 const db = createRouter({
-  write: createDb(new PostgresAdapter(primaryConfig)),
-  read: createDb(new PostgresAdapter(replicaConfig), { readonly: true }),
+  write: createConnection(new PostgresAdapter(primaryConfig)),
+  read: createConnection(new PostgresAdapter(replicaConfig), { readonly: true }),
 });
 // Reads → replica, writes → primary, transactions → primary always
 
@@ -2219,7 +2219,7 @@ interface LogEntry {
 
 ### 18.1 Environment detection order
 
-1. Explicit `env` option passed to `createDb()`
+1. Explicit `env` option passed to `createConnection()`
 2. `BUN_ENV` environment variable
 3. `NODE_ENV` environment variable
 4. Falls back to `"development"`
@@ -2254,7 +2254,7 @@ interface LogEntry {
 
 ### 18.4 Production guard
 
-`validateProductionConfig()` is called synchronously inside `createDb()`. If any required connection field is missing it throws a `SqunConfigError` with a human-readable message listing all missing fields and the exact environment variables to set. The app never starts in an invalid state.
+`validateProductionConfig()` is called synchronously inside `createConnection()`. If any required connection field is missing it throws a `SqunConfigError` with a human-readable message listing all missing fields and the exact environment variables to set. The app never starts in an invalid state.
 
 Production additionally throws if:
 
@@ -2275,7 +2275,7 @@ User config is deep-merged on top of env defaults. Any field not provided by the
 ### 18.6 Environment variable precedence
 
 ```
-Explicit createDb() config
+Explicit createConnection() config
         ↓
 SQUN_* environment variables
         ↓
@@ -2295,7 +2295,7 @@ Production → throws if still missing
 PostgreSQL's TVP strategy upgrades automatically from `unnest()` to the `COPY` protocol when the row count exceeds a threshold. `COPY` is significantly faster for large batches — it streams rows to the server rather than encoding them as SQL values — but has slightly more overhead for small batches where `unnest()` is more efficient. The threshold is configurable per adapter instance.
 
 ```typescript
-const db = createDb(
+const db = createConnection(
   new PostgresAdapter({
     url: process.env.SQUN_PG_URL,
     tvpCopyThreshold: 500, // rows — use COPY above this, unnest() below
@@ -2308,7 +2308,7 @@ const db = createDb(
 
 > **Note — avoid `Infinity` in config files.** `Infinity` is a valid TypeScript literal but becomes `null` when serialised to JSON, silently changing the behaviour. Use `Number.MAX_SAFE_INTEGER` instead when you want to always use `unnest()`. This matters if your config is ever serialised by a build tool, deployment pipeline, or config validator.
 
-The threshold applies only to the PostgreSQL adapter. All other adapters are not affected by this setting. The `tvpCopyThreshold` value is validated at `createDb()` time — a negative number throws `SqunConfigError`.
+The threshold applies only to the PostgreSQL adapter. All other adapters are not affected by this setting. The `tvpCopyThreshold` value is validated at `createConnection()` time — a negative number throws `SqunConfigError`.
 
 ### 18.8 `defineTable()` and schema migration drift
 
@@ -2366,7 +2366,7 @@ The cache stores the compiled representation of a query — the normalised SQL t
 #### Cache configuration
 
 ```typescript
-const db = createDb(new PostgresAdapter(config), {
+const db = createConnection(new PostgresAdapter(config), {
   cache: {
     // Maximum number of compiled queries to keep in memory.
     // When maxSize is reached the least-recently-used entry is evicted.
@@ -2587,14 +2587,14 @@ squn/
 │   │   ├── tenant-resolver.ts     # TenantResolver — fn-based connection selection
 │   │   ├── config-file.ts         # squn.config.ts loader + validator
 │   │   ├── env-loader.ts          # SQUN_CONN_{NAME}_* env var discovery
-│   │   ├── resolve-connection.ts  # resolveConnection() — options.connection → Db lookup
-│   │   └── types.ts               # ConnectionMap, MultiDb<Names>, QueryOptions<Names>, MultiDbConfig
+│   │   ├── resolve-connection.ts  # resolveConnection() — options.connection → Database lookup
+│   │   └── types.ts               # ConnectionMap, MultiDatabase<Names>, QueryOptions<Names>, MultiDatabaseConfig
 │   ├── api/
 │   │   ├── query.ts               # query, queryFirst, querySingle, stream…
 │   │   ├── execute.ts             # execute, executeBatch, insert, update
 │   │   ├── proc.ts                # queryProc, execProc
 │   │   └── query-builder.ts       # queryBuilder()
-│   ├── db.ts                      # createDb() — entry point
+│   ├── db.ts                      # createConnection() — entry point
 │   └── index.ts                   # All public exports
 ├── tests/
 │   ├── unit/
@@ -2736,7 +2736,7 @@ Query runner, multi-mapper, TVP strategies, `Transaction` class and state machin
 
 ### 21.6 Phase 5 — Public API surface
 
-`createDb()`, all `db.*` methods, `queryBuilder()`, readonly guard, primary/replica router, concurrent helpers, `index.ts` public exports, `createConnections()`, `ConnectionRegistry`, `ConnectionGroup`, `FailoverGroup`, `TenantResolver`, `squn.config.ts` loader.
+`createConnection()`, all `db.*` methods, `queryBuilder()`, readonly guard, primary/replica router, concurrent helpers, `index.ts` public exports, `createConnections()`, `ConnectionRegistry`, `ConnectionGroup`, `FailoverGroup`, `TenantResolver`, `squn.config.ts` loader.
 
 **Dependency:** All previous phases.
 
@@ -4021,13 +4021,13 @@ paths = ["src/index.ts"]
 
 ### 24.1 The problem this solves
 
-A single `createDb()` call is right for most projects. But several common real-world situations require more than one database connection, and each situation has different routing semantics.
+A single `createConnection()` call is right for most projects. But several common real-world situations require more than one database connection, and each situation has different routing semantics.
 
 A **primary + replica** setup needs writes to go to the primary and reads to go to a replica, transparently, without the caller thinking about which one to use. A **domain-separated** architecture keeps, say, `users` and `billing` in completely different databases — the caller picks the right one explicitly. A **multi-tenant** system maps each request to a different tenant database — the connection is resolved from context, not hardcoded. A **failover** setup promotes a standby automatically when the primary becomes unreachable. The `createConnections()` API addresses all four patterns from a single, unified entry point.
 
 ### 24.2 Setup — `createConnections()`
 
-`createConnections()` accepts a map of named adapters and returns a `MultiDb` instance. Every named connection is validated at startup exactly as `createDb()` validates a single connection — production guards apply to each one individually.
+`createConnections()` accepts a map of named adapters and returns a `MultiDatabase` instance. Every named connection is validated at startup exactly as `createConnection()` validates a single connection — production guards apply to each one individually.
 
 ```typescript
 import { createConnections } from "squn";
@@ -4056,7 +4056,7 @@ const db = createConnections({
 });
 ```
 
-`MultiDb` exposes the same query API as `Db` but adds a `.use()` method for explicit connection selection. Calling `db.query()` without `.use()` uses the `default` connection.
+`MultiDatabase` exposes the same query API as `Db` but adds a `.use()` method for explicit connection selection. Calling `db.query()` without `.use()` uses the `default` connection.
 
 ```typescript
 // Uses the default connection ("primary")
@@ -4329,7 +4329,7 @@ const db = createConnections({
 
 ### 24.7 Config file loading and validation
 
-The config file is loaded once at `createConnections()` time — synchronously, before any connections are opened. This follows the same fail-fast philosophy as `createDb()`: the application never starts in an ambiguous state.
+The config file is loaded once at `createConnections()` time — synchronously, before any connections are opened. This follows the same fail-fast philosophy as `createConnection()`: the application never starts in an ambiguous state.
 
 Loading order:
 
@@ -4347,7 +4347,7 @@ Development/test localhost defaults per adapter
 Production → throws if any required connection is missing
 ```
 
-Every named connection is validated individually at startup using the same production guard rules as `createDb()`. If three out of four connections are valid and one is misconfigured, Squn throws a single error that lists every failing connection together — not one error per connection.
+Every named connection is validated individually at startup using the same production guard rules as `createConnection()`. If three out of four connections are valid and one is misconfigured, Squn throws a single error that lists every failing connection together — not one error per connection.
 
 ```
   Squn — Multiple connection configuration error
@@ -4439,7 +4439,7 @@ src/
 │   ├── tenant-resolver.ts  # TenantResolver — fn-based dynamic connection selection
 │   ├── config-file.ts      # squn.config.ts discovery, loading, deep merge
 │   ├── env-loader.ts       # SQUN_CONN_{NAME}_* env var discovery + parsing
-│   └── types.ts            # MultiDb, ConnectionMap, MultiDbConfig, GroupConfig
+│   └── types.ts            # MultiDatabase, ConnectionMap, MultiDbConfig, GroupConfig
 ```
 
 ### 24.12 Decision guide for which pattern to use
@@ -4466,17 +4466,17 @@ When you register connections named `"primary"`, `"replica"`, and `"analytics"`,
 
 #### The mechanism — generic inference from the config object
 
-`createConnections()` is generic over its config argument. TypeScript infers the exact literal keys of the `connections` object and stores them as the `Names` type parameter on the returned `MultiDb` instance. Every query method on `MultiDb<Names>` then uses `Names` as the type of the `connection` option.
+`createConnections()` is generic over its config argument. TypeScript infers the exact literal keys of the `connections` object and stores them as the `Names` type parameter on the returned `MultiDatabase` instance. Every query method on `MultiDatabase<Names>` then uses `Names` as the type of the `connection` option.
 
 ```typescript
 // The correct signature — Names is derived from the return type, not a default parameter.
 // TypeScript infers Config from the call-site argument, then computes the return type.
 function createConnections<Config extends MultiDbConfig>(
   config: Config,
-): MultiDb<keyof Config["connections"] & string>;
+): MultiDatabase<keyof Config["connections"] & string>;
 
-// MultiDb carries Names through to every method
-interface MultiDb<Names extends string> {
+// MultiDatabase carries Names through to every method
+interface MultiDatabase<Names extends string> {
   query<T>(sql: SqlFragment, options?: QueryOptions<Names>): Promise<T[]>;
 
   execute(
@@ -4496,15 +4496,15 @@ interface QueryOptions<Names extends string = never> {
 }
 ```
 
-When you call `createConnections({ connections: { primary: ..., replica: ... } })`, TypeScript infers `Names = "primary" | "replica"`. The returned `db` object has type `MultiDb<"primary" | "replica">`. When you then write `db.query(sql, { connection: "..." })`, your IDE autocompletes to exactly `"primary"` or `"replica"` and rejects any other value.
+When you call `createConnections({ connections: { primary: ..., replica: ... } })`, TypeScript infers `Names = "primary" | "replica"`. The returned `db` object has type `MultiDatabase<"primary" | "replica">`. When you then write `db.query(sql, { connection: "..." })`, your IDE autocompletes to exactly `"primary"` or `"replica"` and rejects any other value.
 
 #### What single-connection mode looks like
 
-When you use `createDb()` instead of `createConnections()`, the returned `Db` instance has no `Names` generic. The `connection` field is absent from `QueryOptions` entirely — it does not appear as `undefined` or `string`, it simply does not exist. This means single-connection code is never shown an option that does not apply to it.
+When you use `createConnection()` instead of `createConnections()`, the returned `Db` instance has no `Names` generic. The `connection` field is absent from `QueryOptions` entirely — it does not appear as `undefined` or `string`, it simply does not exist. This means single-connection code is never shown an option that does not apply to it.
 
 ```typescript
-// Single connection — createDb()
-const db = createDb(new PostgresAdapter(config));
+// Single connection — createConnection()
+const db = createConnection(new PostgresAdapter(config));
 
 // TypeScript error — connection is not a valid option here
 await db.query<User>(sql`SELECT * FROM users`, { connection: "primary" });
@@ -4530,7 +4530,7 @@ At runtime, when a `connection` option is provided, the query runner looks up th
 function resolveConnection<Names extends string>(
   registry: ConnectionRegistry<Names>,
   options: QueryOptions<Names> | undefined,
-  multiDb: MultiDb<Names>,
+  multiDb: MultiDatabase<Names>,
 ): Db {
   const name = options?.connection ?? multiDb.default;
 
@@ -4564,7 +4564,7 @@ export default {
 // main.ts
 import config from "./squn.config";
 const db = createConnections(config);
-// db: MultiDb<"primary" | "analytics">
+// db: MultiDatabase<"primary" | "analytics">
 // options.connection: "primary" | "analytics" — same inference, same safety
 ```
 

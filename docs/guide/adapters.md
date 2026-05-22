@@ -12,11 +12,11 @@ squn supports four databases through a unified `IDbAdapter` interface.
 ## SQLite
 
 ```typescript
-import { createDb, SqliteAdapter } from "@phonemyatt/squn";
+import { createConnection, SqliteAdapter } from "@phonemyatt/squn";
 
-const db = createDb(new SqliteAdapter({ filename: "app.db" }));
+const db = createConnection(new SqliteAdapter({ filename: "app.db" }));
 // or in-memory:
-const db = createDb(new SqliteAdapter({ filename: ":memory:" }));
+const db = createConnection(new SqliteAdapter({ filename: ":memory:" }));
 ```
 
 SQLite uses Bun's built-in `bun:sqlite` — no extra dependencies.
@@ -24,9 +24,9 @@ SQLite uses Bun's built-in `bun:sqlite` — no extra dependencies.
 ## PostgreSQL
 
 ```typescript
-import { createDb, PostgresAdapter } from "@phonemyatt/squn";
+import { createConnection, PostgresAdapter } from "@phonemyatt/squn";
 
-const db = createDb(new PostgresAdapter({
+const db = createConnection(new PostgresAdapter({
   url: "postgresql://user:password@localhost:5432/mydb",
 }));
 ```
@@ -36,9 +36,9 @@ Uses Bun's native Postgres client (`Bun.sql`). No `pg` package needed.
 ## MySQL
 
 ```typescript
-import { createDb, MysqlAdapter } from "@phonemyatt/squn";
+import { createConnection, MysqlAdapter } from "@phonemyatt/squn";
 
-const db = createDb(new MysqlAdapter({
+const db = createConnection(new MysqlAdapter({
   url: "mysql://user:password@localhost:3306/mydb",
 }));
 ```
@@ -48,9 +48,9 @@ Uses Bun's native MySQL client. No `mysql2` package needed.
 ## MSSQL
 
 ```typescript
-import { createDb, MssqlAdapter } from "@phonemyatt/squn";
+import { createConnection, MssqlAdapter } from "@phonemyatt/squn";
 
-const db = createDb(new MssqlAdapter({
+const db = createConnection(new MssqlAdapter({
   url: "mssql://sa:Password123!@localhost:1433/mydb",
 }));
 ```
@@ -64,7 +64,7 @@ bun add mssql
 ### Azure AD authentication
 
 ```typescript
-const db = createDb(new MssqlAdapter({
+const db = createConnection(new MssqlAdapter({
   url: "mssql://myserver.database.windows.net/mydb",
   auth: {
     type: "azure-ad",
@@ -85,6 +85,6 @@ const adapter =
     ? new PostgresAdapter({ url: process.env.PG_URL! })
     : new SqliteAdapter({ filename: ":memory:" });
 
-const db = createDb(adapter);
+const db = createConnection(adapter);
 // All db.query(), db.execute(), etc. work identically
 ```
