@@ -9,9 +9,9 @@ So I built **squn** — a lightweight, type-safe SQL query library that works na
 Every query goes through a tagged template literal called `sql`. Interpolated values always become bound parameters — they are never concatenated into the SQL string. SQL injection is structurally impossible by design.
 
 ```typescript
-import { createDb, PostgresAdapter, sql } from "@phonemyatt/squn";
+import { createConnection, PostgresAdapter, sql } from "@phonemyatt/squn";
 
-const db = createDb(new PostgresAdapter({
+const db = createConnection(new PostgresAdapter({
   url: "postgresql://user:password@localhost:5432/mydb",
 }));
 
@@ -42,10 +42,10 @@ The same query code works across all four — only the adapter construction chan
 
 ```typescript
 // Switch databases by swapping the adapter
-const db = createDb(new SqliteAdapter({ filename: ":memory:" }));
-const db = createDb(new PostgresAdapter({ url: process.env.PG_URL }));
-const db = createDb(new MysqlAdapter({ url: process.env.MYSQL_URL }));
-const db = createDb(new MssqlAdapter({ host: "localhost", ... }));
+const db = createConnection(new SqliteAdapter({ filename: ":memory:" }));
+const db = createConnection(new PostgresAdapter({ url: process.env.PG_URL }));
+const db = createConnection(new MysqlAdapter({ url: process.env.MYSQL_URL }));
+const db = createConnection(new MssqlAdapter({ host: "localhost", ... }));
 ```
 
 ## Query methods that match what you actually need
