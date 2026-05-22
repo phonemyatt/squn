@@ -3,7 +3,7 @@ import { ErrorCode } from "../errors/codes.ts";
 import { ConnectionError } from "../errors/types.ts";
 
 /**
- * Holds all named Db instances. get() throws CONN_UNKNOWN if name not found.
+ * Holds all named Database instances. get() throws CONN_UNKNOWN if name not found.
  */
 export class ConnectionRegistry<Names extends string = string> {
   private readonly map: Map<Names, IDbAdapter>;

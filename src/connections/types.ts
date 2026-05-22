@@ -49,7 +49,7 @@ export interface AtomicOptions<Names extends string = never> {
   readonly retryDelayMs?: number;
 }
 
-/** A scoped Db bound to a specific named connection via .use(). */
+/** A scoped Database bound to a specific named connection via .use(). */
 export interface ScopedDb<Names extends string = never> {
   readonly connectionName: Names;
 

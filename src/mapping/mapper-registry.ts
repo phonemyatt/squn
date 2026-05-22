@@ -28,6 +28,6 @@ export class MapperRegistry {
 
 /**
  * Process-wide default registry used by `defineMapper()` and `@Entity`.
- * @internal — prefer injecting a `MapperRegistry` instance into `createDb` for testability.
+ * @internal — prefer injecting a `MapperRegistry` instance into `createConnection` for testability.
  */
 export const globalMapperRegistry = new MapperRegistry();
