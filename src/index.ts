@@ -36,6 +36,8 @@ export {
 export { QueryBuilder, queryBuilder } from "./api/query-builder.ts";
 export { TransactionClock } from "./async/clock.ts";
 // Async
+export { concurrent } from "./async/concurrent.ts";
+export { Cursor } from "./async/cursor.ts";
 export { resolveTimeout, withTimeout } from "./async/timeout.ts";
 export { maskConnectionString } from "./auth/mask.ts";
 // Auth
@@ -69,6 +71,8 @@ export { ConnectionGroup } from "./connections/group.ts";
 // Connections
 export { ConnectionRegistry } from "./connections/registry.ts";
 export { resolveConnection } from "./connections/resolve-connection.ts";
+export type { TenantResolver } from "./connections/tenant-resolver.ts";
+export { forTenant, withTenant } from "./connections/tenant-resolver.ts";
 export type {
   AtomicOptions as MultiAtomicOptions,
   ConnectionMap as MultiConnectionMap,
@@ -81,6 +85,8 @@ export type {
 } from "./connections/types.ts";
 // Core
 export { buildParams } from "./core/param-builder.ts";
+export { TableType } from "./core/tvp/table-type.ts";
+export { tvp } from "./core/tvp/tvp-builder.ts";
 export type { TypeHandler } from "./core/type-handler.ts";
 export { TypeHandlerRegistry } from "./core/type-handler.ts";
 export type { RowMapper } from "./core/type-mapper.ts";
@@ -113,6 +119,13 @@ export type { LogEntry, SqunLogger } from "./logging/logger.ts";
 export { EventCode } from "./logging/logger.ts";
 export { noopLogger } from "./logging/noop-logger.ts";
 export { Entity } from "./mapping/decorators/entity.ts";
+export {
+  Email,
+  getValidationRules,
+  Max,
+  Min,
+  NotNull,
+} from "./mapping/decorators/validate.ts";
 // Mapping
 export { defineMapper } from "./mapping/define-mapper.ts";
 export { globalMapperRegistry, MapperRegistry } from "./mapping/mapper-registry.ts";
@@ -136,6 +149,7 @@ export {
   sqlQualifiedIdentifier,
   sqlRaw,
 } from "./sql/helpers.ts";
+export type { DetectionResult, Severity } from "./sql/injection-detector.ts";
 export { detectInjection } from "./sql/injection-detector.ts";
 export { SQUN_REGEX } from "./sql/regex.ts";
 // SQL authoring
