@@ -83,7 +83,7 @@ await db.transaction(async (tx) => {
 ## Deadlock retry
 
 ```typescript
-import { retryWithDeadlockBackoff } from "squn";
+import { retryWithDeadlockBackoff } from "@phonemyatt/squn";
 
 const result = await retryWithDeadlockBackoff(
   () => db.atomically(async (q) => { /* ... */ }),
@@ -97,7 +97,7 @@ Detects adapter-specific deadlock codes (MSSQL 1205, PostgreSQL 40P01, MySQL 121
 ## Isolation levels
 
 ```typescript
-import { IsolationLevel } from "squn";
+import { IsolationLevel } from "@phonemyatt/squn";
 
 // Set isolation at the adapter level before beginning
 adapter.setIsolationLevel(IsolationLevel.SERIALIZABLE);

@@ -5,7 +5,7 @@
 ## Creating a prepared query
 
 ```typescript
-import { prepare, sql } from "squn";
+import { prepare, sql } from "@phonemyatt/squn";
 
 const findUser = prepare<User, { id: number }>(
   adapter,

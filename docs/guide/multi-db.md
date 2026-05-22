@@ -5,7 +5,7 @@ For apps that connect to more than one database — read replicas, sharded tenan
 ## `createConnections`
 
 ```typescript
-import { createConnections, PostgresAdapter, SqliteAdapter } from "squn";
+import { createConnections, PostgresAdapter, SqliteAdapter } from "@phonemyatt/squn";
 
 const db = createConnections({
   connections: {
@@ -48,7 +48,7 @@ const [users, orders, stats] = await db.concurrent(
 Automatically routes reads to replicas and writes to primary:
 
 ```typescript
-import { ConnectionGroup, ConnectionRegistry } from "squn";
+import { ConnectionGroup, ConnectionRegistry } from "@phonemyatt/squn";
 
 const registry = new ConnectionRegistry({ primary, replica1, replica2 }, "primary");
 
@@ -67,7 +67,7 @@ const writeAdapter = group.getWrite();  // always primary
 Automatically falls over to the next connection on `ConnectionError`:
 
 ```typescript
-import { FailoverGroup } from "squn";
+import { FailoverGroup } from "@phonemyatt/squn";
 
 const failover = new FailoverGroup([primary, fallback1, fallback2]);
 const db = createDb(failover);
@@ -77,7 +77,7 @@ const db = createDb(failover);
 ## Tenant routing
 
 ```typescript
-import { createConnections } from "squn";
+import { createConnections } from "@phonemyatt/squn";
 
 const db = createConnections({
   connections: {

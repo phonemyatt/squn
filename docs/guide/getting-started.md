@@ -9,7 +9,7 @@ bun add squn
 ## Quick start
 
 ```typescript
-import { createDb, SqliteAdapter, sql } from "squn";
+import { createDb, SqliteAdapter, sql } from "@phonemyatt/squn";
 
 const adapter = new SqliteAdapter({ filename: ":memory:" });
 const db = createDb(adapter);

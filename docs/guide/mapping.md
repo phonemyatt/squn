@@ -5,7 +5,7 @@ squn maps query results to plain objects or class instances. Two approaches: `de
 ## `defineMapper` — functional
 
 ```typescript
-import { defineMapper } from "squn";
+import { defineMapper } from "@phonemyatt/squn";
 
 interface User {
   id: number;
@@ -26,7 +26,7 @@ const mapped = users.map(mapUser);
 ## `@Entity` decorator
 
 ```typescript
-import { Entity } from "squn";
+import { Entity } from "@phonemyatt/squn";
 
 @Entity({
   id:        (row) => row.id as number,
@@ -43,7 +43,7 @@ class User {
 
 const users = await db.query<User>(sql`SELECT * FROM users`);
 // users are plain Row[] — map via the registry:
-import { globalMapperRegistry } from "squn";
+import { globalMapperRegistry } from "@phonemyatt/squn";
 const mapper = globalMapperRegistry.get(User);
 const mapped = users.map(mapper!);
 ```
@@ -53,7 +53,7 @@ const mapped = users.map(mapper!);
 `splitAndMap` splits JOIN result rows at column boundaries and maps into nested objects. Deduplicates by primary key.
 
 ```typescript
-import { splitAndMap, defineMapper } from "squn";
+import { splitAndMap, defineMapper } from "@phonemyatt/squn";
 
 interface Post {
   id: number;
@@ -77,7 +77,7 @@ const posts = splitAndMap(rows, ["author_id"], [mapPost, mapAuthor]) as Post[];
 For testing or multi-tenant setups, create an isolated registry instead of using the global one:
 
 ```typescript
-import { MapperRegistry } from "squn";
+import { MapperRegistry } from "@phonemyatt/squn";
 
 const registry = new MapperRegistry();
 registry.register(User, (row) => new User(row.id as number, row.name as string));

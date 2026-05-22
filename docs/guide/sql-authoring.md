@@ -5,7 +5,7 @@
 The `sql` tagged template literal is the primary way to write queries. Interpolated values become positional `$N` parameters — they are never concatenated into SQL text.
 
 ```typescript
-import { sql } from "squn";
+import { sql } from "@phonemyatt/squn";
 
 const userId = 42;
 const q = sql`SELECT * FROM users WHERE id = ${userId}`;
@@ -31,7 +31,7 @@ const query = sql`SELECT * FROM users WHERE ${filter} ORDER BY name`;
 For DDL, literals, or any SQL text where you control every character. **Do not pass user input here.**
 
 ```typescript
-import { sqlRaw } from "squn";
+import { sqlRaw } from "@phonemyatt/squn";
 
 const ddl = sqlRaw("CREATE TABLE IF NOT EXISTS logs (id SERIAL PRIMARY KEY)");
 ```
@@ -41,7 +41,7 @@ const ddl = sqlRaw("CREATE TABLE IF NOT EXISTS logs (id SERIAL PRIMARY KEY)");
 Safely quotes a single identifier:
 
 ```typescript
-import { sqlIdentifier, sqlQualifiedIdentifier } from "squn";
+import { sqlIdentifier, sqlQualifiedIdentifier } from "@phonemyatt/squn";
 
 sqlIdentifier("user_name")              // → "user_name"
 sqlQualifiedIdentifier("public", "users") // → "public"."users"
@@ -54,7 +54,7 @@ Throws `SecurityError(INVALID_IDENTIFIER)` if the name contains characters outsi
 Conditionally includes a fragment:
 
 ```typescript
-import { sqlIf } from "squn";
+import { sqlIf } from "@phonemyatt/squn";
 
 const isAdmin = true;
 const clause = sqlIf(isAdmin, sql`AND role = ${"admin"}`);
@@ -69,7 +69,7 @@ When the condition is false, `sqlIf` returns an empty fragment — no SQL is add
 Joins an array of fragments with a separator:
 
 ```typescript
-import { sqlJoin } from "squn";
+import { sqlJoin } from "@phonemyatt/squn";
 
 const conditions = [
   sql`age > ${18}`,

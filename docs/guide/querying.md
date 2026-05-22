@@ -73,7 +73,7 @@ for await (const row of cursor) {
 Parse and validate once, bind params on every call — zero per-call overhead:
 
 ```typescript
-import { prepare, sql } from "squn";
+import { prepare, sql } from "@phonemyatt/squn";
 
 const findUser = prepare<User, { id: number }>(
   adapter,

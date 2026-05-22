@@ -49,7 +49,7 @@ timeout: {
 squn ships three loggers. Pass any object implementing `SqunLogger`:
 
 ```typescript
-import { jsonLogger, consoleLogger, noopLogger } from "squn";
+import { jsonLogger, consoleLogger, noopLogger } from "@phonemyatt/squn";
 
 createDb(adapter, { log: { logger: jsonLogger, level: "debug" } });
 createDb(adapter, { log: { logger: consoleLogger } });
@@ -59,7 +59,7 @@ createDb(adapter, { log: { logger: noopLogger } });  // default
 ### Custom logger
 
 ```typescript
-import type { SqunLogger } from "squn";
+import type { SqunLogger } from "@phonemyatt/squn";
 
 const myLogger: SqunLogger = {
   log(entry) {

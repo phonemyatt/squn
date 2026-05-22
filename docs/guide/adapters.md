@@ -12,7 +12,7 @@ squn supports four databases through a unified `IDbAdapter` interface.
 ## SQLite
 
 ```typescript
-import { createDb, SqliteAdapter } from "squn";
+import { createDb, SqliteAdapter } from "@phonemyatt/squn";
 
 const db = createDb(new SqliteAdapter({ filename: "app.db" }));
 // or in-memory:
@@ -24,7 +24,7 @@ SQLite uses Bun's built-in `bun:sqlite` — no extra dependencies.
 ## PostgreSQL
 
 ```typescript
-import { createDb, PostgresAdapter } from "squn";
+import { createDb, PostgresAdapter } from "@phonemyatt/squn";
 
 const db = createDb(new PostgresAdapter({
   url: "postgresql://user:password@localhost:5432/mydb",
@@ -36,7 +36,7 @@ Uses Bun's native Postgres client (`Bun.sql`). No `pg` package needed.
 ## MySQL
 
 ```typescript
-import { createDb, MysqlAdapter } from "squn";
+import { createDb, MysqlAdapter } from "@phonemyatt/squn";
 
 const db = createDb(new MysqlAdapter({
   url: "mysql://user:password@localhost:3306/mydb",
@@ -48,7 +48,7 @@ Uses Bun's native MySQL client. No `mysql2` package needed.
 ## MSSQL
 
 ```typescript
-import { createDb, MssqlAdapter } from "squn";
+import { createDb, MssqlAdapter } from "@phonemyatt/squn";
 
 const db = createDb(new MssqlAdapter({
   url: "mssql://sa:Password123!@localhost:1433/mydb",

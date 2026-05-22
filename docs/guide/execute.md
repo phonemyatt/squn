@@ -15,7 +15,7 @@ const { rowsAffected } = await db.execute(
 Convenience wrappers around `execute`:
 
 ```typescript
-import { insert, update } from "squn";
+import { insert, update } from "@phonemyatt/squn";
 
 await insert(adapter, sql`INSERT INTO users (name, age) VALUES (${"Alice"}, ${30})`);
 await update(adapter, sql`UPDATE users SET age = ${31} WHERE id = ${1}`);
