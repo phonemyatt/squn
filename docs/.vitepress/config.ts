@@ -13,7 +13,7 @@ export default defineConfig({
     nav: [
       { text: "Guide", link: "/guide/getting-started" },
       { text: "API Reference", link: "/api/" },
-      { text: "GitHub", link: "https://github.com/phonemyatthu/squn" },
+      { text: "GitHub", link: "https://github.com/phonemyatt/squn" },
     ],
 
     sidebar: {
@@ -53,7 +53,7 @@ export default defineConfig({
     },
 
     socialLinks: [
-      { icon: "github", link: "https://github.com/phonemyatthu/squn" },
+      { icon: "github", link: "https://github.com/phonemyatt/squn" },
     ],
 
     search: { provider: "local" },
