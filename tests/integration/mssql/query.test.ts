@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import { MssqlAdapter } from "../../../src/adapters/mssql.ts";
 import { SqunError } from "../../../src/errors/base.ts";
 
-const url = process.env.SQUN_MSSQL_URL;
+const url = process.env.SQUN_MSSQL_URL ?? "";
 
 function parseMssqlUrl(connUrl: string): {
   host: string;
@@ -26,7 +26,7 @@ describe.skipIf(!url)("integration/mssql — MssqlAdapter", () => {
   let adapter: MssqlAdapter;
 
   beforeAll(async () => {
-    const opts = parseMssqlUrl(url!);
+    const opts = parseMssqlUrl(url);
     adapter = new MssqlAdapter({
       ...opts,
       encrypt: false,

@@ -2,13 +2,13 @@ import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import { PostgresAdapter } from "../../../src/adapters/postgres.ts";
 import { SqunError } from "../../../src/errors/base.ts";
 
-const url = process.env.SQUN_PG_URL;
+const url = process.env.SQUN_PG_URL ?? "";
 
 describe.skipIf(!url)("integration/postgres — PostgresAdapter", () => {
   let adapter: PostgresAdapter;
 
   beforeAll(async () => {
-    adapter = new PostgresAdapter({ url: url! });
+    adapter = new PostgresAdapter({ url });
     await adapter.execute("DROP TABLE IF EXISTS squn_test_users", []);
     await adapter.execute(
       `CREATE TABLE squn_test_users (

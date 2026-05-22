@@ -2,7 +2,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from
 import { MysqlAdapter } from "../../../src/adapters/mysql.ts";
 import { SqunError } from "../../../src/errors/base.ts";
 
-const url = process.env.SQUN_MYSQL_URL;
+const url = process.env.SQUN_MYSQL_URL ?? "";
 
 describe.skipIf(!url)("integration/mysql — MysqlAdapter", () => {
   // NOTE: Bun.SQL MySQL leaves connections in a mid-read state after any SQL
@@ -16,7 +16,7 @@ describe.skipIf(!url)("integration/mysql — MysqlAdapter", () => {
   let adapter: MysqlAdapter;
 
   beforeAll(async () => {
-    const setup = new MysqlAdapter({ url: url! });
+    const setup = new MysqlAdapter({ url: url });
     await setup.execute("DROP TABLE IF EXISTS squn_test_users", []);
     await setup.execute(
       `CREATE TABLE squn_test_users (
@@ -31,7 +31,7 @@ describe.skipIf(!url)("integration/mysql — MysqlAdapter", () => {
 
   afterAll(async () => {
     try {
-      const cleanup = new MysqlAdapter({ url: url! });
+      const cleanup = new MysqlAdapter({ url: url });
       await cleanup.execute("DROP TABLE IF EXISTS squn_test_users", []);
       await cleanup.close();
     } catch {
@@ -40,7 +40,7 @@ describe.skipIf(!url)("integration/mysql — MysqlAdapter", () => {
   });
 
   beforeEach(async () => {
-    adapter = new MysqlAdapter({ url: url! });
+    adapter = new MysqlAdapter({ url: url });
   });
 
   afterEach(async () => {
