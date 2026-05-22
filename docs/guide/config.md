@@ -1,9 +1,9 @@
 # Configuration
 
-`createDb` accepts an optional `Partial<SqunConfig>` as its second argument.
+`createConnection` accepts an optional `Partial<SqunConfig>` as its second argument.
 
 ```typescript
-const db = createDb(adapter, {
+const db = createConnection(adapter, {
   environment: "production",
   pool: { min: 2, max: 10, acquireTimeoutMs: 5_000 },
   timeout: { queryMs: 30_000, transactionMs: 60_000 },
@@ -51,9 +51,9 @@ squn ships three loggers. Pass any object implementing `SqunLogger`:
 ```typescript
 import { jsonLogger, consoleLogger, noopLogger } from "@phonemyatt/squn";
 
-createDb(adapter, { log: { logger: jsonLogger, level: "debug" } });
-createDb(adapter, { log: { logger: consoleLogger } });
-createDb(adapter, { log: { logger: noopLogger } });  // default
+createConnection(adapter, { log: { logger: jsonLogger, level: "debug" } });
+createConnection(adapter, { log: { logger: consoleLogger } });
+createConnection(adapter, { log: { logger: noopLogger } });  // default
 ```
 
 ### Custom logger
