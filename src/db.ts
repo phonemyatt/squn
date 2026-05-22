@@ -23,6 +23,7 @@ import { runAtomically } from "./transaction/atomic.ts";
 import { Transaction } from "./transaction/transaction.ts";
 import type { Row } from "./types/primitives.ts";
 
+/** @public */
 export interface Db {
   readonly adapter: IDbAdapter;
   readonly config: SqunConfig;
@@ -50,6 +51,7 @@ export interface Db {
 /**
  * Single connection entry point.
  * Calls validateProductionConfig() synchronously — app never starts in invalid state.
+ * @public
  */
 export function createDb(adapter: IDbAdapter, userConfig: Partial<SqunConfig> = {}): Db {
   const config = resolveConfig(userConfig);
@@ -116,6 +118,7 @@ export function createDb(adapter: IDbAdapter, userConfig: Partial<SqunConfig> = 
   };
 }
 
+/** @public */
 export interface MultiDb<Names extends string = string> {
   readonly registry: ConnectionRegistry<Names>;
   readonly config: SqunConfig;
@@ -198,6 +201,7 @@ function makeScopedDb<Names extends string>(
  * Multi-connection entry point.
  * Infers Names = keyof Config["connections"] & string.
  * Validates all connections together at startup.
+ * @public
  */
 export function createConnections<
   Config extends MultiDbConfig,

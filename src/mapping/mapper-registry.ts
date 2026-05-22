@@ -5,8 +5,8 @@ export type MapperFn<T> = (row: Row) => T;
 // biome-ignore lint/suspicious/noExplicitAny: constructor args are heterogeneous
 type Constructor<T> = new (...args: any[]) => T;
 
-/** Global class → mapper registry. defineMapper() and @Entity register here. */
-class MapperRegistry {
+/** Class → mapper registry. Instantiate your own for isolated test environments. */
+export class MapperRegistry {
   private readonly mappers = new Map<Constructor<unknown>, MapperFn<unknown>>();
 
   register<T>(cls: Constructor<T>, mapper: MapperFn<T>): void {
@@ -26,4 +26,8 @@ class MapperRegistry {
   }
 }
 
+/**
+ * Process-wide default registry used by `defineMapper()` and `@Entity`.
+ * @internal — prefer injecting a `MapperRegistry` instance into `createDb` for testability.
+ */
 export const globalMapperRegistry = new MapperRegistry();

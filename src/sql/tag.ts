@@ -18,6 +18,7 @@ function renumberPlaceholders(text: string, offset: number): string {
  * 1. Scalar → appended to params[], placeholder inserted in text
  * 2. Nested SqlFragment → text merged inline, params spliced in order, placeholders renumbered
  * 3. TvpValue → extracted to tvpValues[], __TVP_N__ sentinel in text
+ * @public
  */
 export function sql(strings: TemplateStringsArray, ...values: unknown[]): SqlFragment {
   const textParts: string[] = [];

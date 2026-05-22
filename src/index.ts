@@ -1,4 +1,15 @@
 // Public exports — the entire surface area of Squn.
+//
+// Visibility legend (full TSDoc tags live on each declaration):
+//   @public  — stable, semver-guarded, intended for library consumers
+//   @internal — exported for intra-package use or advanced extension; may change without notice
+//
+// Quick reference — @internal items:
+//   wrapError, buildParams, BuildResult, SQUN_REGEX, BunSqlStatsFacade,
+//   ParamBuffer, QueryCache, CompiledQuery, globalMapperRegistry,
+//   compileMapper, TypeHandler, TypeHandlerRegistry, detectInjection,
+//   isSqlFragment, isTvpValue, maskConnectionString, maskUrl, validateUrl,
+//   SQUN_ENV_VARS, validateConfig, validateProductionConfig, resolveConfig
 
 // Adapters
 export type {
@@ -104,7 +115,7 @@ export { noopLogger } from "./logging/noop-logger.ts";
 export { Entity } from "./mapping/decorators/entity.ts";
 // Mapping
 export { defineMapper } from "./mapping/define-mapper.ts";
-export { globalMapperRegistry } from "./mapping/mapper-registry.ts";
+export { globalMapperRegistry, MapperRegistry } from "./mapping/mapper-registry.ts";
 export { splitAndMap } from "./mapping/nested-mapper.ts";
 export { PooledConnection } from "./pool/connection.ts";
 // Pool

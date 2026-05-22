@@ -9,6 +9,7 @@ import { QueryError } from "./types.ts";
  * If `raw` is already a SqunError it is returned unchanged — no double-wrapping.
  * Otherwise a new QueryError is created with `raw` preserved as the cause.
  * This is the only function adapters use to surface driver errors.
+ * @internal
  */
 export function wrapError(
   raw: unknown,

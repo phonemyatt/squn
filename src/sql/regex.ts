@@ -1,6 +1,7 @@
 /**
  * Every named regex pattern used for injection detection, identifier validation,
  * and auth credential validation. A single exported constant — fully testable.
+ * @internal
  */
 export const SQUN_REGEX = {
   // ── Injection detection (PRD 15.2) ──────────────────────────────────

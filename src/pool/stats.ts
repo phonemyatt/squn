@@ -83,6 +83,7 @@ export class PoolStats {
 /**
  * Facade for PG/MySQL that reads from Bun.SQL internal metrics.
  * Bun.SQL manages its own pool — this provides a compatible stats interface.
+ * @internal
  */
 export class BunSqlStatsFacade {
   snapshot(): PoolStatsSnapshot {

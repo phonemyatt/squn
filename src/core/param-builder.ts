@@ -4,6 +4,7 @@ import { ValidationError } from "../errors/types.ts";
 
 const NAMED_PARAM_RE = /@([a-zA-Z_][a-zA-Z0-9_]*)/g;
 
+/** @internal */
 export interface BuildResult {
   readonly text: string;
   readonly params: readonly unknown[];
@@ -13,6 +14,7 @@ export interface BuildResult {
 /**
  * Translates @name placeholders to positional placeholders (? or $N)
  * and extracts parameter values in the correct order.
+ * @internal
  *
  * - SQLite / MySQL / MSSQL: @name → ?
  * - PostgreSQL: @name → $1, $2… (same name reuses same index)
