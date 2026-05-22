@@ -5,6 +5,8 @@
 
 Type-safe SQL query library for [Bun](https://bun.sh). Supports SQLite, PostgreSQL, MySQL, and MSSQL with a unified API, no codegen, and zero magic.
 
+> 📝 [Read the intro post on Dev.to](https://dev.to/phonemyatt/-i-built-a-type-safe-sql-library-for-bun-no-orm-no-codegen-just-sql-1k43)
+
 ## Install
 
 ```bash
