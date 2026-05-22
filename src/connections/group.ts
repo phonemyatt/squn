@@ -57,7 +57,11 @@ export class ConnectionGroup<Names extends string = string> {
   private pickRead(idx: number): Names {
     const name = this.readNames[idx % this.readNames.length];
     if (name === undefined) {
-      throw new ConnectionError(ErrorCode.INTERNAL_ERROR, "Read replica list is unexpectedly empty", { operation: "getRead" });
+      throw new ConnectionError(
+        ErrorCode.INTERNAL_ERROR,
+        "Read replica list is unexpectedly empty",
+        { operation: "getRead" },
+      );
     }
     return name;
   }

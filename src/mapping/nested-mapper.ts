@@ -19,7 +19,8 @@ export function splitAndMap(
   const primaryKey = allColumns[0];
   const primarySegment = segments[0];
   const primaryMapper = mappers[0];
-  if (primaryKey === undefined || primarySegment === undefined || primaryMapper === undefined) return [];
+  if (primaryKey === undefined || primarySegment === undefined || primaryMapper === undefined)
+    return [];
 
   const resultMap = new Map<unknown, Record<string, unknown>>();
   const resultOrder: unknown[] = [];

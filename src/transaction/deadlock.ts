@@ -55,5 +55,9 @@ export async function retryWithDeadlockBackoff<T>(
   }
 
   // Unreachable — the loop always returns or throws
-  throw new TransactionError(ErrorCode.INTERNAL_ERROR, "Unreachable — retryWithDeadlockBackoff loop invariant violated", { operation: "retryWithDeadlockBackoff" });
+  throw new TransactionError(
+    ErrorCode.INTERNAL_ERROR,
+    "Unreachable — retryWithDeadlockBackoff loop invariant violated",
+    { operation: "retryWithDeadlockBackoff" },
+  );
 }

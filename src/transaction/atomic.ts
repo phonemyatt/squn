@@ -145,5 +145,9 @@ export async function runAtomically<T>(
     }
   }
 
-  throw new TransactionError(ErrorCode.INTERNAL_ERROR, "Unreachable — runAtomically loop invariant violated", { operation: "runAtomically" });
+  throw new TransactionError(
+    ErrorCode.INTERNAL_ERROR,
+    "Unreachable — runAtomically loop invariant violated",
+    { operation: "runAtomically" },
+  );
 }

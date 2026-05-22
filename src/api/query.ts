@@ -19,9 +19,17 @@ export async function queryFirst<T>(adapter: IDbAdapter, fragment: SqlFragment):
 }
 
 /** Returns T — exactly one row, throws on 0 or >1. */
-export async function querySingle<T>(adapter: IDbAdapter, fragment: SqlFragment, strict?: true): Promise<T>;
+export async function querySingle<T>(
+  adapter: IDbAdapter,
+  fragment: SqlFragment,
+  strict?: true,
+): Promise<T>;
 /** Returns T | null — first row or null (no error on empty result). Throws on >1 row. */
-export async function querySingle<T>(adapter: IDbAdapter, fragment: SqlFragment, strict: false): Promise<T | null>;
+export async function querySingle<T>(
+  adapter: IDbAdapter,
+  fragment: SqlFragment,
+  strict: false,
+): Promise<T | null>;
 export async function querySingle<T>(
   adapter: IDbAdapter,
   fragment: SqlFragment,
