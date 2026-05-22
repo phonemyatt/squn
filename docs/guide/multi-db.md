@@ -5,9 +5,9 @@ For apps that connect to more than one database — read replicas, sharded tenan
 ## `createConnections`
 
 ```typescript
-import { createConnections, PostgresAdapter, SqliteAdapter } from "@phonemyatt/squn";
+import { createConnections, MultiDatabase, PostgresAdapter, SqliteAdapter } from "@phonemyatt/squn";
 
-const db = createConnections({
+const db: MultiDatabase<"primary" | "replica" | "cache"> = createConnections({
   connections: {
     primary: new PostgresAdapter({ url: process.env.PRIMARY_URL! }),
     replica: new PostgresAdapter({ url: process.env.REPLICA_URL! }),
