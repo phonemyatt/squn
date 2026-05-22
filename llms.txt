@@ -13,9 +13,9 @@
 All queries go through the `sql` tagged template literal. Interpolated values always become bound parameters — never concatenated into SQL text. SQL injection is structurally impossible.
 
 ```typescript
-import { createDb, SqliteAdapter, sql } from "@phonemyatt/squn";
+import { createConnection, SqliteAdapter, sql } from "@phonemyatt/squn";
 
-const db = createDb(new SqliteAdapter({ filename: "app.db" }));
+const db = createConnection(new SqliteAdapter({ filename: "app.db" }));
 const users = await db.query<User>(sql`SELECT * FROM users WHERE age > ${18}`);
 ```
 
@@ -240,7 +240,7 @@ type UserInsert = InferInsert<typeof Users>;  // { name: string; age?: number | 
 ## Configuration
 
 ```typescript
-const db = createDb(adapter, {
+const db = createConnection(adapter, {
   environment: "production",
   pool:     { min: 2, max: 10, acquireTimeoutMs: 5_000 },
   timeout:  { queryMs: 30_000, transactionMs: 60_000 },
