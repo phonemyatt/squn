@@ -53,7 +53,10 @@ export interface Database {
  * Calls validateProductionConfig() synchronously — app never starts in invalid state.
  * @public
  */
-export function createConnection(adapter: IDbAdapter, userConfig: Partial<SqunConfig> = {}): Database {
+export function createConnection(
+  adapter: IDbAdapter,
+  userConfig: Partial<SqunConfig> = {},
+): Database {
   const config = resolveConfig(userConfig);
   validateConfig(config);
 

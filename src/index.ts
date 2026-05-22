@@ -91,9 +91,9 @@ export type { TypeHandler } from "./core/type-handler.ts";
 export { TypeHandlerRegistry } from "./core/type-handler.ts";
 export type { RowMapper } from "./core/type-mapper.ts";
 export { compileMapper } from "./core/type-mapper.ts";
-export type { Db, MultiDb } from "./db.ts";
+export type { Database, MultiDatabase } from "./db.ts";
 // Entry points
-export { createConnections, createDb } from "./db.ts";
+export { createConnection, createConnections } from "./db.ts";
 export { SqunError } from "./errors/base.ts";
 // Errors
 export { ErrorCode } from "./errors/codes.ts";
