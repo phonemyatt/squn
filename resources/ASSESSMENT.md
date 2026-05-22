@@ -69,7 +69,7 @@
 | api/         | Complete | 5     | query, execute, proc, query-builder, PreparedQuery                           |
 | readonly/    | Complete | 4     | guard, freeze, router, types                                                 |
 | connections/ | Complete | 8     | registry, resolve, group, failover, tenant-resolver, env-loader, config-file |
-| db.ts        | Complete | 1     | createDb(), createConnections()                                              |
+| db.ts        | Complete | 1     | createConnection(), createConnections()                                      |
 | index.ts     | Complete | 1     | All public re-exports                                                        |
 
 ## 3. Performance Assessment

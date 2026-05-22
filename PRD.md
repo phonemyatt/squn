@@ -1059,7 +1059,7 @@ The mechanism relies on deriving the connection names from the config's return t
 
 function createConnections<Config extends MultiDbConfig>(
   config: Config
-): MultiDb<keyof Config["connections"] & string> {
+): MultiDatabase<keyof Config["connections"] & string> {
   // ...
 }
 
@@ -1901,7 +1901,7 @@ All timeouts are implemented via `AbortController`. Timers are always cleared in
 ### 13.2 Readonly connection
 
 ```typescript
-const replica = createDb(new PostgresAdapter(config), {
+const replica = createConnection(new PostgresAdapter(config), {
   readonly: true,
   readonlyStrategy: "strict", // "strict" | "warn"
   // "strict" — throws ReadonlyViolationError before any write SQL is sent (default)
@@ -4021,13 +4021,13 @@ paths = ["src/index.ts"]
 
 ### 24.1 The problem this solves
 
-A single `createDb()` call is right for most projects. But several common real-world situations require more than one database connection, and each situation has different routing semantics.
+A single `createConnection()` call is right for most projects. But several common real-world situations require more than one database connection, and each situation has different routing semantics.
 
 A **primary + replica** setup needs writes to go to the primary and reads to go to a replica, transparently, without the caller thinking about which one to use. A **domain-separated** architecture keeps, say, `users` and `billing` in completely different databases — the caller picks the right one explicitly. A **multi-tenant** system maps each request to a different tenant database — the connection is resolved from context, not hardcoded. A **failover** setup promotes a standby automatically when the primary becomes unreachable. The `createConnections()` API addresses all four patterns from a single, unified entry point.
 
 ### 24.2 Setup — `createConnections()`
 
-`createConnections()` accepts a map of named adapters and returns a `MultiDb` instance. Every named connection is validated at startup exactly as `createDb()` validates a single connection — production guards apply to each one individually.
+`createConnections()` accepts a map of named adapters and returns a `MultiDatabase` instance. Every named connection is validated at startup exactly as `createConnection()` validates a single connection — production guards apply to each one individually.
 
 ```typescript
 import { createConnections } from "squn";
@@ -4056,7 +4056,7 @@ const db = createConnections({
 });
 ```
 
-`MultiDb` exposes the same query API as `Db` but adds a `.use()` method for explicit connection selection. Calling `db.query()` without `.use()` uses the `default` connection.
+`MultiDatabase` exposes the same query API as `Db` but adds a `.use()` method for explicit connection selection. Calling `db.query()` without `.use()` uses the `default` connection.
 
 ```typescript
 // Uses the default connection ("primary")
@@ -4329,7 +4329,7 @@ const db = createConnections({
 
 ### 24.7 Config file loading and validation
 
-The config file is loaded once at `createConnections()` time — synchronously, before any connections are opened. This follows the same fail-fast philosophy as `createDb()`: the application never starts in an ambiguous state.
+The config file is loaded once at `createConnections()` time — synchronously, before any connections are opened. This follows the same fail-fast philosophy as `createConnection()`: the application never starts in an ambiguous state.
 
 Loading order:
 
@@ -4347,7 +4347,7 @@ Development/test localhost defaults per adapter
 Production → throws if any required connection is missing
 ```
 
-Every named connection is validated individually at startup using the same production guard rules as `createDb()`. If three out of four connections are valid and one is misconfigured, Squn throws a single error that lists every failing connection together — not one error per connection.
+Every named connection is validated individually at startup using the same production guard rules as `createConnection()`. If three out of four connections are valid and one is misconfigured, Squn throws a single error that lists every failing connection together — not one error per connection.
 
 ```
   Squn — Multiple connection configuration error
@@ -4439,7 +4439,7 @@ src/
 │   ├── tenant-resolver.ts  # TenantResolver — fn-based dynamic connection selection
 │   ├── config-file.ts      # squn.config.ts discovery, loading, deep merge
 │   ├── env-loader.ts       # SQUN_CONN_{NAME}_* env var discovery + parsing
-│   └── types.ts            # MultiDb, ConnectionMap, MultiDbConfig, GroupConfig
+│   └── types.ts            # MultiDatabase, ConnectionMap, MultiDbConfig, GroupConfig
 ```
 
 ### 24.12 Decision guide for which pattern to use
@@ -4466,17 +4466,17 @@ When you register connections named `"primary"`, `"replica"`, and `"analytics"`,
 
 #### The mechanism — generic inference from the config object
 
-`createConnections()` is generic over its config argument. TypeScript infers the exact literal keys of the `connections` object and stores them as the `Names` type parameter on the returned `MultiDb` instance. Every query method on `MultiDb<Names>` then uses `Names` as the type of the `connection` option.
+`createConnections()` is generic over its config argument. TypeScript infers the exact literal keys of the `connections` object and stores them as the `Names` type parameter on the returned `MultiDatabase` instance. Every query method on `MultiDatabase<Names>` then uses `Names` as the type of the `connection` option.
 
 ```typescript
 // The correct signature — Names is derived from the return type, not a default parameter.
 // TypeScript infers Config from the call-site argument, then computes the return type.
 function createConnections<Config extends MultiDbConfig>(
   config: Config,
-): MultiDb<keyof Config["connections"] & string>;
+): MultiDatabase<keyof Config["connections"] & string>;
 
-// MultiDb carries Names through to every method
-interface MultiDb<Names extends string> {
+// MultiDatabase carries Names through to every method
+interface MultiDatabase<Names extends string> {
   query<T>(sql: SqlFragment, options?: QueryOptions<Names>): Promise<T[]>;
 
   execute(
@@ -4496,14 +4496,14 @@ interface QueryOptions<Names extends string = never> {
 }
 ```
 
-When you call `createConnections({ connections: { primary: ..., replica: ... } })`, TypeScript infers `Names = "primary" | "replica"`. The returned `db` object has type `MultiDb<"primary" | "replica">`. When you then write `db.query(sql, { connection: "..." })`, your IDE autocompletes to exactly `"primary"` or `"replica"` and rejects any other value.
+When you call `createConnections({ connections: { primary: ..., replica: ... } })`, TypeScript infers `Names = "primary" | "replica"`. The returned `db` object has type `MultiDatabase<"primary" | "replica">`. When you then write `db.query(sql, { connection: "..." })`, your IDE autocompletes to exactly `"primary"` or `"replica"` and rejects any other value.
 
 #### What single-connection mode looks like
 
-When you use `createDb()` instead of `createConnections()`, the returned `Db` instance has no `Names` generic. The `connection` field is absent from `QueryOptions` entirely — it does not appear as `undefined` or `string`, it simply does not exist. This means single-connection code is never shown an option that does not apply to it.
+When you use `createConnection()` instead of `createConnections()`, the returned `Db` instance has no `Names` generic. The `connection` field is absent from `QueryOptions` entirely — it does not appear as `undefined` or `string`, it simply does not exist. This means single-connection code is never shown an option that does not apply to it.
 
 ```typescript
-// Single connection — createDb()
+// Single connection — createConnection()
 const db = createConnection(new PostgresAdapter(config));
 
 // TypeScript error — connection is not a valid option here
@@ -4530,7 +4530,7 @@ At runtime, when a `connection` option is provided, the query runner looks up th
 function resolveConnection<Names extends string>(
   registry: ConnectionRegistry<Names>,
   options: QueryOptions<Names> | undefined,
-  multiDb: MultiDb<Names>,
+  multiDb: MultiDatabase<Names>,
 ): Db {
   const name = options?.connection ?? multiDb.default;
 
@@ -4564,7 +4564,7 @@ export default {
 // main.ts
 import config from "./squn.config";
 const db = createConnections(config);
-// db: MultiDb<"primary" | "analytics">
+// db: MultiDatabase<"primary" | "analytics">
 // options.connection: "primary" | "analytics" — same inference, same safety
 ```
 
