@@ -78,6 +78,46 @@ security: {
 }
 ```
 
+### `allowedOperations` — restricting SQL operations
+
+Use `allowedOperations` to enforce an allowlist of SQL operation types. squn inspects each statement before it reaches the adapter and throws `SecurityError` (`ErrorCode.OPERATION_NOT_ALLOWED`) if the operation is not in the list.
+
+```typescript
+import { createConnection, SqliteAdapter, sql } from "@phonemyatt/squn";
+
+const db = createConnection(new SqliteAdapter({ filename: "app.db" }), {
+  security: {
+    allowedOperations: ["SELECT"], // only SELECT statements are permitted
+  },
+});
+
+// This works:
+const users = await db.query(sql`SELECT * FROM users`);
+
+// This throws SecurityError before touching the adapter:
+await db.execute(sql`DROP TABLE users`);
+```
+
+Allowed values for `allowedOperations`:
+
+| Value       | Permits                                      |
+|-------------|----------------------------------------------|
+| `"SELECT"`  | `SELECT` queries                             |
+| `"INSERT"`  | `INSERT` statements                          |
+| `"UPDATE"`  | `UPDATE` statements                          |
+| `"DELETE"`  | `DELETE` statements                          |
+| `"DDL"`     | `CREATE`, `DROP`, `ALTER`, `TRUNCATE`, etc.  |
+
+Omitting `allowedOperations` (the default) permits all operation types. To allow reads and writes but block schema changes, use:
+
+```typescript
+security: {
+  allowedOperations: ["SELECT", "INSERT", "UPDATE", "DELETE"],
+}
+```
+
+This is useful for application accounts that should never run DDL in production, or for building readonly query services on top of a shared connection pool.
+
 ## Environment variables
 
 squn reads connection details from environment variables when no explicit config is provided:
