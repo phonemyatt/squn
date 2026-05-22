@@ -1,5 +1,8 @@
 # squn
 
+[![npm](https://img.shields.io/npm/v/@phonemyatt/squn)](https://www.npmjs.com/package/@phonemyatt/squn)
+[![MIT](https://img.shields.io/badge/license-MIT-blue)](./LICENSE)
+
 Type-safe SQL query library for [Bun](https://bun.sh). Supports SQLite, PostgreSQL, MySQL, and MSSQL with a unified API, no codegen, and zero magic.
 
 ## Install
