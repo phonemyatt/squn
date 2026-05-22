@@ -8,7 +8,7 @@ Type-safe SQL query library for [Bun](https://bun.sh). Supports SQLite, PostgreS
 ## Install
 
 ```bash
-bun add squn
+bun add @phonemyatt/squn
 ```
 
 ## Adapters
