@@ -341,6 +341,18 @@ const db = createConnection(new MssqlAdapter({
 
 Values interpolated into `sql` become bound parameters — never concatenated into the SQL text. SQL injection is structurally impossible.
 
+You can import the `Database` type explicitly if you need to annotate variables or function parameters:
+
+```typescript
+import { createConnection, Database, SqliteAdapter } from "@phonemyatt/squn";
+
+const db: Database = createConnection(new SqliteAdapter({ filename: "app.db" }));
+
+function runReport(db: Database) {
+  return db.query<Report>(sql`SELECT * FROM reports`);
+}
+```
+
 ## Using environment variables
 
 ```typescript

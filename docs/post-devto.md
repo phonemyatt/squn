@@ -121,6 +121,30 @@ await db.executeBatch(
 
 One prepared statement, all rows bound in a loop. Much faster than individual inserts.
 
+## TypeScript types
+
+`createConnection` returns a `Database` object. You can type it explicitly or let TypeScript infer it:
+
+```typescript
+import { createConnection, Database, SqliteAdapter } from "@phonemyatt/squn";
+
+const db: Database = createConnection(new SqliteAdapter({ filename: "app.db" }));
+```
+
+For multi-connection setups, `createConnections` returns a `MultiDatabase`:
+
+```typescript
+import { createConnections, MultiDatabase, PostgresAdapter } from "@phonemyatt/squn";
+
+const db: MultiDatabase<"primary" | "replica"> = createConnections({
+  connections: {
+    primary: new PostgresAdapter({ url: process.env.PRIMARY }),
+    replica: new PostgresAdapter({ url: process.env.REPLICA }),
+  },
+  default: "primary",
+});
+```
+
 ## Type inference from table definitions
 
 Define your table schema once, get insert/select/update types inferred automatically:
