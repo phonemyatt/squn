@@ -28,11 +28,52 @@ const db = createDb(new SqliteAdapter({ filename: ":memory:" }));
 interface User {
   id: number;
   name: string;
+  email: string;
   age: number | null;
 }
 
+// CREATE TABLE
+await db.execute(sql`
+  CREATE TABLE IF NOT EXISTS users (
+    id    INTEGER PRIMARY KEY AUTOINCREMENT,
+    name  TEXT NOT NULL,
+    email TEXT NOT NULL UNIQUE,
+    age   INTEGER
+  )
+`);
+
+// INSERT
+const { rowsAffected } = await db.execute(
+  sql`INSERT INTO users (name, email, age) VALUES (${"Alice"}, ${"alice@example.com"}, ${30})`
+);
+
+// SELECT — all rows
 const users = await db.query<User>(sql`SELECT * FROM users WHERE age > ${18}`);
+
+// SELECT — single row (throws if not exactly one)
+const user = await db.querySingle<User>(sql`SELECT * FROM users WHERE email = ${"alice@example.com"}`);
+
+// SELECT — first row or null
+const maybe = await db.queryFirst<User>(sql`SELECT * FROM users WHERE id = ${99}`);
+
+// SELECT — scalar value
+const count = await db.queryScalar<number>(sql`SELECT COUNT(*) FROM users`);
+
+// UPDATE
+await db.execute(sql`UPDATE users SET age = ${31} WHERE id = ${user.id}`);
+
+// DELETE
+await db.execute(sql`DELETE FROM users WHERE id = ${user.id}`);
+
+// TRANSACTION
+await db.atomically(async (q) => {
+  await q.execute(sql`INSERT INTO users (name, email, age) VALUES (${"Bob"}, ${"bob@example.com"}, ${25})`);
+  await q.execute(sql`INSERT INTO users (name, email, age) VALUES (${"Carol"}, ${"carol@example.com"}, ${28})`);
+  // rolls back both inserts automatically if either throws
+});
 ```
+
+---
 
 ### PostgreSQL
 
@@ -53,8 +94,66 @@ const db = createDb(new PostgresAdapter({
   password: "password",
 }));
 
+interface User {
+  id: number;
+  name: string;
+  email: string;
+  age: number | null;
+}
+
+// CREATE TABLE
+await db.execute(sql`
+  CREATE TABLE IF NOT EXISTS users (
+    id    SERIAL PRIMARY KEY,
+    name  TEXT NOT NULL,
+    email TEXT NOT NULL UNIQUE,
+    age   INTEGER
+  )
+`);
+
+// INSERT returning the new row
+const [newUser] = await db.query<User>(
+  sql`INSERT INTO users (name, email, age) VALUES (${"Alice"}, ${"alice@example.com"}, ${30}) RETURNING *`
+);
+
+// SELECT — all rows
 const users = await db.query<User>(sql`SELECT * FROM users WHERE age > ${18}`);
+
+// SELECT — single row
+const user = await db.querySingle<User>(sql`SELECT * FROM users WHERE email = ${"alice@example.com"}`);
+
+// SELECT — first row or null
+const maybe = await db.queryFirst<User>(sql`SELECT * FROM users WHERE id = ${99}`);
+
+// SELECT — scalar value
+const count = await db.queryScalar<number>(sql`SELECT COUNT(*) FROM users`);
+
+// UPDATE returning affected rows
+await db.execute(sql`UPDATE users SET age = ${31} WHERE id = ${user.id}`);
+
+// DELETE
+await db.execute(sql`DELETE FROM users WHERE id = ${user.id}`);
+
+// TRANSACTION
+await db.atomically(async (q) => {
+  const [sender] = await q.query<User>(sql`SELECT * FROM users WHERE id = ${1} FOR UPDATE`);
+  const [receiver] = await q.query<User>(sql`SELECT * FROM users WHERE id = ${2} FOR UPDATE`);
+  await q.execute(sql`UPDATE accounts SET balance = balance - ${100} WHERE user_id = ${sender.id}`);
+  await q.execute(sql`UPDATE accounts SET balance = balance + ${100} WHERE user_id = ${receiver.id}`);
+});
+
+// BATCH INSERT
+const rows = [
+  { name: "Bob",   email: "bob@example.com",   age: 25 },
+  { name: "Carol", email: "carol@example.com", age: 28 },
+];
+await db.executeBatch(
+  sql`INSERT INTO users (name, email, age) VALUES (@name, @email, @age)`,
+  rows,
+);
 ```
+
+---
 
 ### MySQL
 
@@ -75,8 +174,64 @@ const db = createDb(new MysqlAdapter({
   password: "password",
 }));
 
+interface User {
+  id: number;
+  name: string;
+  email: string;
+  age: number | null;
+}
+
+// CREATE TABLE
+await db.execute(sql`
+  CREATE TABLE IF NOT EXISTS users (
+    id    INT AUTO_INCREMENT PRIMARY KEY,
+    name  VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    age   INT NULL
+  )
+`);
+
+// INSERT
+const { rowsAffected } = await db.execute(
+  sql`INSERT INTO users (name, email, age) VALUES (${"Alice"}, ${"alice@example.com"}, ${30})`
+);
+
+// SELECT — all rows
 const users = await db.query<User>(sql`SELECT * FROM users WHERE age > ${18}`);
+
+// SELECT — single row
+const user = await db.querySingle<User>(sql`SELECT * FROM users WHERE email = ${"alice@example.com"}`);
+
+// SELECT — first row or null
+const maybe = await db.queryFirst<User>(sql`SELECT * FROM users WHERE id = ${99}`);
+
+// SELECT — scalar value
+const count = await db.queryScalar<number>(sql`SELECT COUNT(*) FROM users`);
+
+// UPDATE
+await db.execute(sql`UPDATE users SET age = ${31} WHERE id = ${user.id}`);
+
+// DELETE
+await db.execute(sql`DELETE FROM users WHERE id = ${user.id}`);
+
+// TRANSACTION
+await db.atomically(async (q) => {
+  await q.execute(sql`INSERT INTO users (name, email, age) VALUES (${"Bob"}, ${"bob@example.com"}, ${25})`);
+  await q.execute(sql`INSERT INTO users (name, email, age) VALUES (${"Carol"}, ${"carol@example.com"}, ${28})`);
+});
+
+// BATCH INSERT
+const rows = [
+  { name: "Bob",   email: "bob@example.com",   age: 25 },
+  { name: "Carol", email: "carol@example.com", age: 28 },
+];
+await db.executeBatch(
+  sql`INSERT INTO users (name, email, age) VALUES (@name, @email, @age)`,
+  rows,
+);
 ```
+
+---
 
 ### MSSQL
 
@@ -90,16 +245,76 @@ const db = createDb(new MssqlAdapter({
 
 // Individual fields
 const db = createDb(new MssqlAdapter({
-  host:     "localhost",
-  port:     1433,
-  database: "mydb",
-  user:     "sa",
-  password: "Password123!",
+  host:                   "localhost",
+  port:                   1433,
+  database:               "mydb",
+  user:                   "sa",
+  password:               "Password123!",
   encrypt:                true,   // required for Azure
   trustServerCertificate: true,   // set false in production
 }));
 
+interface User {
+  id: number;
+  name: string;
+  email: string;
+  age: number | null;
+}
+
+// CREATE TABLE
+await db.execute(sql`
+  IF OBJECT_ID('users', 'U') IS NULL
+  CREATE TABLE users (
+    id    INT IDENTITY(1,1) PRIMARY KEY,
+    name  NVARCHAR(255) NOT NULL,
+    email NVARCHAR(255) NOT NULL UNIQUE,
+    age   INT NULL
+  )
+`);
+
+// INSERT with OUTPUT to get the new row back
+const [newUser] = await db.query<User>(
+  sql`INSERT INTO users (name, email, age) OUTPUT INSERTED.* VALUES (${"Alice"}, ${"alice@example.com"}, ${30})`
+);
+
+// SELECT — all rows
 const users = await db.query<User>(sql`SELECT * FROM users WHERE age > ${18}`);
+
+// SELECT — single row
+const user = await db.querySingle<User>(sql`SELECT * FROM users WHERE email = ${"alice@example.com"}`);
+
+// SELECT — first row or null
+const maybe = await db.queryFirst<User>(sql`SELECT TOP 1 * FROM users WHERE id = ${99}`);
+
+// SELECT — scalar value
+const count = await db.queryScalar<number>(sql`SELECT COUNT(*) FROM users`);
+
+// UPDATE
+await db.execute(sql`UPDATE users SET age = ${31} WHERE id = ${user.id}`);
+
+// DELETE
+await db.execute(sql`DELETE FROM users WHERE id = ${user.id}`);
+
+// TRANSACTION
+await db.atomically(async (q) => {
+  await q.execute(sql`INSERT INTO users (name, email, age) VALUES (${"Bob"}, ${"bob@example.com"}, ${25})`);
+  await q.execute(sql`INSERT INTO users (name, email, age) VALUES (${"Carol"}, ${"carol@example.com"}, ${28})`);
+});
+
+// BATCH INSERT
+const rows = [
+  { name: "Bob",   email: "bob@example.com",   age: 25 },
+  { name: "Carol", email: "carol@example.com", age: 28 },
+];
+await db.executeBatch(
+  sql`INSERT INTO users (name, email, age) VALUES (@name, @email, @age)`,
+  rows,
+);
+
+// STORED PROCEDURE
+const [results] = await db.queryMultiple(
+  sql`EXEC GetUsersByRole ${"admin"}`
+);
 ```
 
 #### Azure SQL
@@ -117,6 +332,8 @@ const db = createDb(new MssqlAdapter({
   encrypt: true,
 }));
 ```
+
+---
 
 ## How it works
 
