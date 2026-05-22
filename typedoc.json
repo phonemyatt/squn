@@ -7,6 +7,7 @@
   "excludeInternal": true,
   "excludePrivate": true,
   "outputFileStrategy": "modules",
+  "entryFileName": "index",
   "useCodeBlocks": true,
   "parametersFormat": "table",
   "interfacePropertiesFormat": "table",
