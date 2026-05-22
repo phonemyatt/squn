@@ -63,7 +63,7 @@ function mockAdapter(tag: string): IDbAdapter & { calls: string[] } {
   } as IDbAdapter & { calls: string[] };
 }
 
-describe("connections/MultiDb — routing", () => {
+describe("connections/MultiDatabase — routing", () => {
   let primary: IDbAdapter & { calls: string[] };
   let replica: IDbAdapter & { calls: string[] };
 
