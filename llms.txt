@@ -1,0 +1,268 @@
+# squn
+
+> Type-safe SQL query library for Bun. Supports SQLite, PostgreSQL, MySQL, and MSSQL with a unified API, no codegen, and zero magic.
+
+- Package: `@phonemyatt/squn`
+- Runtime: Bun 1.x only (uses bun:sqlite, Bun.sql)
+- License: MIT
+- Install: `bun add @phonemyatt/squn`
+- MSSQL also needs: `bun add mssql`
+
+## Core concept
+
+All queries go through the `sql` tagged template literal. Interpolated values always become bound parameters — never concatenated into SQL text. SQL injection is structurally impossible.
+
+```typescript
+import { createDb, SqliteAdapter, sql } from "@phonemyatt/squn";
+
+const db = createDb(new SqliteAdapter({ filename: "app.db" }));
+const users = await db.query<User>(sql`SELECT * FROM users WHERE age > ${18}`);
+```
+
+## Adapters
+
+| Database   | Adapter           | Connection string format                          |
+|------------|-------------------|---------------------------------------------------|
+| SQLite     | SqliteAdapter     | `{ filename: "app.db" }` or `{ filename: ":memory:" }` |
+| PostgreSQL | PostgresAdapter   | `{ url: "postgresql://user:pass@host:5432/db" }`  |
+| MySQL      | MysqlAdapter      | `{ url: "mysql://user:pass@host:3306/db" }`       |
+| MSSQL      | MssqlAdapter      | `{ url: "mssql://sa:pass@host:1433/db" }` or individual fields |
+
+All four adapters implement `IDbAdapter`. Swap adapters without changing query code.
+
+## Query methods
+
+```typescript
+// All rows
+const rows = await db.query<T>(sql`SELECT ...`);
+
+// First row or null
+const row = await db.queryFirst<T>(sql`SELECT ...`);
+
+// Exactly one row — throws QueryError if 0 or 2+
+const row = await db.querySingle<T>(sql`SELECT ...`);
+
+// First column of first row
+const count = await db.queryScalar<number>(sql`SELECT COUNT(*) FROM users`);
+
+// Multiple result sets (MSSQL stored procs)
+const [users, roles] = await db.queryMultiple(sqlRaw("EXEC GetUsersAndRoles"));
+
+// Streaming — does not load all rows into memory
+for await (const row of db.stream<T>(sql`SELECT ...`)) { ... }
+```
+
+## Execute methods
+
+```typescript
+// Single write
+const { rowsAffected } = await db.execute(sql`UPDATE ...`);
+
+// Batch — same SQL, many rows (single prepared statement)
+await db.executeBatch(
+  sql`INSERT INTO users (name, age) VALUES (@name, @age)`,
+  [{ name: "Alice", age: 30 }, { name: "Bob", age: 25 }],
+);
+```
+
+## SQL helpers
+
+```typescript
+import { sql, sqlRaw, sqlIdentifier, sqlQualifiedIdentifier, sqlIf, sqlJoin } from "@phonemyatt/squn";
+
+// Nested fragment — placeholders renumbered automatically
+const filter = sql`age > ${18}`;
+const q = sql`SELECT * FROM users WHERE ${filter}`;
+
+// Literal SQL — no params, do not pass user input
+const ddl = sqlRaw("CREATE TABLE IF NOT EXISTS logs (id SERIAL)");
+
+// Safe identifier quoting — throws on invalid chars
+sqlIdentifier("user_name")                   // → "user_name"
+sqlQualifiedIdentifier("public", "users")    // → "public"."users"
+
+// Conditional fragment
+sqlIf(condition, sql`AND role = ${"admin"}`);
+
+// Join fragments
+sqlJoin([sql`age > ${18}`, sql`active = ${true}`], " AND ");
+```
+
+## Transactions
+
+```typescript
+// Recommended — auto commit/rollback
+await db.atomically(async (q) => {
+  await q.execute(sql`UPDATE accounts SET balance = balance - ${100} WHERE id = ${1}`);
+  await q.execute(sql`UPDATE accounts SET balance = balance + ${100} WHERE id = ${2}`);
+});
+
+// Manual control
+await db.transaction(async (tx) => {
+  await tx.execute(sql`...`);
+  // commits on return, rolls back on throw
+});
+
+// await using — rolls back automatically if still ACTIVE when disposed
+await using tx = new Transaction(await adapter.beginTransaction());
+await tx.execute(sql`...`);
+await tx.commit();
+
+// Savepoints
+await db.transaction(async (tx) => {
+  const sp = await tx.savepoint();
+  try { await tx.execute(sql`...`); }
+  catch { await sp.rollback(); }
+  await sp.release();
+});
+
+// Deadlock retry
+import { retryWithDeadlockBackoff } from "@phonemyatt/squn";
+await retryWithDeadlockBackoff(() => db.atomically(async (q) => { ... }), "postgres");
+
+// Isolation level
+import { IsolationLevel } from "@phonemyatt/squn";
+adapter.setIsolationLevel(IsolationLevel.SERIALIZABLE);
+```
+
+## Prepared queries
+
+Parse and validate once at startup, bind cheaply on every call:
+
+```typescript
+import { prepare } from "@phonemyatt/squn";
+
+const findUser = prepare<User, { id: number }>(
+  adapter,
+  sql`SELECT * FROM users WHERE id = ${0}`,
+  ["id"],
+);
+
+const user  = await findUser.first({ id: 42 });   // → User | null
+const users = await findUser.all({ id: 42 });     // → User[]
+const exact = await findUser.single({ id: 42 });  // → User (throws on 0 or 2+)
+```
+
+## Multi-connection
+
+```typescript
+import { createConnections, PostgresAdapter } from "@phonemyatt/squn";
+
+const db = createConnections({
+  connections: {
+    primary: new PostgresAdapter({ url: process.env.PG_PRIMARY }),
+    replica: new PostgresAdapter({ url: process.env.PG_REPLICA }),
+  },
+  default: "primary",
+});
+
+await db.query<User>(sql`SELECT * FROM users`, { connection: "replica" });
+
+const replica = db.use("replica"); // scoped — no connection option needed
+const [users, roles] = await db.concurrent(
+  db.query<User>(sql`SELECT * FROM users`),
+  db.query<Role>(sql`SELECT * FROM roles`),
+);
+```
+
+## Result mapping
+
+```typescript
+import { defineMapper, MapperRegistry, Entity, globalMapperRegistry } from "@phonemyatt/squn";
+
+// Functional
+const mapUser = defineMapper<User>((row) => ({
+  id:        row.id as number,
+  name:      row.name as string,
+  createdAt: new Date(row.created_at as string),
+}));
+
+// Decorator
+@Entity({
+  id:   (row) => row.id as number,
+  name: (row) => row.name as string,
+})
+class User { constructor(public id: number, public name: string) {} }
+const mapper = globalMapperRegistry.get(User);
+
+// Nested JOIN mapping — deduplicates by primary key
+import { splitAndMap } from "@phonemyatt/squn";
+const posts = splitAndMap(rows, ["author_id"], [mapPost, mapAuthor]);
+```
+
+## Validation decorators (for @Entity classes)
+
+```typescript
+import { NotNull, Email, Min, Max } from "@phonemyatt/squn";
+
+class User {
+  @NotNull name: string;
+  @Email   email: string;
+  @Min(0) @Max(150) age: number;
+}
+```
+
+## Error handling
+
+All errors extend `SqunError` with a structured `.context` object:
+
+```typescript
+import { SqunError, QueryError, ErrorCode } from "@phonemyatt/squn";
+
+try {
+  await db.query(sql`SELECT * FROM nonexistent`);
+} catch (err) {
+  if (err instanceof SqunError) {
+    err.code             // ErrorCode enum value
+    err.context.adapter  // "postgres" | "mysql" | "mssql" | "sqlite"
+    err.context.sql      // the SQL that failed
+  }
+}
+```
+
+Error classes: `QueryError`, `TransactionError`, `ConnectionError`, `ValidationError`, `SecurityError`, `TimeoutError`, `AuthError`, `MappingError`, `AdapterError`, `SqunConfigError`.
+
+## Type inference
+
+```typescript
+import { col, defineTable, InferSelect, InferInsert } from "@phonemyatt/squn";
+
+const Users = defineTable({
+  id:   col("integer").primaryKey().notNull(),
+  name: col("text").notNull(),
+  age:  col("integer").nullable(),
+});
+
+type UserRow    = InferSelect<typeof Users>;  // { id: number; name: string; age: number | null }
+type UserInsert = InferInsert<typeof Users>;  // { name: string; age?: number | null }
+```
+
+## Configuration
+
+```typescript
+const db = createDb(adapter, {
+  environment: "production",
+  pool:     { min: 2, max: 10, acquireTimeoutMs: 5_000 },
+  timeout:  { queryMs: 30_000, transactionMs: 60_000 },
+  log:      { logger: consoleLogger, level: "info" },
+  security: { blockRawSql: true, detectInjection: true },
+});
+```
+
+Loggers: `consoleLogger`, `jsonLogger`, `noopLogger` (default). Implement `SqunLogger` for custom integrations.
+
+Environment variable auto-discovery:
+- `SQUN_PG_URL` — PostgreSQL connection URL
+- `SQUN_MYSQL_URL` — MySQL connection URL
+- `SQUN_MSSQL_URL` — MSSQL connection URL
+- `SQUN_DB_FILE` — SQLite file path
+- `SQUN_ENV` — `development` | `test` | `production`
+
+## Key constraints and caveats
+
+- Bun runtime only — does not work with Node.js
+- `sqlRaw()` must never receive user input — it bypasses parameterisation
+- `querySingle()` throws if the result set is not exactly one row
+- `executeBatch()` uses `@name` style placeholders (not `$N` or `?`)
+- MSSQL adapter uses the `mssql` npm package; the other three use Bun built-ins
+- `sql` template literals produce `SqlFragment` objects — pass them directly to `db.*` methods
