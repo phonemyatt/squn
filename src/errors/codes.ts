@@ -70,4 +70,7 @@ export enum ErrorCode {
   AUTH_UNSUPPORTED_TYPE = "SQUN_AUTH_003",
   AUTH_TOKEN_EXPIRED = "SQUN_AUTH_004",
   AUTH_PROVIDER_FAILED = "SQUN_AUTH_005",
+
+  // ── Internal ────────────────────────────────────────────────────────
+  INTERNAL_ERROR = "SQUN_INTERNAL_001",
 }

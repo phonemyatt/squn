@@ -1,5 +1,7 @@
 import type { AdapterType } from "../config/types.ts";
 import { SqunError } from "../errors/base.ts";
+import { ErrorCode } from "../errors/codes.ts";
+import { TransactionError } from "../errors/types.ts";
 
 /**
  * Detects whether an error is a deadlock for the given adapter.
@@ -53,5 +55,5 @@ export async function retryWithDeadlockBackoff<T>(
   }
 
   // Unreachable — the loop always returns or throws
-  throw new Error("Unreachable");
+  throw new TransactionError(ErrorCode.INTERNAL_ERROR, "Unreachable — retryWithDeadlockBackoff loop invariant violated", { operation: "retryWithDeadlockBackoff" });
 }

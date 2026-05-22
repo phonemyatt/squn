@@ -87,6 +87,12 @@ export class Transaction {
     this._state = "FAILED";
   }
 
+  async [Symbol.asyncDispose](): Promise<void> {
+    if (this._state === "ACTIVE") {
+      await this.rollback();
+    }
+  }
+
   private assertActive(operation: string): void {
     if (this._state !== "ACTIVE") {
       throw new TransactionError(

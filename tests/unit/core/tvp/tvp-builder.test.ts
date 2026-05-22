@@ -1,5 +1,4 @@
-import { beforeEach, describe, expect, it } from "bun:test";
-import { resetTempTableCounter } from "../../../../src/core/tvp/strategies/temp-table.ts";
+import { describe, expect, it } from "bun:test";
 import { TableType } from "../../../../src/core/tvp/table-type.ts";
 import { tvp } from "../../../../src/core/tvp/tvp-builder.ts";
 import { ErrorCode } from "../../../../src/errors/codes.ts";
@@ -70,11 +69,7 @@ describe("TVP builder — tvp()", () => {
 });
 
 describe("TVP — temp-table strategy", () => {
-  beforeEach(() => {
-    resetTempTableCounter();
-  });
-
-  it("generates unique temp table names (counter increments)", async () => {
+  it("generates unique temp table names", async () => {
     const executed: string[] = [];
     const mockExecute = async (sql: string, _params: readonly unknown[]) => {
       executed.push(sql);

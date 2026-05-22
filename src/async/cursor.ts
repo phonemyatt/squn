@@ -49,6 +49,10 @@ export class Cursor<T> implements AsyncIterableIterator<T> {
     this.rows = [];
   }
 
+  async [Symbol.asyncDispose](): Promise<void> {
+    await this.close();
+  }
+
   [Symbol.asyncIterator](): AsyncIterableIterator<T> {
     return this;
   }

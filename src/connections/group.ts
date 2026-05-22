@@ -1,4 +1,6 @@
 import type { IDbAdapter } from "../adapters/base.ts";
+import { ErrorCode } from "../errors/codes.ts";
+import { ConnectionError } from "../errors/types.ts";
 import type { ConnectionRegistry } from "./registry.ts";
 import type { GroupConfig } from "./types.ts";
 
@@ -35,23 +37,28 @@ export class ConnectionGroup<Names extends string = string> {
     let name: Names;
     switch (this.readMode) {
       case "round-robin": {
-        name = this.readNames[this.roundRobinIndex % this.readNames.length] as Names;
-        this.roundRobinIndex++;
+        name = this.pickRead(this.roundRobinIndex++);
         break;
       }
       case "random": {
-        const idx = Math.floor(Math.random() * this.readNames.length);
-        name = this.readNames[idx] as Names;
+        name = this.pickRead(Math.floor(Math.random() * this.readNames.length));
         break;
       }
       case "least-load": {
         // Fallback to round-robin — real implementation needs pool stats
-        name = this.readNames[this.roundRobinIndex % this.readNames.length] as Names;
-        this.roundRobinIndex++;
+        name = this.pickRead(this.roundRobinIndex++);
         break;
       }
     }
 
     return this.registry.get(name);
+  }
+
+  private pickRead(idx: number): Names {
+    const name = this.readNames[idx % this.readNames.length];
+    if (name === undefined) {
+      throw new ConnectionError(ErrorCode.INTERNAL_ERROR, "Read replica list is unexpectedly empty", { operation: "getRead" });
+    }
+    return name;
   }
 }

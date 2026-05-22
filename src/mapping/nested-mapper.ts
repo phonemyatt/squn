@@ -16,7 +16,11 @@ export function splitAndMap(
   const allColumns = Object.keys(rows[0] as Row);
   const segments = buildSegments(allColumns, splitOn);
 
-  const primaryKey = allColumns[0] as string;
+  const primaryKey = allColumns[0];
+  const primarySegment = segments[0];
+  const primaryMapper = mappers[0];
+  if (primaryKey === undefined || primarySegment === undefined || primaryMapper === undefined) return [];
+
   const resultMap = new Map<unknown, Record<string, unknown>>();
   const resultOrder: unknown[] = [];
 
@@ -26,23 +30,25 @@ export function splitAndMap(
     let parent = resultMap.get(pkValue);
     if (parent === undefined) {
       // Map the first segment (primary entity)
-      const primaryRow = extractSegment(row, segments[0] as string[]);
-      parent = (mappers[0] as MapperFn<unknown>)(primaryRow) as Record<string, unknown>;
+      const primaryRow = extractSegment(row, primarySegment);
+      parent = primaryMapper(primaryRow) as Record<string, unknown>;
       resultMap.set(pkValue, parent);
       resultOrder.push(pkValue);
     }
 
     // Map remaining segments (joined entities)
     for (let i = 1; i < segments.length; i++) {
-      const segCols = segments[i] as string[];
-      const splitCol = splitOn[i - 1] as string;
+      const segCols = segments[i];
+      const splitCol = splitOn[i - 1];
+      if (segCols === undefined || splitCol === undefined) continue;
       const splitValue = row[splitCol];
 
       if (splitValue === null || splitValue === undefined) {
         parent[splitCol] = null;
       } else {
         const segRow = extractSegment(row, segCols);
-        parent[splitCol] = (mappers[i] as MapperFn<unknown>)(segRow);
+        const mapper = mappers[i];
+        parent[splitCol] = mapper !== undefined ? mapper(segRow) : null;
       }
     }
   }

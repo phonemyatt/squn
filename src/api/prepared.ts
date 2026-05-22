@@ -53,7 +53,7 @@ export class PreparedQuery<T, P extends Record<string, unknown> = Record<string,
     const { buffer, paramNames } = this.meta;
     buffer.reset();
     for (const name of paramNames) {
-      buffer.push((params as Record<string, unknown>)[name]);
+      buffer.push(params[name]);
     }
     return buffer.toArray();
   }

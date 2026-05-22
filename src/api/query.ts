@@ -19,15 +19,18 @@ export async function queryFirst<T>(adapter: IDbAdapter, fragment: SqlFragment):
 }
 
 /** Returns T — exactly one row, throws on 0 or >1. */
+export async function querySingle<T>(adapter: IDbAdapter, fragment: SqlFragment, strict?: true): Promise<T>;
+/** Returns T | null — first row or null (no error on empty result). Throws on >1 row. */
+export async function querySingle<T>(adapter: IDbAdapter, fragment: SqlFragment, strict: false): Promise<T | null>;
 export async function querySingle<T>(
   adapter: IDbAdapter,
   fragment: SqlFragment,
   strict: boolean = true,
-): Promise<T> {
+): Promise<T | null> {
   const rows = await adapter.query(fragment.text, fragment.params);
 
   if (rows.length === 0) {
-    if (!strict) return null as T;
+    if (!strict) return null;
     throw new QueryError(ErrorCode.NO_ROWS_FOUND, "querySingle() returned zero rows", {
       operation: "querySingle",
       sql: fragment.text,
