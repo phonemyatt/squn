@@ -23,6 +23,7 @@ export default defineConfig({
           items: [
             { text: "Getting Started", link: "/guide/getting-started" },
             { text: "Adapters", link: "/guide/adapters" },
+            { text: "Configuration", link: "/guide/config" },
           ],
         },
         {
@@ -32,15 +33,19 @@ export default defineConfig({
             { text: "Querying", link: "/guide/querying" },
             { text: "Execute & Batch", link: "/guide/execute" },
             { text: "Prepared Queries", link: "/guide/prepared" },
+            { text: "Transactions", link: "/guide/transactions" },
           ],
         },
         {
           text: "Advanced",
           items: [
-            { text: "Transactions", link: "/guide/transactions" },
+            { text: "Type Definitions", link: "/guide/types" },
+            { text: "Query Builder", link: "/guide/query-builder" },
             { text: "Mapping", link: "/guide/mapping" },
             { text: "Multi-DB", link: "/guide/multi-db" },
-            { text: "Configuration", link: "/guide/config" },
+            { text: "Error Handling", link: "/guide/error-handling" },
+            { text: "Readonly Mode", link: "/guide/readonly" },
+            { text: "TVP (MSSQL)", link: "/guide/tvp" },
           ],
         },
       ],
