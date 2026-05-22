@@ -27,13 +27,20 @@
     "lint:fix": "biome check --write src tests",
     "ci": "bun run typecheck && bun run lint && bun run test:cov",
     "test:integration": "bun run scripts/test-integration.ts",
-    "test:all": "bun test tests/unit/ && bun run test:integration"
+    "test:all": "bun test tests/unit/ && bun run test:integration",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs",
+    "typedoc": "typedoc"
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.8",
     "@types/mssql": "9.1.9",
     "bun-types": "latest",
-    "typescript": "^5.9.0"
+    "typedoc": "0.28.19",
+    "typedoc-plugin-markdown": "4.11.0",
+    "typescript": "^5.9.0",
+    "vitepress": "1.6.4"
   },
   "dependencies": {
     "mssql": "12.2.1"

@@ -12,12 +12,12 @@ export interface BuildResult {
 }
 
 /**
- * Translates @name placeholders to positional placeholders (? or $N)
+ * Translates `@name` placeholders to positional placeholders (`?` or `$N`)
  * and extracts parameter values in the correct order.
  * @internal
  *
- * - SQLite / MySQL / MSSQL: @name → ?
- * - PostgreSQL: @name → $1, $2… (same name reuses same index)
+ * - SQLite / MySQL / MSSQL: `@name` → `?`
+ * - PostgreSQL: `@name` → `$1`, `$2`… (same name reuses same index)
  * - Array values are expanded inline for IN clauses.
  * - Missing params throw ValidationError(PARAM_MISSING).
  * - Extra params throw ValidationError(PARAM_EXTRA).
