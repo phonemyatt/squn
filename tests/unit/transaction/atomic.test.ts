@@ -9,6 +9,7 @@ import { ErrorCode } from "../../../src/errors/codes.ts";
 import { ConnectionError } from "../../../src/errors/types.ts";
 import { sql } from "../../../src/sql/tag.ts";
 import { AtomicNestingError, runAtomically } from "../../../src/transaction/atomic.ts";
+import { IsolationLevel } from "../../../src/transaction/isolation.ts";
 import type { Row } from "../../../src/types/primitives.ts";
 
 function mockAdapter(opts?: { queryFail?: boolean; commitFail?: boolean }): IDbAdapter {
@@ -151,6 +152,32 @@ describe("transaction/atomic — runAtomically()", () => {
         /* expected */
       }
       expect(attempt).toBe(1);
+    });
+  });
+
+  describe("isolation level", () => {
+    it("issues SET TRANSACTION ISOLATION LEVEL before the callback runs", async () => {
+      const adapter = mockAdapter();
+      await runAtomically(
+        adapter,
+        async (q) => {
+          await q.execute(sql`SELECT 1`);
+        },
+        { isolation: IsolationLevel.SERIALIZABLE },
+      );
+      const log = (adapter as unknown as { _log: string[] })._log;
+      expect(log[0]).toBe("begin");
+      expect(log[1]).toBe("exec:SET TRANSACTION ISOLATION LEVEL SERIALIZABLE");
+      expect(log[log.length - 1]).toBe("commit");
+    });
+
+    it("skips the SET statement when no isolation is specified", async () => {
+      const adapter = mockAdapter();
+      await runAtomically(adapter, async (q) => {
+        await q.execute(sql`SELECT 1`);
+      });
+      const log = (adapter as unknown as { _log: string[] })._log;
+      expect(log.some((e) => e.startsWith("exec:SET TRANSACTION"))).toBe(false);
     });
   });
 
