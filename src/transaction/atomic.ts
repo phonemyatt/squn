@@ -4,6 +4,7 @@ import { ErrorCode } from "../errors/codes.ts";
 import { ConnectionError, QueryError, TransactionError } from "../errors/types.ts";
 import type { SqlFragment } from "../sql/fragment.ts";
 import type { Row } from "../types/primitives.ts";
+import { IsolationLevel } from "./isolation.ts";
 
 /** AtomicNestingError — a TransactionError with code TX_NESTING_FORBIDDEN. */
 export class AtomicNestingError extends TransactionError {}
@@ -26,7 +27,10 @@ export interface AtomicOptions {
   readonly retryOnError?: boolean;
   readonly maxRetries?: number;
   readonly retryDelayMs?: number;
+  readonly isolation?: IsolationLevel;
 }
+
+export { IsolationLevel };
 
 const ATOMIC_CONTEXT = Symbol("squn_atomic");
 
@@ -61,6 +65,10 @@ export async function runAtomically<T>(
 
   for (let attempt = 0; attempt < attempts; attempt++) {
     const tx = await adapter.beginTransaction();
+
+    if (options.isolation !== undefined) {
+      await tx.execute(`SET TRANSACTION ISOLATION LEVEL ${options.isolation}`, []);
+    }
 
     const executor: AtomicExecutor = {
       query: async <T>(fragment: SqlFragment): Promise<T[]> => {
