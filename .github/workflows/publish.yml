@@ -111,13 +111,17 @@ jobs:
         working-directory: squn-test-app
 
       - name: Run multi-adapter showcase
-        run: bun run showcase-all.ts
+        run: bun run showcase:all
         working-directory: squn-test-app
         env:
           SKIP_DOCKER: "1"
           PG_URL: postgresql://postgres:password@localhost:5432/squn_test
           MYSQL_URL: mysql://root:password@localhost:3306/squn_test
-          MSSQL_URL: mssql://sa:Password123!@localhost:1433/master
+          MSSQL_HOST: localhost
+          MSSQL_PORT: "1433"
+          MSSQL_DB: master
+          MSSQL_USER: sa
+          MSSQL_PASSWORD: "Password123!"
 
   # ── 3. Build dist ────────────────────────────────────────────────────────────
   build:
