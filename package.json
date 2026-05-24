@@ -1,6 +1,6 @@
 {
   "name": "@phonemyatt/squn",
-  "version": "0.2.0",
+  "version": "0.2.2",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -38,12 +38,18 @@
     "@biomejs/biome": "2.4.8",
     "@types/mssql": "9.1.9",
     "bun-types": "latest",
+    "esbuild": ">=0.21",
     "typedoc": "0.28.19",
     "typedoc-plugin-markdown": "4.11.0",
     "typescript": "^5.9.0",
     "vitepress": "1.6.4"
   },
-  "dependencies": {
-    "mssql": "12.2.1"
+  "peerDependencies": {
+    "mssql": ">=10"
+  },
+  "peerDependenciesMeta": {
+    "mssql": {
+      "optional": true
+    }
   }
 }

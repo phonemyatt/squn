@@ -91,3 +91,89 @@ function getDbForTenant(tenantId: string) {
   return db.use(tenantId as "tenant_a" | "tenant_b");
 }
 ```
+
+## Tenant routing with `forTenant` and `withTenant`
+
+For multi-tenant applications where each tenant has a dedicated connection, squn provides `TenantResolver`, `forTenant`, and `withTenant` to keep routing logic in one place and avoid scattered casts throughout your codebase.
+
+### Setup
+
+```typescript
+import {
+  createConnections,
+  forTenant,
+  withTenant,
+  TenantResolver,
+  PostgresAdapter,
+  sql,
+} from "@phonemyatt/squn";
+
+const db = createConnections({
+  connections: {
+    tenant_acme:   new PostgresAdapter({ url: process.env.ACME_DB_URL }),
+    tenant_globex: new PostgresAdapter({ url: process.env.GLOBEX_DB_URL }),
+  },
+  default: "tenant_acme",
+});
+```
+
+### Define a `TenantResolver`
+
+A `TenantResolver` is a function that maps a tenant ID string to a connection name. Define it once and reuse it everywhere:
+
+```typescript
+const resolver: TenantResolver<"tenant_acme" | "tenant_globex"> =
+  (tenantId) => `tenant_${tenantId}` as "tenant_acme" | "tenant_globex";
+```
+
+### Per-query routing with `withTenant`
+
+Pass the resolved connection name via the `connection` option to route a single query:
+
+```typescript
+const tenantId = "acme";
+
+const users = await db.query<User>(
+  sql`SELECT * FROM users`,
+  { connection: withTenant(resolver, tenantId) },
+);
+```
+
+`withTenant(resolver, tenantId)` calls the resolver and returns the connection name string. It is equivalent to `resolver(tenantId)` but makes the intent explicit at the call site.
+
+### Scoped instance with `forTenant`
+
+Use `forTenant` to create a `Database` instance already scoped to a tenant. All queries on the returned instance are routed to that tenant's connection — no `connection` option needed:
+
+```typescript
+const tenantDb = db.use(forTenant(db, resolver, tenantId));
+
+const orders = await tenantDb.query<Order>(sql`SELECT * FROM orders`);
+const stats  = await tenantDb.queryScalar<number>(sql`SELECT COUNT(*) FROM events`);
+```
+
+### Combining with request context
+
+In a web framework, derive the tenant from a request header or JWT claim and build a scoped `tenantDb` once per request:
+
+```typescript
+async function handleRequest(req: Request): Promise<Response> {
+  const tenantId = getTenantFromHeader(req); // your auth logic
+
+  const tenantDb = db.use(forTenant(db, resolver, tenantId));
+
+  const users = await tenantDb.query<User>(sql`SELECT * FROM users`);
+
+  return Response.json(users);
+}
+```
+
+### Adding tenants dynamically
+
+If tenants are added at runtime, register new connections before using them:
+
+```typescript
+db.register(`tenant_${newTenantId}`, new PostgresAdapter({ url: newTenantUrl }));
+
+const tenantDb = db.use(forTenant(db, resolver, newTenantId));
+```

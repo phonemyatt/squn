@@ -1,5 +1,19 @@
-import mssql from "mssql";
+import type mssql from "mssql";
 import type { AuthConfig } from "../auth/types.ts";
+
+let _mssql: typeof mssql | null = null;
+
+async function getMssql(): Promise<typeof mssql> {
+  if (_mssql !== null) return _mssql;
+  try {
+    const mod = await import("mssql");
+    _mssql = (mod.default ?? mod) as typeof mssql;
+    return _mssql;
+  } catch {
+    throw new Error("mssql package is not installed. Run: bun add mssql");
+  }
+}
+
 import { ErrorCode } from "../errors/codes.ts";
 import { wrapError } from "../errors/wrap.ts";
 import type { Row } from "../types/primitives.ts";
@@ -82,11 +96,12 @@ export class MssqlAdapter implements IDbAdapter {
   private async getPool(): Promise<mssql.ConnectionPool> {
     if (this.pool?.connected) return this.pool;
     try {
+      const m = await getMssql();
       if (this.options.auth?.type === "connection-string" && this.options.auth.url) {
-        this.pool = await mssql.connect(this.options.auth.url);
+        this.pool = await m.connect(this.options.auth.url);
       } else {
         const config = buildConfig(this.options);
-        this.pool = await mssql.connect(config);
+        this.pool = await m.connect(config);
       }
       return this.pool;
     } catch (err) {
@@ -152,8 +167,9 @@ export class MssqlAdapter implements IDbAdapter {
   }
 
   async beginTransaction(): Promise<IDbTransaction> {
+    const m = await getMssql();
     const pool = await this.getPool();
-    const transaction = new mssql.Transaction(pool);
+    const transaction = new m.Transaction(pool);
     try {
       await transaction.begin();
     } catch (err) {
@@ -168,7 +184,7 @@ export class MssqlAdapter implements IDbAdapter {
     const tx: IDbTransaction = {
       async execute(sql: string, params: unknown[]): Promise<{ rowsAffected: number }> {
         try {
-          const request = new mssql.Request(transaction);
+          const request = new m.Request(transaction);
           bindParams(request, params);
           const result = await request.query(sql);
           const affected = result.rowsAffected.reduce((a: number, b: number) => a + b, 0);
@@ -184,7 +200,7 @@ export class MssqlAdapter implements IDbAdapter {
       },
       async query(sql: string, params: unknown[]): Promise<Row[]> {
         try {
-          const request = new mssql.Request(transaction);
+          const request = new m.Request(transaction);
           bindParams(request, params);
           const result = await request.query(sql);
           return result.recordset as Row[];
@@ -223,7 +239,7 @@ export class MssqlAdapter implements IDbAdapter {
       },
       async savepoint(name: string): Promise<void> {
         try {
-          const request = new mssql.Request(transaction);
+          const request = new m.Request(transaction);
           await request.query(`SAVE TRANSACTION ${name}`);
         } catch (err) {
           throw wrapError(
@@ -239,7 +255,7 @@ export class MssqlAdapter implements IDbAdapter {
       },
       async rollbackToSavepoint(name: string): Promise<void> {
         try {
-          const request = new mssql.Request(transaction);
+          const request = new m.Request(transaction);
           await request.query(`ROLLBACK TRANSACTION ${name}`);
         } catch (err) {
           throw wrapError(
