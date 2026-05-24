@@ -11,7 +11,33 @@ await db.atomically(async (q) => {
 });
 ```
 
-The `q` executor exposes the same query/execute API as `Db`. Nesting `atomically` inside another `atomically` throws `AtomicNestingError`.
+The `q` executor exposes the same query/execute API as `Database`. Nesting `atomically` inside another `atomically` throws `AtomicNestingError`.
+
+### Isolation level
+
+```typescript
+import { IsolationLevel } from "@phonemyatt/squn";
+
+await db.atomically(
+  async (q) => {
+    const row = await q.querySingle<Account>(sql`SELECT * FROM accounts WHERE id = ${id} FOR UPDATE`);
+    await q.execute(sql`UPDATE accounts SET balance = balance - ${amount} WHERE id = ${id}`);
+  },
+  { isolation: IsolationLevel.SERIALIZABLE },
+);
+```
+
+Issues `SET TRANSACTION ISOLATION LEVEL <level>` immediately after `BEGIN`, before your callback runs. Available levels:
+
+| Level | Constant |
+|---|---|
+| Read Uncommitted | `IsolationLevel.READ_UNCOMMITTED` |
+| Read Committed | `IsolationLevel.READ_COMMITTED` |
+| Repeatable Read | `IsolationLevel.REPEATABLE_READ` |
+| Serializable | `IsolationLevel.SERIALIZABLE` |
+| Snapshot | `IsolationLevel.SNAPSHOT` |
+
+> **Note:** `SNAPSHOT` is MSSQL-only. SQLite does not support `SET TRANSACTION ISOLATION LEVEL` and will throw if this option is passed.
 
 ### Retry on connection error
 
@@ -22,7 +48,14 @@ await db.atomically(
 );
 ```
 
-Only `ConnectionError` is retried — never `QueryError` or `MappingError`.
+Only `ConnectionError` is retried — never `QueryError` or `MappingError`. Combine with `isolation` freely:
+
+```typescript
+await db.atomically(
+  async (q) => { /* ... */ },
+  { isolation: IsolationLevel.REPEATABLE_READ, retryOnError: true, maxRetries: 3 },
+);
+```
 
 ## `db.transaction` — manual control
 
@@ -94,11 +127,3 @@ const result = await retryWithDeadlockBackoff(
 
 Detects adapter-specific deadlock codes (MSSQL 1205, PostgreSQL 40P01, MySQL 1213, SQLite SQLITE_BUSY) and retries with exponential backoff + jitter.
 
-## Isolation levels
-
-```typescript
-import { IsolationLevel } from "@phonemyatt/squn";
-
-// Set isolation at the adapter level before beginning
-adapter.setIsolationLevel(IsolationLevel.SERIALIZABLE);
-```

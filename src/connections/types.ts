@@ -3,6 +3,7 @@ import type { PreparedQuery } from "../api/prepared.ts";
 import type { SqunConfig } from "../config/types.ts";
 import type { SqlFragment } from "../sql/fragment.ts";
 import type { AtomicExecutor, AtomicOptions as TxAtomicOptions } from "../transaction/atomic.ts";
+import type { IsolationLevel } from "../transaction/isolation.ts";
 import type { Transaction } from "../transaction/transaction.ts";
 
 /** Map of named connections. */
@@ -47,6 +48,7 @@ export interface AtomicOptions<Names extends string = never> {
   readonly retryOnError?: boolean;
   readonly maxRetries?: number;
   readonly retryDelayMs?: number;
+  readonly isolation?: IsolationLevel;
 }
 
 /** A scoped Database bound to a specific named connection via .use(). */
