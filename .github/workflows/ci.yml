@@ -69,7 +69,7 @@ jobs:
           --health-retries 10
 
       mysql:
-        image: mysql:8-oracle
+        image: mysql:8.0
         env:
           MYSQL_ROOT_PASSWORD: password
           MYSQL_DATABASE: squn_test
@@ -118,6 +118,13 @@ jobs:
       - name: Install squn-test-app deps
         working-directory: work/squn-test-app
         run: bun install
+
+      # Bun's MySQL client doesn't support caching_sha2_password (MySQL 8 default).
+      # Switch root to mysql_native_password before the showcase runs.
+      - name: Configure MySQL native password
+        run: |
+          mysql -u root -ppassword -h 127.0.0.1 -P 3306 --protocol=TCP -e \
+            "ALTER USER 'root'@'%' IDENTIFIED WITH mysql_native_password BY 'password'; FLUSH PRIVILEGES;"
 
       - name: Run showcase
         working-directory: work/squn-test-app

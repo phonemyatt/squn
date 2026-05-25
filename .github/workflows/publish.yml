@@ -57,7 +57,7 @@ jobs:
           --health-retries 15
 
       mysql:
-        image: mysql:8-oracle
+        image: mysql:8.0
         env:
           MYSQL_ROOT_PASSWORD: password
           MYSQL_DATABASE: squn_test
@@ -109,6 +109,11 @@ jobs:
       - name: Install squn-test-app dependencies
         run: bun install
         working-directory: squn-test-app
+
+      - name: Configure MySQL native password
+        run: |
+          mysql -u root -ppassword -h 127.0.0.1 -P 3306 --protocol=TCP -e \
+            "ALTER USER 'root'@'%' IDENTIFIED WITH mysql_native_password BY 'password'; FLUSH PRIVILEGES;"
 
       - name: Run multi-adapter showcase
         run: bun run showcase:all
