@@ -1,7 +1,7 @@
 import type { IDbAdapter } from "../adapters/base.ts";
 import { buildParams } from "../core/param-builder.ts";
-import { ensureTrailingSemicolon } from "../sql/fragment.ts";
 import type { SqlFragment } from "../sql/fragment.ts";
+import { ensureTrailingSemicolon } from "../sql/fragment.ts";
 
 /** Returns { rowsAffected }. */
 export async function execute(
@@ -20,7 +20,12 @@ export function executeBatch(
 ): Promise<{ rowsAffected: number }> {
   if (rows.length === 0) return Promise.resolve({ rowsAffected: 0 });
   const built = buildParams(fragment.text, rows[0] ?? {}, adapter.type);
-  return adapter.executeBatch(ensureTrailingSemicolon(built.text), rows, built.paramOrder, options?.strategy);
+  return adapter.executeBatch(
+    ensureTrailingSemicolon(built.text),
+    rows,
+    built.paramOrder,
+    options?.strategy,
+  );
 }
 
 /** Typed insert — data checked against InferInsert at the type level. */

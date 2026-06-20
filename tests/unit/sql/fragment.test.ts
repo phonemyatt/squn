@@ -1,6 +1,11 @@
 import { describe, expect, it } from "bun:test";
 import type { TvpValue } from "../../../src/sql/fragment.ts";
-import { createFragment, ensureTrailingSemicolon, isSqlFragment, isTvpValue } from "../../../src/sql/fragment.ts";
+import {
+  createFragment,
+  ensureTrailingSemicolon,
+  isSqlFragment,
+  isTvpValue,
+} from "../../../src/sql/fragment.ts";
 
 describe("sql/fragment — SqlFragment", () => {
   it("createFragment returns an object with __isSql: true", () => {

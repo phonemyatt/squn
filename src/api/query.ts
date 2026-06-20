@@ -2,8 +2,8 @@ import type { IDbAdapter } from "../adapters/base.ts";
 import { Cursor } from "../async/cursor.ts";
 import { ErrorCode } from "../errors/codes.ts";
 import { QueryError } from "../errors/types.ts";
-import { ensureTrailingSemicolon } from "../sql/fragment.ts";
 import type { SqlFragment } from "../sql/fragment.ts";
+import { ensureTrailingSemicolon } from "../sql/fragment.ts";
 import type { Row } from "../types/primitives.ts";
 
 /** Returns T[] — zero or more rows. */

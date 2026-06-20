@@ -3,8 +3,8 @@ import { ParamBuffer } from "../cache/param-buffer.ts";
 import { ErrorCode } from "../errors/codes.ts";
 import { QueryError } from "../errors/types.ts";
 import { formatSql } from "../sql/formatter.ts";
-import { ensureTrailingSemicolon } from "../sql/fragment.ts";
 import type { SqlFragment } from "../sql/fragment.ts";
+import { ensureTrailingSemicolon } from "../sql/fragment.ts";
 import { validateSql } from "../sql/validator.ts";
 import type { Row } from "../types/primitives.ts";
 
