@@ -119,7 +119,7 @@ export class MssqlAdapter implements IDbAdapter {
       const pool = await this.getPool();
       const request = pool.request();
       bindParams(request, params);
-      const result = await request.query(sql);
+      const result = await request.query(toMssqlSql(sql));
       const affected = result.rowsAffected.reduce((a: number, b: number) => a + b, 0);
       return { rowsAffected: affected };
     } catch (err) {
@@ -137,7 +137,7 @@ export class MssqlAdapter implements IDbAdapter {
       const pool = await this.getPool();
       const request = pool.request();
       bindParams(request, params);
-      const result = await request.query(sql);
+      const result = await request.query(toMssqlSql(sql));
       return result.recordset as Row[];
     } catch (err) {
       throw wrapError(
@@ -154,7 +154,7 @@ export class MssqlAdapter implements IDbAdapter {
       const pool = await this.getPool();
       const request = pool.request();
       bindParams(request, params);
-      const result = await request.query(sql);
+      const result = await request.query(toMssqlSql(sql));
       return result.recordsets as Row[][];
     } catch (err) {
       throw wrapError(
@@ -186,7 +186,7 @@ export class MssqlAdapter implements IDbAdapter {
         try {
           const request = new m.Request(transaction);
           bindParams(request, params);
-          const result = await request.query(sql);
+          const result = await request.query(toMssqlSql(sql));
           const affected = result.rowsAffected.reduce((a: number, b: number) => a + b, 0);
           return { rowsAffected: affected };
         } catch (err) {
@@ -202,7 +202,7 @@ export class MssqlAdapter implements IDbAdapter {
         try {
           const request = new m.Request(transaction);
           bindParams(request, params);
-          const result = await request.query(sql);
+          const result = await request.query(toMssqlSql(sql));
           return result.recordset as Row[];
         } catch (err) {
           throw wrapError(
@@ -293,7 +293,7 @@ export class MssqlAdapter implements IDbAdapter {
         const params = paramNames.map((name) => row[name]);
         const request = pool.request();
         bindParams(request, params);
-        const result = await request.query(sql);
+        const result = await request.query(toMssqlSql(sql));
         total += result.rowsAffected.reduce((a: number, b: number) => a + b, 0);
       }
       return { rowsAffected: total };
@@ -355,4 +355,16 @@ function bindParams(request: mssql.Request, params: unknown[]): void {
   for (let i = 0; i < params.length; i++) {
     request.input(`p${i}`, params[i]);
   }
+}
+
+/**
+ * Translates squn's positional placeholders to MSSQL named-param syntax.
+ * - `$1`, `$2` (from sql`` template / insert/update) → `@p0`, `@p1`
+ * - `?` (from buildParams executeBatch path) → `@p0`, `@p1`, ...
+ */
+function toMssqlSql(sql: string): string {
+  let questionIndex = 0;
+  return sql
+    .replace(/\$(\d+)/g, (_, n: string) => `@p${Number(n) - 1}`)
+    .replace(/\?/g, () => `@p${questionIndex++}`);
 }

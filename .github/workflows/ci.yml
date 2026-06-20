@@ -81,6 +81,7 @@ jobs:
           --health-interval 2s
           --health-timeout 5s
           --health-retries 15
+          --default-authentication-plugin=mysql_native_password
 
       mssql:
         image: mcr.microsoft.com/mssql/server:2022-latest
@@ -119,14 +120,6 @@ jobs:
       - name: Install squn-test-app deps
         working-directory: work/squn-test-app
         run: bun install
-
-      # Bun's MySQL client doesn't support caching_sha2_password (MySQL 8 default).
-      # Run ALTER USER inside the container via socket — avoids RSA key exchange.
-      - name: Configure MySQL native password
-        run: |
-          CONTAINER=$(docker ps --filter "ancestor=mysql:8.0" -q)
-          docker exec "$CONTAINER" mysql -u root -p"password" \
-            -e "ALTER USER 'root'@'%' IDENTIFIED WITH mysql_native_password BY 'password'; FLUSH PRIVILEGES;"
 
       - name: Run showcase
         working-directory: work/squn-test-app
