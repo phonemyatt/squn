@@ -3,6 +3,7 @@ import { ParamBuffer } from "../cache/param-buffer.ts";
 import { ErrorCode } from "../errors/codes.ts";
 import { QueryError } from "../errors/types.ts";
 import { formatSql } from "../sql/formatter.ts";
+import { ensureTrailingSemicolon } from "../sql/fragment.ts";
 import type { SqlFragment } from "../sql/fragment.ts";
 import { validateSql } from "../sql/validator.ts";
 import type { Row } from "../types/primitives.ts";
@@ -41,7 +42,7 @@ export class PreparedQuery<T, P extends Record<string, unknown> = Record<string,
 
     this.adapter = adapter;
     this.meta = {
-      text: fragment.text,
+      text: ensureTrailingSemicolon(fragment.text),
       normalizedText: formatSql(fragment.text),
       paramNames,
       buffer: new ParamBuffer(paramNames.length || 8),

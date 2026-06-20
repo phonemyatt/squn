@@ -1,4 +1,5 @@
 import type { IDbAdapter } from "../adapters/base.ts";
+import { ensureTrailingSemicolon } from "../sql/fragment.ts";
 import type { SqlFragment } from "../sql/fragment.ts";
 
 /**
@@ -30,7 +31,7 @@ export class Cursor<T> implements AsyncIterableIterator<T> {
 
     if (!this.fetched) {
       // Fallback: fetch all rows once (native cursor is a future enhancement)
-      const raw = await this.adapter.query(this.fragment.text, this.fragment.params);
+      const raw = await this.adapter.query(ensureTrailingSemicolon(this.fragment.text), this.fragment.params);
       this.rows = raw as T[];
       this.fetched = true;
     }

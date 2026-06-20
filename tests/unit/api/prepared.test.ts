@@ -33,7 +33,7 @@ describe("api/prepared — PreparedQuery", () => {
     it("stores the SQL text and param names", () => {
       const fragment = sql`SELECT * FROM users WHERE id = ${0}`;
       const q = prepare(adapter, fragment, ["id"]);
-      expect(q.rawSql).toBe(fragment.text);
+      expect(q.rawSql).toBe(`${fragment.text};`);
       expect(q.paramNames).toEqual(["id"]);
     });
 
