@@ -43,9 +43,11 @@ export { maskConnectionString } from "./auth/mask.ts";
 // Auth
 export type { AuthConfig } from "./auth/types.ts";
 export { validateAuth } from "./auth/validate-auth.ts";
+// Cache
+export type { CacheOptions, CacheStats } from "./cache/cached-db.ts";
+export { CachedDb, createCachedDb } from "./cache/cached-db.ts";
 export { ParamBuffer } from "./cache/param-buffer.ts";
 export type { CompiledQuery } from "./cache/query-cache.ts";
-// Cache
 export { QueryCache } from "./cache/query-cache.ts";
 // Config
 export { SQUN_ENV_VARS } from "./config/env-vars.ts";
