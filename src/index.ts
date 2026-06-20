@@ -21,7 +21,7 @@ export { MssqlAdapter } from "./adapters/mssql.ts";
 export { MysqlAdapter } from "./adapters/mysql.ts";
 export { PostgresAdapter } from "./adapters/postgres.ts";
 export { SqliteAdapter } from "./adapters/sqlite.ts";
-export { execute, executeBatch, insert, update } from "./api/execute.ts";
+export { deleteRow, execute, executeBatch, insert, update, upsert } from "./api/execute.ts";
 // API
 export { PreparedQuery, prepare } from "./api/prepared.ts";
 export { execProc, queryProc } from "./api/proc.ts";
