@@ -46,10 +46,14 @@
     "vitepress": "1.6.4"
   },
   "peerDependencies": {
-    "mssql": ">=10"
+    "mssql": ">=10",
+    "mysql2": ">=3"
   },
   "peerDependenciesMeta": {
     "mssql": {
+      "optional": true
+    },
+    "mysql2": {
       "optional": true
     }
   }
