@@ -1,4 +1,5 @@
 import mysql2 from "mysql2/promise";
+type SqlParams = (string | number | boolean | null | Buffer | Date)[];
 import { ErrorCode } from "../errors/codes.ts";
 import { wrapError } from "../errors/wrap.ts";
 import type { Row } from "../types/primitives.ts";
@@ -19,29 +20,27 @@ function toQuestionMarkPlaceholders(sql: string): string {
 }
 
 function buildPoolConfig(options: MysqlAdapterOptions): mysql2.PoolOptions {
-  if (options.url) {
-    const u = new URL(options.url);
-    return {
-      host: u.hostname,
-      port: u.port ? Number(u.port) : 3306,
-      user: u.username || undefined,
-      password: u.password || undefined,
-      database: u.pathname.slice(1) || undefined,
-      waitForConnections: true,
-      connectionLimit: 10,
-      queueLimit: 0,
-    };
-  }
-  return {
-    host: options.host ?? "localhost",
-    port: options.port ?? 3306,
-    user: options.user,
-    password: options.password,
-    database: options.database,
+  const base: mysql2.PoolOptions = {
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0,
   };
+  if (options.url) {
+    const u = new URL(options.url);
+    if (u.hostname) base.host = u.hostname;
+    if (u.port) base.port = Number(u.port);
+    if (u.username) base.user = u.username;
+    if (u.password) base.password = u.password;
+    const db = u.pathname.slice(1);
+    if (db) base.database = db;
+  } else {
+    base.host = options.host ?? "localhost";
+    base.port = options.port ?? 3306;
+    if (options.user !== undefined) base.user = options.user;
+    if (options.password !== undefined) base.password = options.password;
+    if (options.database !== undefined) base.database = options.database;
+  }
+  return base;
 }
 
 export class MysqlAdapter implements IDbAdapter {
@@ -63,7 +62,7 @@ export class MysqlAdapter implements IDbAdapter {
 
   async execute(sql: string, params: readonly unknown[]): Promise<{ rowsAffected: number }> {
     try {
-      const [result] = await this.pool.execute(toQuestionMarkPlaceholders(sql), params as unknown[]);
+      const [result] = await this.pool.execute(toQuestionMarkPlaceholders(sql), params as SqlParams);
       const affected = (result as { affectedRows?: number }).affectedRows ?? 0;
       return { rowsAffected: affected };
     } catch (err) {
@@ -78,7 +77,7 @@ export class MysqlAdapter implements IDbAdapter {
 
   async query(sql: string, params: readonly unknown[]): Promise<Row[]> {
     try {
-      const [rows] = await this.pool.execute(toQuestionMarkPlaceholders(sql), params as unknown[]);
+      const [rows] = await this.pool.execute(toQuestionMarkPlaceholders(sql), params as SqlParams);
       return rows as Row[];
     } catch (err) {
       throw wrapError(
@@ -112,7 +111,7 @@ export class MysqlAdapter implements IDbAdapter {
     const tx: IDbTransaction = {
       async execute(sql: string, params: readonly unknown[]): Promise<{ rowsAffected: number }> {
         try {
-          const [result] = await conn.execute(toQuestionMarkPlaceholders(sql), params as unknown[]);
+          const [result] = await conn.execute(toQuestionMarkPlaceholders(sql), params as SqlParams);
           const affected = (result as { affectedRows?: number }).affectedRows ?? 0;
           return { rowsAffected: affected };
         } catch (err) {
@@ -126,7 +125,7 @@ export class MysqlAdapter implements IDbAdapter {
       },
       async query(sql: string, params: readonly unknown[]): Promise<Row[]> {
         try {
-          const [rows] = await conn.execute(toQuestionMarkPlaceholders(sql), params as unknown[]);
+          const [rows] = await conn.execute(toQuestionMarkPlaceholders(sql), params as SqlParams);
           return rows as Row[];
         } catch (err) {
           throw wrapError(
@@ -214,7 +213,7 @@ export class MysqlAdapter implements IDbAdapter {
     try {
       let total = 0;
       for (const row of rows) {
-        const params = paramNames.map((name) => row[name]);
+        const params = paramNames.map((name) => row[name]) as SqlParams;
         const [result] = await this.pool.execute(toQuestionMarkPlaceholders(sql), params);
         total += (result as { affectedRows?: number }).affectedRows ?? 0;
       }
