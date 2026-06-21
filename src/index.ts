@@ -130,6 +130,14 @@ export {
 export { defineMapper } from "./mapping/define-mapper.ts";
 export { globalMapperRegistry, MapperRegistry } from "./mapping/mapper-registry.ts";
 export { splitAndMap } from "./mapping/nested-mapper.ts";
+// Migrations
+export { rollbackMigration, runMigrations } from "./migrations/runner.ts";
+export type {
+  Migration,
+  MigrationOptions,
+  MigrationRecord,
+  MigrationResult,
+} from "./migrations/types.ts";
 export { PooledConnection } from "./pool/connection.ts";
 // Pool
 export { ConnectionPool } from "./pool/pool.ts";
