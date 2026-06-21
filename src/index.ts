@@ -140,6 +140,11 @@ export type {
   MigrationRecord,
   MigrationResult,
 } from "./migrations/types.ts";
+// Pagination
+export type { CursorPage, CursorPageOptions } from "./pagination/cursor.ts";
+export { cursorPage, decodeCursor, encodeCursor } from "./pagination/cursor.ts";
+export type { OffsetPage, OffsetPageOptions } from "./pagination/offset.ts";
+export { offsetPage } from "./pagination/offset.ts";
 export { PooledConnection } from "./pool/connection.ts";
 // Pool
 export { ConnectionPool } from "./pool/pool.ts";
