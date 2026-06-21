@@ -1,5 +1,7 @@
 import mysql2 from "mysql2/promise";
+
 type SqlParams = (string | number | boolean | null | Buffer | Date)[];
+
 import { ErrorCode } from "../errors/codes.ts";
 import { wrapError } from "../errors/wrap.ts";
 import type { Row } from "../types/primitives.ts";
@@ -62,7 +64,10 @@ export class MysqlAdapter implements IDbAdapter {
 
   async execute(sql: string, params: readonly unknown[]): Promise<{ rowsAffected: number }> {
     try {
-      const [result] = await this.pool.execute(toQuestionMarkPlaceholders(sql), params as SqlParams);
+      const [result] = await this.pool.execute(
+        toQuestionMarkPlaceholders(sql),
+        params as SqlParams,
+      );
       const affected = (result as { affectedRows?: number }).affectedRows ?? 0;
       return { rowsAffected: affected };
     } catch (err) {
