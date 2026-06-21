@@ -8,10 +8,10 @@ Generate ONLY these files:
 ---
 ## Table definition rules
 
-Use the fluent `col` builder from `src/types/col.ts`:
+Use the fluent `col` builder from `src/types/col.ts` and `defineTable` from `src/types/table.ts`:
 
 ```typescript
-import { col, defineTable } from "../types/col.ts";
+import { col } from "../types/col.ts";
 import { defineTable } from "../types/table.ts";
 import type { InferInsert, InferModel, InferUpdate } from "../types/infer.ts";
 
@@ -62,13 +62,23 @@ export type Update$ARGUMENTS = InferUpdate<typeof $ARGUMENTSTable>;
 ---
 ## Mapper rules (only if object mapping is needed)
 
-Use `defineMapper()` from `src/mapping/define-mapper.ts`:
+Use `defineMapper()` from `src/mapping/define-mapper.ts`. Its signature is:
+
+```typescript
+defineMapper(cls: Constructor<T>, schema: SchemaLike, factoryOrOptions?)
+```
+
+- First arg is a **class** (not a table definition)
+- Second arg is a schema with `columnNames` (the table definition satisfies this)
+- Third arg is either a factory `(row: Row) => T` or `{ strategy: "property" | "constructor" | "static" }`
 
 ```typescript
 import { defineMapper } from "../mapping/define-mapper.ts";
 import { $ARGUMENTSTable } from "../types/$ARGUMENTS.ts";
 
-defineMapper($ARGUMENTSTable, (row) => ({
+class $ARGUMENTS { /* ... */ }
+
+defineMapper($ARGUMENTS, $ARGUMENTSTable, (row) => ({
   // map raw DB row fields to domain object shape
 }));
 ```

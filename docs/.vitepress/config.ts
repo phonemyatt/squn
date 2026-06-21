@@ -41,7 +41,11 @@ export default defineConfig({
           items: [
             { text: "Type Definitions", link: "/guide/types" },
             { text: "Query Builder", link: "/guide/query-builder" },
+            { text: "Pagination", link: "/guide/pagination" },
             { text: "Mapping", link: "/guide/mapping" },
+            { text: "Connection Pool", link: "/guide/pool" },
+            { text: "Migrations", link: "/guide/migrations" },
+            { text: "Query Cache", link: "/guide/cache" },
             { text: "Multi-DB", link: "/guide/multi-db" },
             { text: "Error Handling", link: "/guide/error-handling" },
             { text: "Readonly Mode", link: "/guide/readonly" },

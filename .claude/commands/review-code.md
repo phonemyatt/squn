@@ -7,8 +7,8 @@ Check in this order. Report everything found — do not stop at the first issue.
 
 - `any` used anywhere → file:line
 - `enum` keyword outside these three files → file:line
-  - `src/errors/codes.ts`     (ErrorCode)
-  - `src/logging/logger.ts`   (EventCode)
+  - `src/errors/codes.ts`          (ErrorCode)
+  - `src/logging/logger.ts`        (EventCode)
   - `src/transaction/isolation.ts` (IsolationLevel)
 - `require()` or `module.exports` → file:line
 - `import ... assert {}` (use `with {}` instead) → file:line
@@ -22,18 +22,20 @@ Check in this order. Report everything found — do not stop at the first issue.
 
 - Non-null assertion `!` without a preceding guard → file:line
 - `as X` cast outside a validated boundary function → file:line
+  - Boundary functions are: adapter constructors, `wrapError()`, type-guard predicates
 - Array or record indexed without `undefined` check (`noUncheckedIndexedAccess`) → file:line
 - Optional field assigned `field = condition ? val : undefined` (`exactOptionalPropertyTypes`) → file:line
 - Missing `.ts` extension on a relative import → file:line
 
 ## ARCHITECTURE — should fix
 
-- Resource (DB connection / pool / stream) not using `using` / `await using`
+- Resource (DB connection / pool / stream) not implementing `Symbol.asyncDispose`
 - Value import used where `import type` should be used
 - Adapter driver API called directly from feature code (bypass `IDbAdapter`)
 - Module-level mutable state (use constructor injection instead)
-- Missing `assertX()` guard before an operation that requires a specific state
+- Missing guard before an operation that requires a specific state
 - New public export in `src/index.ts` missing `@public` or `@internal` TSDoc tag
+- Method added to `Database` but not mirrored in `MultiDatabase` (src/db.ts)
 
 ## GOOD PATTERNS — call these out positively
 
@@ -41,9 +43,10 @@ Check in this order. Report everything found — do not stop at the first issue.
 - Discriminated unions for state modeling
 - Branded types for IDs
 - `using` / `await using` for resources
-- `assertX()` guard functions protecting state machines
-- Factory functions with interface return types
+- Guard functions protecting state machines
+- Factory functions returning interface types (not concrete shapes)
 - `@public` / `@internal` TSDoc tags on exports
+- `wrapError()` used consistently in adapter catch blocks
 
 ---
 ## Output format

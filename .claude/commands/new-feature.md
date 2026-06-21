@@ -4,7 +4,7 @@ Run /plan first and wait for approval.
 
 A "feature" adds a new horizontal capability to the squn library
 (e.g. query batching, schema diffing, connection mirroring, retry policies).
-It must integrate cleanly with the existing `Db` interface and adapter layer.
+It must integrate cleanly with the existing `Database` interface and adapter layer.
 
 ---
 ## Files to generate or modify
@@ -29,8 +29,8 @@ It must integrate cleanly with the existing `Db` interface and adapter layer.
 ## Naming conventions (match existing)
 - Factory functions: `create${Feature}()`
 - State types: discriminated union string literals (not enums)
-- Config types: `${Feature}Config` interface
-- Private mutable state: `_camelCase` prefix
+- Behavioral options types: `${Feature}Options` (e.g. `AtomicOptions`, `MigrationOptions`)
+- Connection/startup config types: `${Feature}Config` (e.g. `SqunConfig`, `CacheConfig`)
 - Constants: `UPPER_SNAKE_CASE`
 
 ## After generating
