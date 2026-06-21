@@ -3,17 +3,18 @@ import { Cursor } from "../async/cursor.ts";
 import { ErrorCode } from "../errors/codes.ts";
 import { QueryError } from "../errors/types.ts";
 import type { SqlFragment } from "../sql/fragment.ts";
+import { ensureTrailingSemicolon } from "../sql/fragment.ts";
 import type { Row } from "../types/primitives.ts";
 
 /** Returns T[] — zero or more rows. */
 export async function query<T>(adapter: IDbAdapter, fragment: SqlFragment): Promise<T[]> {
-  const rows = await adapter.query(fragment.text, fragment.params);
+  const rows = await adapter.query(ensureTrailingSemicolon(fragment.text), fragment.params);
   return rows as T[];
 }
 
 /** Returns T | null — first row or null. */
 export async function queryFirst<T>(adapter: IDbAdapter, fragment: SqlFragment): Promise<T | null> {
-  const rows = await adapter.query(fragment.text, fragment.params);
+  const rows = await adapter.query(ensureTrailingSemicolon(fragment.text), fragment.params);
   if (rows.length === 0) return null;
   return rows[0] as T;
 }
@@ -35,7 +36,7 @@ export async function querySingle<T>(
   fragment: SqlFragment,
   strict: boolean = true,
 ): Promise<T | null> {
-  const rows = await adapter.query(fragment.text, fragment.params);
+  const rows = await adapter.query(ensureTrailingSemicolon(fragment.text), fragment.params);
 
   if (rows.length === 0) {
     if (!strict) return null;
@@ -58,7 +59,7 @@ export async function querySingle<T>(
 
 /** Returns T — first column of first row. */
 export async function queryScalar<T>(adapter: IDbAdapter, fragment: SqlFragment): Promise<T> {
-  const rows = await adapter.query(fragment.text, fragment.params);
+  const rows = await adapter.query(ensureTrailingSemicolon(fragment.text), fragment.params);
   if (rows.length === 0) {
     throw new QueryError(ErrorCode.NO_ROWS_FOUND, "queryScalar() returned zero rows", {
       operation: "queryScalar",
@@ -79,7 +80,7 @@ export async function queryScalar<T>(adapter: IDbAdapter, fragment: SqlFragment)
 
 /** Returns multiple result sets. */
 export async function queryMultiple(adapter: IDbAdapter, fragment: SqlFragment): Promise<Row[][]> {
-  return adapter.queryMultiple(fragment.text, fragment.params);
+  return adapter.queryMultiple(ensureTrailingSemicolon(fragment.text), fragment.params);
 }
 
 /** AsyncIterableIterator<T> — streaming cursor with configurable batch size. */

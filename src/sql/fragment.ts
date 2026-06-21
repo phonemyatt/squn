@@ -31,3 +31,13 @@ export function createFragment(
 ): SqlFragment {
   return { text, params, tvpValues, __isSql: true };
 }
+
+/**
+ * Ensures a SQL text string ends with exactly one semicolon.
+ * Called at execution boundaries — never on intermediate/nested fragments.
+ * @internal
+ */
+export function ensureTrailingSemicolon(text: string): string {
+  const trimmed = text.trimEnd();
+  return trimmed.endsWith(";") ? trimmed : `${trimmed};`;
+}

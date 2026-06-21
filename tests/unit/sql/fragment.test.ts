@@ -1,6 +1,11 @@
 import { describe, expect, it } from "bun:test";
 import type { TvpValue } from "../../../src/sql/fragment.ts";
-import { createFragment, isSqlFragment, isTvpValue } from "../../../src/sql/fragment.ts";
+import {
+  createFragment,
+  ensureTrailingSemicolon,
+  isSqlFragment,
+  isTvpValue,
+} from "../../../src/sql/fragment.ts";
 
 describe("sql/fragment — SqlFragment", () => {
   it("createFragment returns an object with __isSql: true", () => {
@@ -34,6 +39,28 @@ describe("sql/fragment — isSqlFragment()", () => {
 
   it("returns false for a string", () => {
     expect(isSqlFragment("SELECT 1")).toBe(false);
+  });
+});
+
+describe("sql/fragment — ensureTrailingSemicolon()", () => {
+  it("appends a semicolon when text has none", () => {
+    expect(ensureTrailingSemicolon("SELECT 1")).toBe("SELECT 1;");
+  });
+
+  it("does not double-add when text already ends with semicolon", () => {
+    expect(ensureTrailingSemicolon("SELECT 1;")).toBe("SELECT 1;");
+  });
+
+  it("trims trailing whitespace before checking", () => {
+    expect(ensureTrailingSemicolon("SELECT 1   ")).toBe("SELECT 1;");
+  });
+
+  it("does not add a second semicolon when text ends with semicolon and whitespace", () => {
+    expect(ensureTrailingSemicolon("SELECT 1;  ")).toBe("SELECT 1;");
+  });
+
+  it("handles an empty string", () => {
+    expect(ensureTrailingSemicolon("")).toBe(";");
   });
 });
 
