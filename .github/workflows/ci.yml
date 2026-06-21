@@ -81,7 +81,6 @@ jobs:
           --health-interval 2s
           --health-timeout 5s
           --health-retries 15
-          --default-authentication-plugin=mysql_native_password
 
       mssql:
         image: mcr.microsoft.com/mssql/server:2022-latest
