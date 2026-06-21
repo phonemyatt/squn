@@ -39,6 +39,7 @@
     "@types/mssql": "^9.1.9",
     "bun-types": "latest",
     "mssql": ">=10",
+    "mysql2": ">=3",
     "esbuild": ">=0.21",
     "typedoc": "0.28.19",
     "typedoc-plugin-markdown": "4.11.0",
@@ -46,10 +47,14 @@
     "vitepress": "1.6.4"
   },
   "peerDependencies": {
-    "mssql": ">=10"
+    "mssql": ">=10",
+    "mysql2": ">=3"
   },
   "peerDependenciesMeta": {
     "mssql": {
+      "optional": true
+    },
+    "mysql2": {
       "optional": true
     }
   }

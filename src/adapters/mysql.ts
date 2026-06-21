@@ -1,4 +1,7 @@
-import { SQL } from "bun";
+import mysql2 from "mysql2/promise";
+
+type SqlParams = (string | number | boolean | null | Buffer | Date)[];
+
 import { ErrorCode } from "../errors/codes.ts";
 import { wrapError } from "../errors/wrap.ts";
 import type { Row } from "../types/primitives.ts";
@@ -13,38 +16,59 @@ export interface MysqlAdapterOptions {
   readonly password?: string;
 }
 
+// squn's sql tag emits $1, $2, ... positional placeholders; mysql2 uses ?
+function toQuestionMarkPlaceholders(sql: string): string {
+  return sql.replace(/\$\d+/g, "?");
+}
+
+function buildPoolConfig(options: MysqlAdapterOptions): mysql2.PoolOptions {
+  const base: mysql2.PoolOptions = {
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0,
+  };
+  if (options.url) {
+    const u = new URL(options.url);
+    if (u.hostname) base.host = u.hostname;
+    if (u.port) base.port = Number(u.port);
+    if (u.username) base.user = u.username;
+    if (u.password) base.password = u.password;
+    const db = u.pathname.slice(1);
+    if (db) base.database = db;
+  } else {
+    base.host = options.host ?? "localhost";
+    base.port = options.port ?? 3306;
+    if (options.user !== undefined) base.user = options.user;
+    if (options.password !== undefined) base.password = options.password;
+    if (options.database !== undefined) base.database = options.database;
+  }
+  return base;
+}
+
 export class MysqlAdapter implements IDbAdapter {
   readonly type = "mysql" as const;
-  private readonly sql: InstanceType<typeof SQL>;
-  private readonly options: MysqlAdapterOptions;
+  private readonly pool: mysql2.Pool;
 
   constructor(options: MysqlAdapterOptions = {}) {
-    this.options = options;
     try {
-      this.sql = new SQL({
-        url: options.url,
-        hostname: options.host,
-        port: options.port,
-        database: options.database,
-        username: options.user,
-        password: options.password,
-      });
+      this.pool = mysql2.createPool(buildPoolConfig(options));
     } catch (err) {
       throw wrapError(
         err,
         ErrorCode.ADAPTER_DRIVER_ERROR,
         { operation: "connect", adapter: "mysql" },
-        "Failed to create MySQL connection",
+        "Failed to create MySQL connection pool",
       );
     }
   }
 
-  async execute(sql: string, params: unknown[]): Promise<{ rowsAffected: number }> {
+  async execute(sql: string, params: readonly unknown[]): Promise<{ rowsAffected: number }> {
     try {
-      const result = await this.sql.unsafe(sql, params as (string | number | boolean | null)[]);
-      // Bun.SQL MySQL: 'count' = rows returned (SELECT); 'affectedRows' = rows mutated (DML)
-      const affected =
-        (result as unknown as { affectedRows?: number }).affectedRows ?? result.count ?? 0;
+      const [result] = await this.pool.execute(
+        toQuestionMarkPlaceholders(sql),
+        params as SqlParams,
+      );
+      const affected = (result as { affectedRows?: number }).affectedRows ?? 0;
       return { rowsAffected: affected };
     } catch (err) {
       throw wrapError(
@@ -56,10 +80,10 @@ export class MysqlAdapter implements IDbAdapter {
     }
   }
 
-  async query(sql: string, params: unknown[]): Promise<Row[]> {
+  async query(sql: string, params: readonly unknown[]): Promise<Row[]> {
     try {
-      const result = await this.sql.unsafe(sql, params as (string | number | boolean | null)[]);
-      return [...result] as Row[];
+      const [rows] = await this.pool.execute(toQuestionMarkPlaceholders(sql), params as SqlParams);
+      return rows as Row[];
     } catch (err) {
       throw wrapError(
         err,
@@ -70,41 +94,17 @@ export class MysqlAdapter implements IDbAdapter {
     }
   }
 
-  async queryMultiple(sql: string, params: unknown[]): Promise<Row[][]> {
-    try {
-      const result = await this.sql.unsafe(sql, params as (string | number | boolean | null)[]);
-      return [[...result] as Row[]];
-    } catch (err) {
-      throw wrapError(
-        err,
-        ErrorCode.ADAPTER_DRIVER_ERROR,
-        { operation: "queryMultiple", adapter: "mysql", sql },
-        "MySQL queryMultiple failed",
-      );
-    }
+  async queryMultiple(sql: string, params: readonly unknown[]): Promise<Row[][]> {
+    const rows = await this.query(sql, params);
+    return [rows];
   }
 
-  /**
-   * Opens a dedicated single-connection SQL instance for the transaction.
-   * We cannot use sql.reserve() here: Bun.SQL MySQL leaves the pool connection
-   * in a mid-read state after any DML, causing the next query on the same pool
-   * to hang. A private SQL(max:1) instance is isolated and closed on commit/rollback.
-   */
   async beginTransaction(): Promise<IDbTransaction> {
-    const txSql = new SQL({
-      url: this.options.url,
-      hostname: this.options.host,
-      port: this.options.port,
-      database: this.options.database,
-      username: this.options.user,
-      password: this.options.password,
-      max: 1,
-    });
-
+    let conn: mysql2.PoolConnection;
     try {
-      await txSql.unsafe("BEGIN");
+      conn = await this.pool.getConnection();
+      await conn.beginTransaction();
     } catch (err) {
-      await txSql.close().catch(() => undefined);
       throw wrapError(
         err,
         ErrorCode.ADAPTER_DRIVER_ERROR,
@@ -114,11 +114,10 @@ export class MysqlAdapter implements IDbAdapter {
     }
 
     const tx: IDbTransaction = {
-      async execute(sql: string, params: unknown[]): Promise<{ rowsAffected: number }> {
+      async execute(sql: string, params: readonly unknown[]): Promise<{ rowsAffected: number }> {
         try {
-          const result = await txSql.unsafe(sql, params as (string | number | boolean | null)[]);
-          const affected =
-            (result as unknown as { affectedRows?: number }).affectedRows ?? result.count ?? 0;
+          const [result] = await conn.execute(toQuestionMarkPlaceholders(sql), params as SqlParams);
+          const affected = (result as { affectedRows?: number }).affectedRows ?? 0;
           return { rowsAffected: affected };
         } catch (err) {
           throw wrapError(
@@ -129,10 +128,10 @@ export class MysqlAdapter implements IDbAdapter {
           );
         }
       },
-      async query(sql: string, params: unknown[]): Promise<Row[]> {
+      async query(sql: string, params: readonly unknown[]): Promise<Row[]> {
         try {
-          const result = await txSql.unsafe(sql, params as (string | number | boolean | null)[]);
-          return [...result] as Row[];
+          const [rows] = await conn.execute(toQuestionMarkPlaceholders(sql), params as SqlParams);
+          return rows as Row[];
         } catch (err) {
           throw wrapError(
             err,
@@ -144,7 +143,7 @@ export class MysqlAdapter implements IDbAdapter {
       },
       async commit(): Promise<void> {
         try {
-          await txSql.unsafe("COMMIT");
+          await conn.commit();
         } catch (err) {
           throw wrapError(
             err,
@@ -153,12 +152,12 @@ export class MysqlAdapter implements IDbAdapter {
             "MySQL COMMIT failed",
           );
         } finally {
-          await txSql.close().catch(() => undefined);
+          conn.release();
         }
       },
       async rollback(): Promise<void> {
         try {
-          await txSql.unsafe("ROLLBACK");
+          await conn.rollback();
         } catch (err) {
           throw wrapError(
             err,
@@ -167,12 +166,12 @@ export class MysqlAdapter implements IDbAdapter {
             "MySQL ROLLBACK failed",
           );
         } finally {
-          await txSql.close().catch(() => undefined);
+          conn.release();
         }
       },
       async savepoint(name: string): Promise<void> {
         try {
-          await txSql.unsafe(`SAVEPOINT ${name}`);
+          await conn.execute(`SAVEPOINT ${name}`);
         } catch (err) {
           throw wrapError(
             err,
@@ -184,25 +183,25 @@ export class MysqlAdapter implements IDbAdapter {
       },
       async releaseSavepoint(name: string): Promise<void> {
         try {
-          await txSql.unsafe(`RELEASE SAVEPOINT ${name}`);
+          await conn.execute(`RELEASE SAVEPOINT ${name}`);
         } catch (err) {
           throw wrapError(
             err,
             ErrorCode.ADAPTER_DRIVER_ERROR,
             { operation: "releaseSavepoint", adapter: "mysql" },
-            "MySQL RELEASE failed",
+            "MySQL RELEASE SAVEPOINT failed",
           );
         }
       },
       async rollbackToSavepoint(name: string): Promise<void> {
         try {
-          await txSql.unsafe(`ROLLBACK TO SAVEPOINT ${name}`);
+          await conn.execute(`ROLLBACK TO SAVEPOINT ${name}`);
         } catch (err) {
           throw wrapError(
             err,
             ErrorCode.ADAPTER_DRIVER_ERROR,
             { operation: "rollbackToSavepoint", adapter: "mysql" },
-            "MySQL ROLLBACK TO failed",
+            "MySQL ROLLBACK TO SAVEPOINT failed",
           );
         }
       },
@@ -219,9 +218,9 @@ export class MysqlAdapter implements IDbAdapter {
     try {
       let total = 0;
       for (const row of rows) {
-        const params = paramNames.map((name) => row[name]) as (string | number | boolean | null)[];
-        const result = await this.sql.unsafe(sql, params);
-        total += (result as unknown as { affectedRows?: number }).affectedRows ?? result.count ?? 0;
+        const params = paramNames.map((name) => row[name]) as SqlParams;
+        const [result] = await this.pool.execute(toQuestionMarkPlaceholders(sql), params);
+        total += (result as { affectedRows?: number }).affectedRows ?? 0;
       }
       return { rowsAffected: total };
     } catch (err) {
@@ -240,7 +239,7 @@ export class MysqlAdapter implements IDbAdapter {
 
   async ping(): Promise<void> {
     try {
-      await this.sql.unsafe("SELECT 1");
+      await this.pool.execute("SELECT 1");
     } catch (err) {
       throw wrapError(
         err,
@@ -253,7 +252,7 @@ export class MysqlAdapter implements IDbAdapter {
 
   async close(): Promise<void> {
     try {
-      await this.sql.close();
+      await this.pool.end();
     } catch (err) {
       throw wrapError(
         err,
