@@ -52,6 +52,10 @@ export class MysqlAdapter implements IDbAdapter {
   constructor(options: MysqlAdapterOptions = {}) {
     try {
       this.pool = mysql2.createPool(buildPoolConfig(options));
+      // Unref pool connections so they don't prevent process exit when close() isn't called.
+      this.pool.on("connection", (conn) => {
+        (conn as unknown as { stream: { unref(): void } }).stream.unref();
+      });
     } catch (err) {
       throw wrapError(
         err,
