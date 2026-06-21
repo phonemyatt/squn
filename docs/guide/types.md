@@ -1,153 +1,150 @@
 # Type Definitions
 
-squn infers TypeScript types directly from your table definitions. Define a table once and get fully-typed query results, insert shapes, and compile-time column validation — no manual interface duplication.
+squn infers TypeScript types directly from your table definitions. Define a table once and get fully-typed query results, insert shapes, and update shapes — no manual interface duplication.
 
 ## Defining a table
 
-Use `defineTable` with `col()` to describe your schema:
+Use `defineTable` with the `col` builder to describe your schema:
 
 ```typescript
 import { col, defineTable } from "@phonemyatt/squn";
 
-const Users = defineTable({
-  id:    col("integer").primaryKey().notNull(),
-  name:  col("text").notNull(),
-  email: col("text").notNull(),
-  age:   col("integer").nullable(),
-  role:  col("text").notNull(),
+const Users = defineTable("users", {
+  id:        col.int().primaryKey(),
+  name:      col.nvarchar(100).notNull(),
+  email:     col.nvarchar(255).notNull(),
+  age:       col.int().nullable(),
+  createdAt: col.datetime().notNull(),
 });
 ```
 
-## `col()` type options
+## `col` builder reference
 
-The first argument to `col()` maps to a TypeScript type:
+### Primitive shorthands
 
-| SQL type      | TypeScript type |
-|---------------|-----------------|
-| `"integer"`   | `number`        |
-| `"text"`      | `string`        |
-| `"boolean"`   | `boolean`       |
-| `"real"`      | `number`        |
-| `"blob"`      | `Uint8Array`    |
+| Builder | SQL type | TypeScript type | Notes |
+|---------|----------|-----------------|-------|
+| `col.string(len?)` | `NVARCHAR` | `string` | Defaults to `MAX` length |
+| `col.number()` | `FLOAT` | `number` | IEEE 754 double — use `col.int()` for integers |
 
-## Column modifiers
+### Exact SQL types
 
-- `.notNull()` — column is required; TypeScript type does not include `null`
-- `.nullable()` — column may be null; TypeScript type includes `| null`
-- `.primaryKey()` — marks the column as a primary key; excluded from `InferInsert` (see below)
+| Builder | SQL type | TypeScript type | Notes |
+|---------|----------|-----------------|-------|
+| `col.int()` | `INT` | `number` | |
+| `col.bigint()` | `BIGINT` | `number` | |
+| `col.smallint()` | `SMALLINT` | `number` | |
+| `col.float()` | `FLOAT` | `number` | |
+| `col.decimal(precision?)` | `DECIMAL` | `number` | |
+| `col.boolean()` | `BOOLEAN` | `boolean` | |
+| `col.text()` | `TEXT` | `string` | Unbound text, no length |
+| `col.nvarchar(len\|"MAX")` | `NVARCHAR` | `string` | Unicode, preferred for text |
+| `col.varchar(len\|"MAX")` | `VARCHAR` | `string` | |
+| `col.char(len)` | `CHAR` | `string` | Fixed length |
+| `col.datetime()` | `DATETIME` | `Date` | |
+| `col.date()` | `DATE` | `Date` | |
+| `col.time()` | `TIME` | `string` | |
+| `col.uuid()` | `UUID` | `string` | |
+| `col.blob()` | `BLOB` | `Buffer` | |
+| `col.json<T>()` | `JSON` | `T` | Use a specific type, not `unknown` |
+| `col.array<T>()` | `T[]` | `T[]` | PostgreSQL arrays |
 
-## `InferSelect`
+### Column modifiers
 
-`InferSelect` produces the shape of a row returned by a `SELECT *` or full-row query:
+Chain after any `col.*()` call:
+
+| Modifier | Effect |
+|----------|--------|
+| `.notNull()` | Required; TypeScript type does not include `null` |
+| `.nullable()` | Optional; TypeScript type includes `\| null` |
+| `.primaryKey()` | Implies `.readonly()` — excluded from `InferInsert` and `InferUpdate` |
+| `.readonly()` | Excluded from `InferInsert` and `InferUpdate` |
+| `.unique()` | Metadata only (no runtime enforcement) |
+| `.computed(expr)` | Implies `.readonly()` |
+
+Every column must have exactly one of `.notNull()` or `.nullable()`.
+
+## Inferred types
+
+### `InferModel`
+
+Full row shape as returned by `SELECT *`:
 
 ```typescript
-import { InferSelect } from "@phonemyatt/squn";
+import type { InferModel } from "@phonemyatt/squn";
 
-type UserRow = InferSelect<typeof Users>;
+type User = InferModel<typeof Users>;
 // {
-//   id:    number;
-//   name:  string;
-//   email: string;
-//   age:   number | null;
-//   role:  string;
+//   id:        number;
+//   name:      string;
+//   email:     string;
+//   age:       number | null;
+//   createdAt: Date;
 // }
 ```
 
-Use this as the type parameter when querying:
+### `InferInsert`
+
+Insert payload: primary key and readonly columns excluded; nullable columns become optional:
 
 ```typescript
-const users = await db.query<UserRow>(sql`SELECT * FROM users`);
-// users: UserRow[]
-```
-
-## `InferInsert`
-
-`InferInsert` produces the shape for an `INSERT` payload. Primary key columns are excluded; nullable columns become optional:
-
-```typescript
-import { InferInsert } from "@phonemyatt/squn";
+import type { InferInsert } from "@phonemyatt/squn";
 
 type UserInsert = InferInsert<typeof Users>;
 // {
-//   name:  string;
-//   email: string;
-//   age?:  number | null;   // nullable → optional
-//   role:  string;
+//   name:      string;
+//   email:     string;
+//   age?:      number | null;
+//   createdAt: Date;
 // }
-// `id` is omitted — it is a primary key
+// `id` omitted — primary key
 ```
 
-Use it to validate insert data at compile time:
+### `InferUpdate`
+
+Update payload: same exclusions as `InferInsert`, all fields optional:
 
 ```typescript
-async function createUser(data: UserInsert) {
-  return db.execute(sql`
-    INSERT INTO users (name, email, age, role)
-    VALUES (${data.name}, ${data.email}, ${data.age ?? null}, ${data.role})
-  `);
-}
+import type { InferUpdate } from "@phonemyatt/squn";
+
+type UserUpdate = InferUpdate<typeof Users>;
+// {
+//   name?:      string;
+//   email?:     string;
+//   age?:       number | null;
+//   createdAt?: Date;
+// }
 ```
 
-## `InferReadonlyModel`
+## Using `tableName`
 
-`InferReadonlyModel` strips mutable fields and returns a deeply-readonly version of the select shape. It is useful when passing row data to code that must not mutate it:
-
-```typescript
-import { InferReadonlyModel } from "@phonemyatt/squn";
-
-type ReadonlyUser = InferReadonlyModel<typeof Users>;
-// Readonly<{
-//   id:    number;
-//   name:  string;
-//   email: string;
-//   age:   number | null;
-//   role:  string;
-// }>
-```
-
-## Using `Users.tableName` with the query builder
-
-Every table definition exposes a `.tableName` string that you can pass directly to `queryBuilder` or interpolate into raw SQL:
+Every table definition exposes `.tableName`:
 
 ```typescript
-// String name matches the key from defineTable — defaults to the variable name
-// if not overridden.
 console.log(Users.tableName); // "users"
-
-// Pass the table definition to queryBuilder — tableName is inferred:
-import { queryBuilder } from "@phonemyatt/squn";
 
 const q = queryBuilder(Users)
   .select("id", "name", "email")
   .where(sql`role = ${"admin"}`)
   .build();
-
-const admins = await db.query<UserRow>(q);
-```
-
-You can also interpolate it directly:
-
-```typescript
-const rows = await db.query<UserRow>(
-  sql`SELECT * FROM ${sql.id(Users.tableName)} WHERE id = ${userId}`,
-);
 ```
 
 ## Complete example
 
 ```typescript
-import { col, defineTable, InferSelect, InferInsert, queryBuilder, sql } from "@phonemyatt/squn";
+import { col, defineTable, queryBuilder, sql } from "@phonemyatt/squn";
+import type { InferModel, InferInsert } from "@phonemyatt/squn";
 
-const Posts = defineTable({
-  id:        col("integer").primaryKey().notNull(),
-  authorId:  col("integer").notNull(),
-  title:     col("text").notNull(),
-  body:      col("text").notNull(),
-  published: col("boolean").notNull(),
-  score:     col("real").nullable(),
+const Posts = defineTable("posts", {
+  id:        col.int().primaryKey(),
+  authorId:  col.int().notNull(),
+  title:     col.nvarchar(500).notNull(),
+  body:      col.text().notNull(),
+  published: col.boolean().notNull(),
+  score:     col.decimal().nullable(),
 });
 
-type PostRow    = InferSelect<typeof Posts>;
+type PostRow    = InferModel<typeof Posts>;
 type PostInsert = InferInsert<typeof Posts>;
 // PostInsert: { authorId: number; title: string; body: string; published: boolean; score?: number | null }
 
@@ -155,7 +152,7 @@ async function getPublishedPosts(): Promise<PostRow[]> {
   return db.query<PostRow>(
     queryBuilder(Posts)
       .where(sql`published = ${true}`)
-      .orderBy("id DESC")
+      .orderBy("id", "DESC")
       .build(),
   );
 }

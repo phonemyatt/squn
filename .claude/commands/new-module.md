@@ -3,11 +3,24 @@
 Run /plan first. Once approved, generate ONLY these files:
 
 - src/$ARGUMENTS/types.ts       → interfaces, branded IDs, discriminated unions
-- src/$ARGUMENTS/index.ts       → core implementation, factory function
+- src/$ARGUMENTS/index.ts       → core implementation
 - src/index.ts                  → modify existing — add public exports only
 
 ---
-## Per-file contracts:
+## When to use a class vs a factory function
+
+**Use a class** when the module holds open resources (connections, pools, streams, timers).
+- Implement `Symbol.asyncDispose` so `await using` works
+- Constructor must throw a typed `SqunError` subclass — never raw `Error`
+- Example: `MysqlAdapter`, `CachedDb`, `ConnectionPool`
+
+**Use a factory function** when the module is stateless or composes adapters.
+- Return an interface type, not the concrete shape
+- Accept dependencies via parameters — no module-level globals
+- Example: `createCachedDb()`, `createConnection()`
+
+---
+## Per-file contracts
 
 ### types.ts
 - Branded ID if needed: `type ${ARGUMENTS}Id = string & { readonly __brand: '${ARGUMENTS}Id' }`
@@ -16,13 +29,9 @@ Run /plan first. Once approved, generate ONLY these files:
 - No `any`, no `!`, no `as X`
 
 ### index.ts (implementation)
-- Export a factory function `create${ARGUMENTS}()` — not a class constructor
-  unless the module genuinely needs private mutable state
-- Accept dependencies via parameter injection — no module-level globals
-- `await using` for any resource with `Symbol.asyncDispose`
-- Implement `Symbol.asyncDispose` if module holds open resources
 - All fallible paths throw typed `SqunError` subclasses — never throw raw `Error`
 - Log lifecycle events via injected `SqunLogger` — never `console.log`
+- `await using` for any callers who hold resources; implement `Symbol.asyncDispose` if applicable
 
 ### src/index.ts (public API surface)
 - Add named exports for all public types and functions

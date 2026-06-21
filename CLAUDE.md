@@ -1,10 +1,11 @@
 # Project Prompt Contract
-# TypeScript 5.9 → 6.0 patterns | Updated April 2026
+# Updated June 2026 — audited against live codebase
 # Keep this file under 60 lines — detailed rules live in .claude/commands/
 
 ## Stack (source of truth)
-- TypeScript: 5.9 (strict; TS 6.0 patterns enforced — see Hard Rules)
-- Runtime: Bun 1.x (ESM only)
+- TypeScript: 5.9 strict (TS 6.0 readiness aspirational — see Soft Rules)
+- Runtime: Bun 1.x (ESM only) — Postgres + SQLite use Bun.SQL (built-in)
+- Peer deps (optional): mysql2 ≥3, mssql ≥10
 - Target: ESNext (tsconfig: moduleResolution bundler, allowImportingTsExtensions)
 
 ## Build & Test (must work on first try — always)
@@ -49,7 +50,7 @@ Discard: tool call logs, file read confirmations, intermediate steps.
 - /new-module        → create a new internal module (types + impl + lib)
 - /new-feature       → add a new library capability
 - /new-entity        → define a table + mapper + inferred types
-- /new-endpoint      → add a method to the Db interface
+- /new-endpoint      → add a method to the Database interface
 - /new-export        → safely add or remove a public export
 - /new-type          → add branded IDs, discriminated unions, Result types
 - /new-util          → add a pure utility function to an existing module

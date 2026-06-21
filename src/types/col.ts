@@ -90,4 +90,8 @@ export const col = {
   blob: () => createColumnDef<Buffer>("blob", null),
   json: <T = unknown>() => createColumnDef<T>("json", null),
   array: <T = unknown>() => createColumnDef<T[]>("array", null),
+  /** Shorthand: TypeScript `string` → NVARCHAR. Defaults to MAX length. */
+  string: (len: number | "MAX" = "MAX") => createColumnDef<string>("nvarchar", len),
+  /** Shorthand: TypeScript `number` → FLOAT (IEEE 754 double, closest to JS number semantics). */
+  number: () => createColumnDef<number>("float", null),
 } as const;
